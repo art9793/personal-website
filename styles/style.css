@@ -17,6 +17,10 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
+} 
+
+header {
+  margin-top: 40px;
 }
 
 .nav-container {
@@ -70,11 +74,6 @@ body {
   color: #1a1a1a; /* Text color */
 
 } 
-
-header {
-  margin-top: 20px;
-}
-
 
 main {
   display: flex;
