@@ -8,22 +8,53 @@
 </head>
 <body>
   <header>
-    <nav>
-      <ul>
-        <li><a href="">Home</a></li>
-        <li><a href="">Projects</a></li>
-        <li><a href="">Writing</a></li>
-        <li><a href="">Reading</a></li>
-      </ul>
-    </nav>
+    <div class="nav-container">
+      <nav class="navbar">
+        <ul class="nav-list">
+          <li class="nav-item active">
+            <a href="">Home</a>
+          </li>
+          <li class="nav-item">
+            <a href="writing.html">Writing</a>
+          </li>
+          <li class="nav-item">
+            <a href="reading.html">Reading</a>
+          </li>
+          <li class="nav-item">
+            <a href="projects.html">Projects</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
   </header>
   <main>
     <div class="card">
-      <h1>Arshad Teli</h1>
-      <h2>Product Manager</h2>
+      <h1 class="my-name">Arshad Teli</h1>
+      <h2 class="my-title">Product Manager</h2>
       <hr>
-      <p>Hey there! I’m a Product Manager & Designer who sometimes likes to read, write or build!</p>
-
+      <p class="my-bio">Hey there! I’m a Product Manager & Designer who sometimes likes to read, write or build!</p>
+      <div class="social-icons">
+        <img
+          src="images/icons/brand-x.svg"
+          alt="Twitter Icon"
+          class="social-icon"
+        />
+        <img
+          class="social-icon"
+          src="images/icons/brand-linkedin.svg"
+          alt="LinkedIn Icon"
+        />
+        <img
+          class="social-icon"
+          src="images/icons/brand-github.svg"
+          alt="GitHub Icon"
+        />
+        <img
+          class="social-icon"
+          src="images/icons/envelope.svg"
+          alt="Email Icon"
+        />
+      </div>
     </div>
   </main>
 </body>
