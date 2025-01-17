@@ -19,8 +19,11 @@ body {
   justify-content: space-around;
 } 
 
-header {
-  margin-top: 40px;
+header, main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .nav-container {
