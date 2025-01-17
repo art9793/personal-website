@@ -126,10 +126,8 @@ hr {
   cursor: pointer;
   padding: 8px;
   transition: all 0.2s ease-in-out; /* Smooth transition on hover */
-
 }
 
 .social-icon:hover {
   background-color: #f2f4f8; /* Slightly darker hover background */
-
 }
