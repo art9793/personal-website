@@ -158,4 +158,8 @@ hr {
     font-size: 14px; /* Smaller font size for links */
     padding: 6px 12px; /* Reduce padding */
   }
+   
+  .social-icons {
+    gap: 16px; /* Reduce spacing between icons */
+  }
 }
