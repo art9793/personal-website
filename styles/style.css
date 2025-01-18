@@ -142,4 +142,20 @@ hr {
 
 .social-icon:hover {
   background-color: #f2f4f8; /* Slightly darker hover background */
+} 
+
+@media (max-width: 430px) {
+  .card {
+    width: 90%; 
+  } 
+
+  .navbar {
+    flex-direction: column; /* Stack links vertically */
+    gap: 8px; /* Reduce spacing between items */
+  }
+
+  .nav-item a {
+    font-size: 14px; /* Smaller font size for links */
+    padding: 6px 12px; /* Reduce padding */
+  }
 }
