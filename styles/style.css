@@ -124,11 +124,17 @@ hr {
   margin-bottom: 12px;
 }
 
+.my-title {
+  font-size: 18px;
+
+}
+
 .social-icons {
   display: flex;
   justify-content: center;
   gap: 40px;
   padding: 12px 16px;
+  padding-bottom: 0px;
 }
 
 .social-icon {
