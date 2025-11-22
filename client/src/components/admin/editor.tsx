@@ -8,6 +8,8 @@ import Strike from '@tiptap/extension-strike'
 import Highlight from '@tiptap/extension-highlight'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import HorizontalRule from '@tiptap/extension-horizontal-rule'
+import TaskList from '@tiptap/extension-task-list'
+import TaskItem from '@tiptap/extension-task-item'
 import { TextStyle } from '@tiptap/extension-text-style'
 import { Color } from '@tiptap/extension-color'
 import { common, createLowlight } from 'lowlight'
@@ -18,7 +20,7 @@ import tippy from 'tippy.js'
 import { Button } from "@/components/ui/button"
 import { 
   Bold, Italic, Underline as UnderlineIcon, Strikethrough, Highlighter, Code, FileCode,
-  List, ListOrdered, Image as ImageIcon, Link as LinkIcon, Quote, 
+  List, ListOrdered, ListTodo, Image as ImageIcon, Link as LinkIcon, Quote, 
   Heading1, Heading2, Heading3, Heading4, Minus, Undo, Redo 
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -52,6 +54,11 @@ const slashCommandItems = [
     title: 'Numbered List',
     icon: ListOrdered,
     command: (editor: any) => editor.chain().focus().toggleOrderedList().run(),
+  },
+  {
+    title: 'Task List',
+    icon: ListTodo,
+    command: (editor: any) => editor.chain().focus().toggleTaskList().run(),
   },
   {
     title: 'Quote',
@@ -197,7 +204,7 @@ const SlashCommand = Extension.create({
                 return true
               }
 
-              return component.ref?.onKeyDown(props)
+              return (component.ref as any)?.onKeyDown?.(props) || false
             },
 
             onExit() {
@@ -344,6 +351,16 @@ const MenuBar = ({ editor }: { editor: any }) => {
       >
         <ListOrdered className="h-4 w-4" />
       </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().toggleTaskList().run()}
+        className={cn(editor.isActive('taskList') ? 'bg-muted' : '')}
+        title="Task List"
+      >
+        <ListTodo className="h-4 w-4" />
+      </Button>
       <div className="w-px h-6 bg-border mx-1 self-center" />
       <Button
         type="button"
@@ -446,6 +463,14 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
           keepMarks: true,
         },
         codeBlock: false,
+        bulletList: {
+          keepMarks: true,
+          keepAttributes: false,
+        },
+        orderedList: {
+          keepMarks: true,
+          keepAttributes: false,
+        },
       }),
       Underline,
       Strike,
@@ -459,6 +484,10 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
         multicolor: false,
       }),
       HorizontalRule,
+      TaskList,
+      TaskItem.configure({
+        nested: true,
+      }),
       TextStyle,
       Color,
       Image,
