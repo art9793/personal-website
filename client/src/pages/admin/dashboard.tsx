@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { 
   LayoutDashboard, PenTool, FolderGit2, BookOpen, Settings, 
   LogOut, Image as ImageIcon, Save, Plus, Search, Globe,
-  PanelLeftClose, PanelLeftOpen,
+  ChevronsLeft, ChevronsRight,
   ChevronRight, Upload, Trash2, Edit2, ArrowLeft, Eye, CheckCircle,
   MoreHorizontal, Clock, Calendar as CalendarIcon, ArrowUpDown, Filter
 } from "lucide-react";
@@ -240,7 +240,7 @@ export default function AdminDashboard() {
     <div className="flex h-screen bg-background overflow-hidden">
       {/* Admin Sidebar */}
       <aside className={cn(
-        "border-r bg-muted/30 flex flex-col transition-all duration-300 ease-in-out",
+        "border-r bg-muted/30 flex flex-col transition-all duration-300 ease-in-out group relative",
         isSidebarExpanded ? "w-64" : "w-[72px]"
       )}>
         <div className={cn(
@@ -264,30 +264,21 @@ export default function AdminDashboard() {
             </div>
           )}
           
-          {isSidebarExpanded && (
-             <Button 
-               variant="ghost" 
-               size="icon" 
-               className="h-6 w-6 -mr-2 text-muted-foreground" 
-               onClick={() => setIsSidebarExpanded(false)}
-             >
-               <PanelLeftClose className="h-4 w-4" />
-             </Button>
-          )}
+          <Button 
+             variant="ghost" 
+             size="icon" 
+             className={cn(
+               "h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200 absolute",
+               isSidebarExpanded ? "right-2" : "right-0 top-16 left-0 mx-auto"
+             )}
+             onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+           >
+             {isSidebarExpanded ? <ChevronsLeft className="h-4 w-4" /> : <ChevronsRight className="h-4 w-4" />}
+           </Button>
         </div>
         
-        {!isSidebarExpanded && (
-           <div className="flex justify-center py-2 border-b bg-background/50">
-             <Button 
-               variant="ghost" 
-               size="icon" 
-               className="h-6 w-6 text-muted-foreground" 
-               onClick={() => setIsSidebarExpanded(true)}
-             >
-               <PanelLeftOpen className="h-4 w-4" />
-             </Button>
-           </div>
-        )}
+        {/* Spacer for collapsed state toggle button */}
+        {!isSidebarExpanded && <div className="h-8"></div>}
 
         <div className={cn(
           "flex-1 overflow-y-auto space-y-6",

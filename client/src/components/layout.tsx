@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { Home, PenTool, FolderGit2, BookOpen, Briefcase, Menu, X, Lock, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Home, PenTool, FolderGit2, BookOpen, Briefcase, Menu, X, Lock, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -126,10 +126,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Desktop Sidebar */}
       <aside className={cn(
-        "hidden md:flex flex-col fixed inset-y-0 left-0 border-r bg-card/30 backdrop-blur-sm p-6 transition-all duration-300",
+        "hidden md:flex flex-col fixed inset-y-0 left-0 border-r bg-card/30 backdrop-blur-sm p-6 transition-all duration-300 group z-40",
         isExpanded ? "w-64" : "w-[80px] items-center px-2"
       )}>
-        <div className={cn("flex items-center mb-8 py-2", isExpanded ? "justify-between px-3" : "justify-center flex-col gap-4")}>
+        <div className={cn("flex items-center mb-8 py-2 relative", isExpanded ? "justify-between px-3" : "justify-center flex-col gap-4")}>
            {isExpanded ? (
              <Link href="/">
                <a className="font-semibold text-lg tracking-tight">Arshad Teli</a>
@@ -139,8 +139,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                <a className="font-bold text-xl tracking-tight">AT</a>
              </Link>
            )}
-           <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground" onClick={() => setIsExpanded(!isExpanded)}>
-             {isExpanded ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
+           <Button 
+             variant="ghost" 
+             size="icon" 
+             className={cn(
+               "h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200 absolute",
+               isExpanded ? "-right-4" : "-right-0 top-12"
+             )} 
+             onClick={() => setIsExpanded(!isExpanded)}
+           >
+             {isExpanded ? <ChevronsLeft className="h-4 w-4" /> : <ChevronsRight className="h-4 w-4" />}
            </Button>
         </div>
         
