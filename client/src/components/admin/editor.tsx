@@ -9,14 +9,31 @@ import {
   Link as LinkIcon, Quote, Heading1, Heading2, Undo, Redo 
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useRef } from "react"
 
 const MenuBar = ({ editor }: { editor: any }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   if (!editor) {
     return null
   }
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const result = e.target?.result as string
+        if (result) {
+          editor.chain().focus().setImage({ src: result }).run()
+        }
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   return (
-    <div className="border-b py-4 mb-8 flex flex-wrap gap-2 bg-background sticky top-16 z-10 opacity-30 hover:opacity-100 transition-opacity duration-300">
+    <div className="border-b py-2 mb-4 flex flex-wrap gap-1 bg-background sticky top-16 z-10 opacity-100 transition-opacity duration-300">
       <Button
         type="button"
         variant="ghost"
@@ -88,25 +105,41 @@ const MenuBar = ({ editor }: { editor: any }) => {
         variant="ghost"
         size="sm"
         onClick={() => {
-          const url = window.prompt('URL')
-          if (url) {
-            editor.chain().focus().setLink({ href: url }).run()
+          const previousUrl = editor.getAttributes('link').href
+          const url = window.prompt('URL', previousUrl)
+          
+          // cancelled
+          if (url === null) {
+            return
           }
+
+          // empty
+          if (url === '') {
+            editor.chain().focus().extendMarkRange('link').unsetLink().run()
+            return
+          }
+
+          // update
+          editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
         }}
         className={cn(editor.isActive('link') ? 'bg-muted' : '')}
       >
         <LinkIcon className="h-4 w-4" />
       </Button>
+      
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        className="hidden" 
+        accept="image/*"
+        onChange={handleImageUpload}
+      />
+      
       <Button
         type="button"
         variant="ghost"
         size="sm"
-        onClick={() => {
-          const url = window.prompt('Image URL')
-          if (url) {
-            editor.chain().focus().setImage({ src: url }).run()
-          }
-        }}
+        onClick={() => fileInputRef.current?.click()}
       >
         <ImageIcon className="h-4 w-4" />
       </Button>
@@ -138,6 +171,7 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
       Image,
       Link.configure({
         openOnClick: false,
+        autolink: true,
       }),
       Placeholder.configure({
         placeholder: 'Tell your story...',
@@ -157,7 +191,7 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
   return (
     <div className="relative min-h-[500px] w-full">
       <MenuBar editor={editor} />
-      <EditorContent editor={editor} className="mt-8" />
+      <EditorContent editor={editor} className="mt-4" />
     </div>
   )
 }
