@@ -1,10 +1,8 @@
 import { Link } from "wouter";
-import { ArrowRight, Github, Twitter, Mail } from "lucide-react";
+import { ArrowRight, Github, Twitter, Mail, ExternalLink } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import profileImage from "@assets/logo.jpg";
-import campsiteImage from "@assets/generated_images/minimalist_abstract_app_interface_for_collaboration_tool.png";
-import staffDesignImage from "@assets/generated_images/minimalist_book_cover_design_for_staff_design.png";
 
 export default function Home() {
   return (
@@ -48,61 +46,66 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-primary">Selected Projects</h2>
-          <Link href="/projects" className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors">
+          <h2 className="text-lg font-semibold text-primary">Selected Projects</h2>
+          <Link href="/projects">
+            <a className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors">
               View all <ArrowRight className="h-3 w-3" />
+            </a>
           </Link>
         </div>
         
-        <div className="grid gap-6 md:grid-cols-2">
-          <Link href="/projects" className="group block rounded-lg border bg-card p-5 transition-all hover:shadow-md hover:-translate-y-1">
-               <div className="h-48 bg-muted rounded-md mb-4 overflow-hidden">
-                  <img 
-                    src={campsiteImage} 
-                    alt="Campsite Interface" 
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-               </div>
-               <h3 className="font-semibold group-hover:text-primary transition-colors">Campsite</h3>
-               <p className="text-sm text-muted-foreground mt-2">
-                 A communication platform for remote teams.
-               </p>
-          </Link>
-          <Link href="/projects" className="group block rounded-lg border bg-card p-5 transition-all hover:shadow-md hover:-translate-y-1">
-               <div className="h-48 bg-muted rounded-md mb-4 overflow-hidden">
-                  <img 
-                    src={staffDesignImage} 
-                    alt="Staff Design Book" 
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-               </div>
-               <h3 className="font-semibold group-hover:text-primary transition-colors">Staff Design</h3>
-               <p className="text-sm text-muted-foreground mt-2">
-                 Interviews with staff level product designers.
-               </p>
-          </Link>
+        <div className="grid gap-4">
+          {[
+            { title: "Campsite", desc: "The all-in-one communication platform for remote teams.", color: "bg-orange-500 text-orange-50" },
+            { title: "Staff Design", desc: "Interviews with staff-level product designers.", color: "bg-purple-500 text-purple-50" }
+          ].map((project, i) => (
+            <Link key={i} href="/projects">
+              <a className="group flex items-center gap-4 p-3 -mx-3 rounded-lg hover:bg-muted/40 transition-colors">
+                <div className={`h-10 w-10 rounded-lg flex items-center justify-center shadow-sm ${project.color} flex-shrink-0`}>
+                  <div className="font-bold text-base">{project.title[0]}</div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium text-primary group-hover:text-primary transition-colors">{project.title}</h3>
+                    <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <p className="text-sm text-muted-foreground truncate">{project.desc}</p>
+                </div>
+              </a>
+            </Link>
+          ))}
         </div>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-primary">Recent Writing</h2>
-          <Link href="/writing" className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors">
+          <h2 className="text-lg font-semibold text-primary">Recent Writing</h2>
+          <Link href="/writing">
+            <a className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors">
               Read more <ArrowRight className="h-3 w-3" />
+            </a>
           </Link>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-2">
           {[
             { title: "Designing for AI", date: "Oct 2024", views: "2.4k views" },
             { title: "The craft of software", date: "Aug 2024", views: "1.8k views" },
             { title: "Building Campsite", date: "May 2024", views: "3.2k views" }
           ].map((post, i) => (
-            <Link key={i} href="/article/sample" className="flex items-center justify-between group py-2">
-                <span className="font-medium text-primary group-hover:text-blue-600 transition-colors">{post.title}</span>
-                <span className="text-sm text-muted-foreground tabular-nums">{post.date}</span>
+            <Link key={i} href="/article/sample">
+              <a className="block group">
+                <div className="flex items-baseline justify-between py-2 border-b border-transparent group-hover:border-border transition-colors">
+                  <span className="text-base font-medium text-primary group-hover:text-blue-600 transition-colors">
+                    {post.title}
+                  </span>
+                  <span className="text-sm text-muted-foreground tabular-nums ml-4">
+                    {post.date}
+                  </span>
+                </div>
+              </a>
             </Link>
           ))}
         </div>
