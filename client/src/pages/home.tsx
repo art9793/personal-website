@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { ArrowRight, Github, Twitter, Mail, ExternalLink } from "lucide-react";
+import { ArrowRight, Github, Twitter, Linkedin, Mail, ExternalLink } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import profileImage from "@assets/logo.jpg";
@@ -64,22 +64,29 @@ export default function Home() {
           </div>
           
           <div className="flex items-center gap-4 pt-2">
-            {profile.twitter && (
-              <Button variant="outline" size="icon" asChild>
+            {profile.twitter && profile.showTwitter !== false && (
+              <Button variant="outline" size="icon" asChild data-testid="link-twitter">
                 <a href={profile.twitter} target="_blank" rel="noopener noreferrer">
                   <Twitter className="h-4 w-4" />
                 </a>
               </Button>
             )}
-            {profile.github && (
-              <Button variant="outline" size="icon" asChild>
+            {profile.linkedin && profile.showLinkedin !== false && (
+              <Button variant="outline" size="icon" asChild data-testid="link-linkedin">
+                <a href={profile.linkedin} target="_blank" rel="noopener noreferrer">
+                  <Linkedin className="h-4 w-4" />
+                </a>
+              </Button>
+            )}
+            {profile.github && profile.showGithub !== false && (
+              <Button variant="outline" size="icon" asChild data-testid="link-github">
                 <a href={profile.github} target="_blank" rel="noopener noreferrer">
                   <Github className="h-4 w-4" />
                 </a>
               </Button>
             )}
-            {profile.email && (
-              <Button variant="outline" size="icon" asChild>
+            {profile.email && profile.showEmail !== false && (
+              <Button variant="outline" size="icon" asChild data-testid="link-email">
                 <a href={`mailto:${profile.email}`}>
                   <Mail className="h-4 w-4" />
                 </a>

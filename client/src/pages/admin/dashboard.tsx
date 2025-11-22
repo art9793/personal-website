@@ -10,7 +10,8 @@ import {
   LogOut, Image as ImageIcon, Save, Plus, Search, Globe,
   ChevronsLeft, ChevronsRight, Link as LinkIcon, Star,
   ChevronRight, Upload, Trash2, Edit2, ArrowLeft, Eye, CheckCircle,
-  MoreHorizontal, Clock, Calendar as CalendarIcon, ArrowUpDown, Filter, Briefcase
+  MoreHorizontal, Clock, Calendar as CalendarIcon, ArrowUpDown, Filter, Briefcase,
+  Twitter, Linkedin, Github, Mail, AlertCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -60,13 +61,14 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
   const { 
-    profile, articles, projects, workHistory,
-    updateProfile, addArticle, updateArticle, deleteArticle,
+    profile, seoSettings, articles, projects, workHistory,
+    updateProfile, updateSeoSettings, addArticle, updateArticle, deleteArticle,
     addProject, updateProject, deleteProject,
     addWork, updateWork, deleteWork
   } = useContent();
   
   const [formData, setFormData] = useState(profile);
+  const [seoFormData, setSeoFormData] = useState(seoSettings);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [editingWork, setEditingWork] = useState<WorkExperience | null>(null);
@@ -85,7 +87,12 @@ export default function AdminDashboard() {
     formData.bio !== profile.bio ||
     formData.email !== profile.email ||
     formData.twitter !== profile.twitter ||
-    formData.github !== profile.github
+    formData.linkedin !== profile.linkedin ||
+    formData.github !== profile.github ||
+    formData.showTwitter !== profile.showTwitter ||
+    formData.showLinkedin !== profile.showLinkedin ||
+    formData.showGithub !== profile.showGithub ||
+    formData.showEmail !== profile.showEmail
   );
 
   // Reset states when changing tabs
@@ -111,6 +118,10 @@ export default function AdminDashboard() {
     setFormData(profile);
   }, [profile]);
 
+  useEffect(() => {
+    setSeoFormData(seoSettings);
+  }, [seoSettings]);
+
   const handleSignOut = () => {
     setLocation("/");
   };
@@ -122,6 +133,11 @@ export default function AdminDashboard() {
       title: "Profile Updated",
       description: "Your profile information has been saved.",
     });
+  };
+
+  const handleSaveSeoSettings = async () => {
+    if (!seoFormData) return;
+    await updateSeoSettings(seoFormData);
   };
 
   const handleNewPost = () => {
@@ -183,8 +199,23 @@ export default function AdminDashboard() {
     }
   };
 
+  const canPublishArticle = (article: Article | null) => {
+    if (!article) return false;
+    return article.slug?.trim() !== '' && article.title?.trim() !== '';
+  };
+
   const toggleArticleStatus = async (article: Article, e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    if (article.status === "Draft" && !canPublishArticle(article)) {
+      toast({
+        title: "Cannot Publish",
+        description: "Article must have a title and slug before publishing.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const newStatus = article.status === "Published" ? "Draft" : "Published";
     try {
       await updateArticle(article.id, { status: newStatus });
@@ -1480,32 +1511,125 @@ export default function AdminDashboard() {
           )}
 
           {!isWriting && activeTab === "seo" && (
-             <div className="space-y-6">
+             <div className="space-y-6 max-w-3xl">
                <div>
                  <h2 className="text-2xl font-bold tracking-tight">SEO & Metadata</h2>
                  <p className="text-muted-foreground mt-1">Configure site-wide SEO settings.</p>
                </div>
+               
                <Card>
                  <CardHeader>
-                   <CardTitle>Global Settings</CardTitle>
-                   <CardDescription>Default metadata for your entire site.</CardDescription>
+                   <CardTitle>Site Identity</CardTitle>
+                   <CardDescription>Basic information about your website.</CardDescription>
                  </CardHeader>
                  <CardContent className="space-y-4">
                    <div className="space-y-2">
-                     <Label>Site Title</Label>
-                     <Input defaultValue={profile?.name || ''} />
+                     <Label htmlFor="seo-title" data-testid="label-seo-title">Site Title</Label>
+                     <Input 
+                       id="seo-title"
+                       data-testid="input-seo-title"
+                       value={seoFormData?.siteTitle || ''} 
+                       onChange={(e) => setSeoFormData(seoFormData ? {...seoFormData, siteTitle: e.target.value} : undefined)}
+                       placeholder="Your Portfolio" 
+                     />
                    </div>
                    <div className="space-y-2">
-                     <Label>Site Description</Label>
-                     <Textarea defaultValue={profile?.bio || ''} />
+                     <Label htmlFor="seo-description" data-testid="label-seo-description">Site Description</Label>
+                     <Textarea 
+                       id="seo-description"
+                       data-testid="input-seo-description"
+                       value={seoFormData?.siteDescription || ''} 
+                       onChange={(e) => setSeoFormData(seoFormData ? {...seoFormData, siteDescription: e.target.value} : undefined)}
+                       placeholder="A brief description of your website"
+                       className="h-20"
+                     />
                    </div>
                    <div className="space-y-2">
-                     <Label>Twitter Handle</Label>
-                     <Input defaultValue="@username" />
+                     <Label htmlFor="seo-keywords" data-testid="label-seo-keywords">Keywords (comma-separated)</Label>
+                     <Input 
+                       id="seo-keywords"
+                       data-testid="input-seo-keywords"
+                       value={seoFormData?.siteKeywords || ''} 
+                       onChange={(e) => setSeoFormData(seoFormData ? {...seoFormData, siteKeywords: e.target.value} : undefined)}
+                       placeholder="portfolio, product manager, fintech" 
+                     />
                    </div>
-                   <Button>Save SEO Settings</Button>
                  </CardContent>
                </Card>
+
+               <Card>
+                 <CardHeader>
+                   <CardTitle>Open Graph (Facebook, LinkedIn)</CardTitle>
+                   <CardDescription>How your site appears when shared on social platforms.</CardDescription>
+                 </CardHeader>
+                 <CardContent className="space-y-4">
+                   <div className="space-y-2">
+                     <Label htmlFor="og-title" data-testid="label-og-title">OG Title</Label>
+                     <Input 
+                       id="og-title"
+                       data-testid="input-og-title"
+                       value={seoFormData?.ogTitle || ''} 
+                       onChange={(e) => setSeoFormData(seoFormData ? {...seoFormData, ogTitle: e.target.value} : undefined)}
+                       placeholder="Leave blank to use Site Title" 
+                     />
+                   </div>
+                   <div className="space-y-2">
+                     <Label htmlFor="og-description" data-testid="label-og-description">OG Description</Label>
+                     <Textarea 
+                       id="og-description"
+                       data-testid="input-og-description"
+                       value={seoFormData?.ogDescription || ''} 
+                       onChange={(e) => setSeoFormData(seoFormData ? {...seoFormData, ogDescription: e.target.value} : undefined)}
+                       placeholder="Leave blank to use Site Description"
+                       className="h-20"
+                     />
+                   </div>
+                   <div className="space-y-2">
+                     <Label htmlFor="og-image" data-testid="label-og-image">OG Image URL</Label>
+                     <Input 
+                       id="og-image"
+                       data-testid="input-og-image"
+                       value={seoFormData?.ogImage || ''} 
+                       onChange={(e) => setSeoFormData(seoFormData ? {...seoFormData, ogImage: e.target.value} : undefined)}
+                       placeholder="https://example.com/image.jpg" 
+                     />
+                   </div>
+                 </CardContent>
+               </Card>
+
+               <Card>
+                 <CardHeader>
+                   <CardTitle>Twitter Card</CardTitle>
+                   <CardDescription>How your site appears when shared on Twitter/X.</CardDescription>
+                 </CardHeader>
+                 <CardContent className="space-y-4">
+                   <div className="space-y-2">
+                     <Label htmlFor="twitter-site" data-testid="label-twitter-site">Twitter Site Handle</Label>
+                     <Input 
+                       id="twitter-site"
+                       data-testid="input-twitter-site"
+                       value={seoFormData?.twitterSite || ''} 
+                       onChange={(e) => setSeoFormData(seoFormData ? {...seoFormData, twitterSite: e.target.value} : undefined)}
+                       placeholder="@yourhandle" 
+                     />
+                   </div>
+                   <div className="space-y-2">
+                     <Label htmlFor="twitter-creator" data-testid="label-twitter-creator">Twitter Creator Handle</Label>
+                     <Input 
+                       id="twitter-creator"
+                       data-testid="input-twitter-creator"
+                       value={seoFormData?.twitterCreator || ''} 
+                       onChange={(e) => setSeoFormData(seoFormData ? {...seoFormData, twitterCreator: e.target.value} : undefined)}
+                       placeholder="@creatorhandle" 
+                     />
+                   </div>
+                 </CardContent>
+               </Card>
+
+               <Button onClick={handleSaveSeoSettings} data-testid="button-save-seo">
+                 <Save className="h-4 w-4 mr-2" />
+                 Save SEO Settings
+               </Button>
              </div>
            )}
 
@@ -1559,24 +1683,113 @@ export default function AdminDashboard() {
                       />
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                        <Label>Social Links</Label>
-                       <div className="grid gap-3">
-                         <Input 
-                           placeholder="Email" 
-                           value={formData?.email || ''}
-                           onChange={(e) => setFormData(formData ? {...formData, email: e.target.value} : undefined)}
-                         />
-                         <Input 
-                           placeholder="Twitter URL" 
-                           value={formData?.twitter || ''}
-                           onChange={(e) => setFormData(formData ? {...formData, twitter: e.target.value} : undefined)}
-                         />
-                         <Input 
-                           placeholder="GitHub URL" 
-                           value={formData?.github || ''}
-                           onChange={(e) => setFormData(formData ? {...formData, github: e.target.value} : undefined)}
-                         />
+                       <p className="text-sm text-muted-foreground">Add your social profiles and control their visibility on your website.</p>
+                       <div className="space-y-4">
+                         {/* Twitter */}
+                         <div className="flex items-start gap-3">
+                           <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-muted flex items-center justify-center mt-0.5">
+                             <Twitter className="h-5 w-5 text-muted-foreground" />
+                           </div>
+                           <div className="flex-1 space-y-2">
+                             <Input 
+                               placeholder="Twitter URL" 
+                               value={formData?.twitter || ''}
+                               onChange={(e) => setFormData(formData ? {...formData, twitter: e.target.value} : undefined)}
+                               data-testid="input-twitter"
+                             />
+                             <div className="flex items-center gap-2">
+                               <Switch
+                                 id="show-twitter"
+                                 checked={formData?.showTwitter ?? true}
+                                 onCheckedChange={(checked) => setFormData(formData ? {...formData, showTwitter: checked} : undefined)}
+                                 data-testid="switch-show-twitter"
+                               />
+                               <Label htmlFor="show-twitter" className="text-sm font-normal cursor-pointer">
+                                 Show on website
+                               </Label>
+                             </div>
+                           </div>
+                         </div>
+
+                         {/* LinkedIn */}
+                         <div className="flex items-start gap-3">
+                           <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-muted flex items-center justify-center mt-0.5">
+                             <Linkedin className="h-5 w-5 text-muted-foreground" />
+                           </div>
+                           <div className="flex-1 space-y-2">
+                             <Input 
+                               placeholder="LinkedIn URL" 
+                               value={formData?.linkedin || ''}
+                               onChange={(e) => setFormData(formData ? {...formData, linkedin: e.target.value} : undefined)}
+                               data-testid="input-linkedin"
+                             />
+                             <div className="flex items-center gap-2">
+                               <Switch
+                                 id="show-linkedin"
+                                 checked={formData?.showLinkedin ?? true}
+                                 onCheckedChange={(checked) => setFormData(formData ? {...formData, showLinkedin: checked} : undefined)}
+                                 data-testid="switch-show-linkedin"
+                               />
+                               <Label htmlFor="show-linkedin" className="text-sm font-normal cursor-pointer">
+                                 Show on website
+                               </Label>
+                             </div>
+                           </div>
+                         </div>
+
+                         {/* GitHub */}
+                         <div className="flex items-start gap-3">
+                           <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-muted flex items-center justify-center mt-0.5">
+                             <Github className="h-5 w-5 text-muted-foreground" />
+                           </div>
+                           <div className="flex-1 space-y-2">
+                             <Input 
+                               placeholder="GitHub URL" 
+                               value={formData?.github || ''}
+                               onChange={(e) => setFormData(formData ? {...formData, github: e.target.value} : undefined)}
+                               data-testid="input-github"
+                             />
+                             <div className="flex items-center gap-2">
+                               <Switch
+                                 id="show-github"
+                                 checked={formData?.showGithub ?? true}
+                                 onCheckedChange={(checked) => setFormData(formData ? {...formData, showGithub: checked} : undefined)}
+                                 data-testid="switch-show-github"
+                               />
+                               <Label htmlFor="show-github" className="text-sm font-normal cursor-pointer">
+                                 Show on website
+                               </Label>
+                             </div>
+                           </div>
+                         </div>
+
+                         {/* Email */}
+                         <div className="flex items-start gap-3">
+                           <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-muted flex items-center justify-center mt-0.5">
+                             <Mail className="h-5 w-5 text-muted-foreground" />
+                           </div>
+                           <div className="flex-1 space-y-2">
+                             <Input 
+                               placeholder="Email" 
+                               value={formData?.email || ''}
+                               onChange={(e) => setFormData(formData ? {...formData, email: e.target.value} : undefined)}
+                               data-testid="input-email"
+                             />
+                             <div className="flex items-center gap-2">
+                               <Switch
+                                 id="show-email"
+                                 checked={formData?.showEmail ?? true}
+                                 onCheckedChange={(checked) => setFormData(formData ? {...formData, showEmail: checked} : undefined)}
+                                 data-testid="switch-show-email"
+                               />
+                               <Label htmlFor="show-email" className="text-sm font-normal cursor-pointer">
+                                 Show on website
+                               </Label>
+                             </div>
+                           </div>
+                         </div>
                        </div>
                     </div>
                   </div>
