@@ -105,8 +105,9 @@ export default function AdminDashboard() {
     setLocation("/");
   };
   
-  const handleSaveProfile = () => {
-    updateProfile(formData);
+  const handleSaveProfile = async () => {
+    if (!formData) return;
+    await updateProfile(formData);
     toast({
       title: "Profile Updated",
       description: "Your profile information has been saved.",
@@ -114,20 +115,19 @@ export default function AdminDashboard() {
   };
 
   const handleNewPost = () => {
-    const newArticle: Article = {
-      id: Date.now().toString(),
+    const newArticle: Partial<Article> = {
       title: "",
       slug: "",
       content: "",
-      date: new Date().toISOString().split('T')[0],
+      publishedAt: new Date(),
       status: "Draft",
       views: "0",
       excerpt: "",
       tags: "",
       seoKeywords: "",
-      author: profile.name
+      author: profile?.name || "Admin"
     };
-    setEditingArticle(newArticle);
+    setEditingArticle(newArticle as Article);
     setIsWriting(true);
   };
 
@@ -136,52 +136,64 @@ export default function AdminDashboard() {
     setIsWriting(true);
   };
 
-  const handleSaveArticle = () => {
+  const handleSaveArticle = async () => {
     if (!editingArticle) return;
 
-    if (articles.some(a => a.id === editingArticle.id)) {
-      updateArticle(editingArticle.id, editingArticle);
-    } else {
-      addArticle(editingArticle);
-    }
+    try {
+      if (editingArticle.id && articles.some(a => a.id === editingArticle.id)) {
+        await updateArticle(editingArticle.id, editingArticle);
+      } else {
+        await addArticle(editingArticle);
+      }
 
-    toast({
-      title: "Article Saved",
-      description: `"${editingArticle.title || 'Untitled'}" has been saved successfully.`,
-    });
-    setIsWriting(false);
-    setEditingArticle(null);
+      toast({
+        title: "Article Saved",
+        description: `"${editingArticle.title || 'Untitled'}" has been saved successfully.`,
+      });
+      setIsWriting(false);
+      setEditingArticle(null);
+    } catch (error) {
+      console.error("Error saving article:", error);
+    }
   };
 
-  const handleDeleteArticle = (id: string, e: React.MouseEvent) => {
+  const handleDeleteArticle = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm("Are you sure you want to delete this article?")) {
-      deleteArticle(id);
-      toast({
-        title: "Article Deleted",
-        description: "The article has been permanently removed.",
-        variant: "destructive"
-      });
+      try {
+        await deleteArticle(id);
+        toast({
+          title: "Article Deleted",
+          description: "The article has been permanently removed.",
+          variant: "destructive"
+        });
+      } catch (error) {
+        console.error("Error deleting article:", error);
+      }
     }
   };
 
-  const toggleArticleStatus = (article: Article, e: React.MouseEvent) => {
+  const toggleArticleStatus = async (article: Article, e: React.MouseEvent) => {
     e.stopPropagation();
     const newStatus = article.status === "Published" ? "Draft" : "Published";
-    updateArticle(article.id, { status: newStatus });
-    toast({
-      title: `Article ${newStatus}`,
-      description: `"${article.title}" is now ${newStatus.toLowerCase()}.`,
-    });
+    try {
+      await updateArticle(article.id, { status: newStatus });
+      toast({
+        title: `Article ${newStatus}`,
+        description: `"${article.title}" is now ${newStatus.toLowerCase()}.`,
+      });
+    } catch (error) {
+      console.error("Error updating article status:", error);
+    }
   };
 
-  const handleSaveProject = () => {
+  const handleSaveProject = async () => {
     if (!editingProject) return;
 
-    if (projects.some(p => p.id === editingProject.id)) {
-      updateProject(editingProject.id, editingProject);
+    if (editingProject.id && projects.some(p => p.id === editingProject.id)) {
+      await updateProject(editingProject.id, editingProject);
     } else {
-      addProject(editingProject);
+      await addProject(editingProject);
     }
 
     toast({
@@ -193,17 +205,15 @@ export default function AdminDashboard() {
   };
 
   const handleNewProject = () => {
-    const newProject: Project = {
-      id: Date.now().toString(),
+    const newProject: Partial<Project> = {
       title: "",
       description: "",
       link: "",
       tags: "",
       status: "Active",
-      featured: false,
-      date: new Date().toISOString().split('T')[0]
+      featured: false
     };
-    setEditingProject(newProject);
+    setEditingProject(newProject as Project);
     setIsProjectSheetOpen(true);
   };
 
@@ -212,10 +222,10 @@ export default function AdminDashboard() {
     setIsProjectSheetOpen(true);
   };
 
-  const handleDeleteProject = (id: string, e: React.MouseEvent) => {
+  const handleDeleteProject = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm("Are you sure you want to delete this project?")) {
-      deleteProject(id);
+      await deleteProject(id);
       toast({
         title: "Project Deleted",
         description: "The project has been permanently removed.",
@@ -225,8 +235,7 @@ export default function AdminDashboard() {
   };
 
   const handleNewWork = () => {
-    const newWork: WorkExperience = {
-      id: Date.now().toString(),
+    const newWork: Partial<WorkExperience> = {
       company: "",
       role: "",
       startDate: "",
@@ -234,7 +243,7 @@ export default function AdminDashboard() {
       description: "",
       logo: ""
     };
-    setEditingWork(newWork);
+    setEditingWork(newWork as WorkExperience);
     setIsWorkSheetOpen(true);
   };
 
@@ -243,13 +252,13 @@ export default function AdminDashboard() {
     setIsWorkSheetOpen(true);
   };
 
-  const handleSaveWork = () => {
+  const handleSaveWork = async () => {
     if (!editingWork) return;
 
-    if (workHistory.some(w => w.id === editingWork.id)) {
-      updateWork(editingWork.id, editingWork);
+    if (editingWork.id && workHistory.some(w => w.id === editingWork.id)) {
+      await updateWork(editingWork.id, editingWork);
     } else {
-      addWork(editingWork);
+      await addWork(editingWork);
     }
 
     toast({
@@ -260,10 +269,10 @@ export default function AdminDashboard() {
     setEditingWork(null);
   };
 
-  const handleDeleteWork = (id: string, e: React.MouseEvent) => {
+  const handleDeleteWork = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm("Are you sure you want to delete this work experience?")) {
-      deleteWork(id);
+      await deleteWork(id);
       toast({
         title: "Work Experience Deleted",
         description: "The entry has been permanently removed.",
@@ -288,7 +297,7 @@ export default function AdminDashboard() {
       result = result.filter(project => 
         project.title.toLowerCase().includes(query) ||
         project.description.toLowerCase().includes(query) ||
-        project.tags.toLowerCase().includes(query)
+        (project.tags && project.tags.toLowerCase().includes(query))
       );
     }
 
@@ -439,11 +448,11 @@ export default function AdminDashboard() {
             isSidebarExpanded ? "" : "justify-center"
           )}>
              <div className="h-8 w-8 rounded-lg bg-primary flex-shrink-0 flex items-center justify-center text-primary-foreground font-bold">
-               {profile.name.charAt(0)}
+               {profile?.name?.charAt(0) || 'A'}
              </div>
              {isSidebarExpanded && (
                <div>
-                 <div className="font-semibold text-sm truncate max-w-[100px]">{profile.name}</div>
+                 <div className="font-semibold text-sm truncate max-w-[100px]">{profile?.name || 'Admin'}</div>
                  <div className="text-xs text-muted-foreground truncate">Admin</div>
                </div>
              )}
@@ -518,7 +527,7 @@ export default function AdminDashboard() {
           {activeTab === "overview" && (
             <div className="space-y-8 animate-in fade-in-50 duration-500">
               <div>
-                <h2 className="text-3xl font-bold tracking-tight">Welcome, {profile.name.split(' ')[0]}!</h2>
+                <h2 className="text-3xl font-bold tracking-tight">Welcome, {profile?.name?.split(' ')[0] || 'Admin'}!</h2>
                 <p className="text-muted-foreground mt-1">Here's what's happening with your website today.</p>
               </div>
 
@@ -680,27 +689,16 @@ export default function AdminDashboard() {
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="link">Project Link</Label>
-                                            <div className="relative">
-                                                <LinkIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                                                <Input 
-                                                    id="link" 
-                                                    className="pl-8"
-                                                    value={editingProject.link} 
-                                                    onChange={(e) => setEditingProject({...editingProject, link: e.target.value})}
-                                                    placeholder="https://..."
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="date">Date</Label>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="link">Project Link</Label>
+                                        <div className="relative">
+                                            <LinkIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                             <Input 
-                                                id="date" 
-                                                type="date"
-                                                value={editingProject.date} 
-                                                onChange={(e) => setEditingProject({...editingProject, date: e.target.value})}
+                                                id="link" 
+                                                className="pl-8"
+                                                value={editingProject.link} 
+                                                onChange={(e) => setEditingProject({...editingProject, link: e.target.value})}
+                                                placeholder="https://..."
                                             />
                                         </div>
                                     </div>
@@ -914,9 +912,9 @@ export default function AdminDashboard() {
                                     Views {sortConfig?.key === 'views' && <ArrowUpDown className="h-3 w-3" />}
                                 </div>
                             </TableHead>
-                            <TableHead className="cursor-pointer hover:text-foreground" onClick={() => handleSort('date')}>
+                            <TableHead className="cursor-pointer hover:text-foreground" onClick={() => handleSort('publishedAt')}>
                                 <div className="flex items-center gap-1">
-                                    Published Date {sortConfig?.key === 'date' && <ArrowUpDown className="h-3 w-3" />}
+                                    Published Date {sortConfig?.key === 'publishedAt' && <ArrowUpDown className="h-3 w-3" />}
                                 </div>
                             </TableHead>
                             <TableHead className="w-[80px] text-center cursor-pointer hover:text-foreground" onClick={() => handleSort('status')}>
@@ -967,7 +965,7 @@ export default function AdminDashboard() {
                                         {article.views}
                                     </TableCell>
                                     <TableCell className="text-xs whitespace-nowrap">
-                                        {article.date}
+                                        {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : '—'}
                                     </TableCell>
                                     <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                                         <Checkbox 
@@ -1349,18 +1347,18 @@ export default function AdminDashboard() {
                                 variant={"ghost"}
                                 className={cn(
                                   "h-8 w-full justify-start text-left font-normal text-xs p-0 shadow-none bg-transparent hover:bg-transparent hover:text-foreground",
-                                  !editingArticle.date && "text-muted-foreground"
+                                  !editingArticle.publishedAt && "text-muted-foreground"
                                 )}
                               >
                                 <CalendarIcon className="mr-2 h-3 w-3 opacity-50" />
-                                {editingArticle.date ? format(new Date(editingArticle.date), "MMMM do, yyyy") : <span>Pick a date</span>}
+                                {editingArticle.publishedAt ? format(new Date(editingArticle.publishedAt), "MMMM do, yyyy") : <span>Pick a date</span>}
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0 min-w-[300px]" align="start">
                               <Calendar
                                 mode="single"
-                                selected={editingArticle.date ? new Date(editingArticle.date) : undefined}
-                                onSelect={(date) => date && setEditingArticle({...editingArticle, date: format(date, "yyyy-MM-dd")})}
+                                selected={editingArticle.publishedAt ? new Date(editingArticle.publishedAt) : undefined}
+                                onSelect={(date) => date && setEditingArticle({...editingArticle, publishedAt: date})}
                                 initialFocus
                               />
                             </PopoverContent>
@@ -1485,11 +1483,11 @@ export default function AdminDashboard() {
                  <CardContent className="space-y-4">
                    <div className="space-y-2">
                      <Label>Site Title</Label>
-                     <Input defaultValue={profile.name} />
+                     <Input defaultValue={profile?.name || ''} />
                    </div>
                    <div className="space-y-2">
                      <Label>Site Description</Label>
-                     <Textarea defaultValue={profile.bio} />
+                     <Textarea defaultValue={profile?.bio || ''} />
                    </div>
                    <div className="space-y-2">
                      <Label>Twitter Handle</Label>
@@ -1527,8 +1525,8 @@ export default function AdminDashboard() {
                       <Label htmlFor="name">Full Name</Label>
                       <Input 
                         id="name" 
-                        value={formData.name} 
-                        onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                        value={formData?.name || ''} 
+                        onChange={(e) => setFormData(formData ? {...formData, name: e.target.value} : undefined)} 
                       />
                     </div>
                     
@@ -1536,8 +1534,8 @@ export default function AdminDashboard() {
                       <Label htmlFor="role">Job Title</Label>
                       <Input 
                         id="role" 
-                        value={formData.jobTitle} 
-                        onChange={(e) => setFormData({...formData, jobTitle: e.target.value})} 
+                        value={formData?.title || ''} 
+                        onChange={(e) => setFormData(formData ? {...formData, title: e.target.value} : undefined)} 
                       />
                     </div>
 
@@ -1545,8 +1543,8 @@ export default function AdminDashboard() {
                       <Label htmlFor="bio">Bio</Label>
                       <Textarea 
                         id="bio" 
-                        value={formData.bio} 
-                        onChange={(e) => setFormData({...formData, bio: e.target.value})} 
+                        value={formData?.bio || ''} 
+                        onChange={(e) => setFormData(formData ? {...formData, bio: e.target.value} : undefined)} 
                         className="h-24"
                       />
                     </div>
@@ -1556,18 +1554,18 @@ export default function AdminDashboard() {
                        <div className="grid gap-3">
                          <Input 
                            placeholder="Email" 
-                           value={formData.email}
-                           onChange={(e) => setFormData({...formData, email: e.target.value})}
+                           value={formData?.email || ''}
+                           onChange={(e) => setFormData(formData ? {...formData, email: e.target.value} : undefined)}
                          />
                          <Input 
                            placeholder="Twitter URL" 
-                           value={formData.twitter}
-                           onChange={(e) => setFormData({...formData, twitter: e.target.value})}
+                           value={formData?.twitter || ''}
+                           onChange={(e) => setFormData(formData ? {...formData, twitter: e.target.value} : undefined)}
                          />
                          <Input 
                            placeholder="GitHub URL" 
-                           value={formData.github}
-                           onChange={(e) => setFormData({...formData, github: e.target.value})}
+                           value={formData?.github || ''}
+                           onChange={(e) => setFormData(formData ? {...formData, github: e.target.value} : undefined)}
                          />
                        </div>
                     </div>

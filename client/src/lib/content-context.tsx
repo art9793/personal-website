@@ -1,282 +1,393 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { isUnauthorizedError } from "@/lib/authUtils";
 
 interface Profile {
   name: string;
-  jobTitle: string;
+  title: string;
   bio: string;
-  email: string;
-  twitter: string;
-  github: string;
-  linkedin: string;
+  location?: string;
+  email?: string;
+  twitter?: string;
+  github?: string;
+  linkedin?: string;
+  website?: string;
+  avatarUrl?: string;
 }
 
 export interface Article {
-  id: string;
+  id: number;
   title: string;
   slug: string;
   content: string;
-  date: string;
-  status: "Draft" | "Published";
-  views: string;
   excerpt?: string;
-  featuredImage?: string;
-  seoKeywords?: string;
   tags?: string;
-  author?: string;
+  seoKeywords?: string;
+  author: string;
+  status: string;
+  views: string;
+  publishedAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface Project {
-  id: string;
+  id: number;
   title: string;
   description: string;
-  link: string;
-  tags: string;
-  status: "Active" | "Archived";
+  link?: string;
+  tags?: string;
+  status: string;
   featured: boolean;
-  date: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface WorkExperience {
-  id: string;
+  id: number;
   company: string;
   role: string;
   startDate: string;
   endDate: string;
   description: string;
   logo?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface ReadingListItem {
+  id: number;
+  title: string;
+  author: string;
+  link?: string;
+  description?: string;
+  category?: string;
+  status: string;
+  rating?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 interface ContentContextType {
-  profile: Profile;
+  profile: Profile | undefined;
   articles: Article[];
   projects: Project[];
   workHistory: WorkExperience[];
-  updateProfile: (newProfile: Partial<Profile>) => void;
-  addArticle: (article: Article) => void;
-  updateArticle: (id: string, updatedArticle: Partial<Article>) => void;
-  deleteArticle: (id: string) => void;
-  addProject: (project: Project) => void;
-  updateProject: (id: string, updatedProject: Partial<Project>) => void;
-  deleteProject: (id: string) => void;
-  addWork: (work: WorkExperience) => void;
-  updateWork: (id: string, updatedWork: Partial<WorkExperience>) => void;
-  deleteWork: (id: string) => void;
+  readingList: ReadingListItem[];
+  isLoading: boolean;
+  updateProfile: (data: Partial<Profile>) => Promise<void>;
+  addArticle: (article: Partial<Article>) => Promise<void>;
+  updateArticle: (id: number, data: Partial<Article>) => Promise<void>;
+  deleteArticle: (id: number) => Promise<void>;
+  addProject: (project: Partial<Project>) => Promise<void>;
+  updateProject: (id: number, data: Partial<Project>) => Promise<void>;
+  deleteProject: (id: number) => Promise<void>;
+  addWork: (work: Partial<WorkExperience>) => Promise<void>;
+  updateWork: (id: number, data: Partial<WorkExperience>) => Promise<void>;
+  deleteWork: (id: number) => Promise<void>;
+  addReadingListItem: (item: Partial<ReadingListItem>) => Promise<void>;
+  updateReadingListItem: (id: number, data: Partial<ReadingListItem>) => Promise<void>;
+  deleteReadingListItem: (id: number) => Promise<void>;
 }
-
-const defaultProfile: Profile = {
-  name: "Arshad Teli",
-  jobTitle: "Product Manager",
-  bio: "Hey there! I’m a Product Manager & Designer currently working at a UK based fintech!",
-  email: "art9793@gmail.com",
-  twitter: "https://x.com/art9793",
-  github: "https://github.com/art9793",
-  linkedin: "",
-};
-
-const defaultArticles: Article[] = [
-  { 
-    id: "1", 
-    title: "Designing for AI", 
-    slug: "designing-for-ai", 
-    content: "<h2>Introduction</h2><p>Start writing...</p>", 
-    date: "2024-10-24", 
-    status: "Published", 
-    views: "2.4k",
-    excerpt: "Exploring the challenges and opportunities...",
-    tags: "Design, AI",
-    author: "Arshad Teli",
-    seoKeywords: "ai, design, ux"
-  },
-  { 
-    id: "2", 
-    title: "The craft of software", 
-    slug: "craft-of-software", 
-    content: "<h2>Introduction</h2><p>Start writing...</p>", 
-    date: "2024-08-12", 
-    status: "Published", 
-    views: "1.8k",
-    excerpt: "Why details matter in software...",
-    tags: "Engineering, Craft",
-    author: "Arshad Teli",
-    seoKeywords: "software, craft, engineering"
-  },
-  { 
-    id: "3", 
-    title: "Building Campsite", 
-    slug: "building-campsite", 
-    content: "<h2>Introduction</h2><p>Start writing...</p>", 
-    date: "2024-05-03", 
-    status: "Published", 
-    views: "3.2k",
-    excerpt: "A journey of building a new product...",
-    tags: "Product, Startup",
-    author: "Arshad Teli",
-    seoKeywords: "startup, product, campsite"
-  },
-  { 
-    id: "4", 
-    title: "Future of Interfaces", 
-    slug: "future-of-interfaces", 
-    content: "<h2>Introduction</h2><p>Start writing...</p>", 
-    date: "2024-11-22", 
-    status: "Draft", 
-    views: "0",
-    excerpt: "What comes after screens?",
-    tags: "Future, UI",
-    author: "Arshad Teli",
-    seoKeywords: "ui, future, interfaces"
-  }
-];
-
-const defaultProjects: Project[] = [
-  {
-    id: "1",
-    title: "Campsite",
-    description: "A new way to share work in progress",
-    link: "https://campsite.design",
-    tags: "Product, Design",
-    status: "Active",
-    featured: true,
-    date: "2024-01-15"
-  },
-  {
-    id: "2",
-    title: "Replit Mobile",
-    description: "Coding on the go",
-    link: "https://replit.com/mobile",
-    tags: "Mobile, Engineering",
-    status: "Active",
-    featured: true,
-    date: "2023-08-20"
-  },
-  {
-    id: "3",
-    title: "Personal Site V1",
-    description: "Previous iteration of this website",
-    link: "#",
-    tags: "Web, Design",
-    status: "Archived",
-    featured: false,
-    date: "2022-05-10"
-  }
-];
-
-const defaultWorkHistory: WorkExperience[] = [
-  {
-    id: "1",
-    company: "Acme Corp",
-    role: "Senior Product Manager",
-    startDate: "2022-05-01",
-    endDate: "Present",
-    description: "Leading the core product team to build the future of finance.",
-    logo: "AC"
-  },
-  {
-    id: "2",
-    company: "TechStart",
-    role: "Product Designer",
-    startDate: "2020-03-01",
-    endDate: "2022-04-30",
-    description: "Designed the initial MVP and scaled the design system.",
-    logo: "TS"
-  }
-];
 
 const ContentContext = createContext<ContentContextType | undefined>(undefined);
 
-export function ContentProvider({ children }: { children: React.ReactNode }) {
-  const [profile, setProfile] = useState<Profile>(() => {
-    const saved = localStorage.getItem("site-profile");
-    return saved ? JSON.parse(saved) : defaultProfile;
+export function ContentProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  // Fetch profile
+  const { data: profile, isLoading: profileLoading } = useQuery<Profile>({
+    queryKey: ["/api/profile"],
   });
 
-  const [articles, setArticles] = useState<Article[]>(() => {
-    const saved = localStorage.getItem("site-articles");
-    return saved ? JSON.parse(saved) : defaultArticles;
+  // Fetch articles
+  const { data: articles = [], isLoading: articlesLoading } = useQuery<Article[]>({
+    queryKey: ["/api/articles"],
   });
 
-  const [projects, setProjects] = useState<Project[]>(() => {
-    const saved = localStorage.getItem("site-projects");
-    return saved ? JSON.parse(saved) : defaultProjects;
+  // Fetch projects
+  const { data: projects = [], isLoading: projectsLoading } = useQuery<Project[]>({
+    queryKey: ["/api/projects"],
   });
 
-  const [workHistory, setWorkHistory] = useState<WorkExperience[]>(() => {
-    const saved = localStorage.getItem("site-work");
-    return saved ? JSON.parse(saved) : defaultWorkHistory;
+  // Fetch work experiences
+  const { data: workHistory = [], isLoading: workLoading } = useQuery<WorkExperience[]>({
+    queryKey: ["/api/work-experiences"],
   });
 
-  useEffect(() => {
-    localStorage.setItem("site-profile", JSON.stringify(profile));
-  }, [profile]);
+  // Fetch reading list
+  const { data: readingList = [], isLoading: readingLoading } = useQuery<ReadingListItem[]>({
+    queryKey: ["/api/reading-list"],
+  });
 
-  useEffect(() => {
-    localStorage.setItem("site-articles", JSON.stringify(articles));
-  }, [articles]);
-
-  useEffect(() => {
-    localStorage.setItem("site-projects", JSON.stringify(projects));
-  }, [projects]);
-
-  useEffect(() => {
-    localStorage.setItem("site-work", JSON.stringify(workHistory));
-  }, [workHistory]);
-
-  const updateProfile = (newProfile: Partial<Profile>) => {
-    setProfile((prev) => ({ ...prev, ...newProfile }));
+  const handleUnauthorized = (error: Error) => {
+    if (isUnauthorizedError(error)) {
+      toast({
+        title: "Unauthorized",
+        description: "You are logged out. Logging in again...",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+      return true;
+    }
+    return false;
   };
 
-  const addArticle = (article: Article) => {
-    setArticles((prev) => [article, ...prev]);
+  // Profile mutation
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data: Partial<Profile>) => {
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+    },
+    onError: (error: Error) => {
+      if (!handleUnauthorized(error)) {
+        toast({
+          title: "Error",
+          description: "Failed to update profile",
+          variant: "destructive",
+        });
+      }
+    },
+  });
+
+  // Article mutations
+  const addArticleMutation = useMutation({
+    mutationFn: async (data: Partial<Article>) => {
+      const res = await fetch("/api/articles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/articles"] });
+    },
+    onError: (error: Error) => handleUnauthorized(error),
+  });
+
+  const updateArticleMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<Article> }) => {
+      const res = await fetch(`/api/articles/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/articles"] });
+    },
+    onError: (error: Error) => handleUnauthorized(error),
+  });
+
+  const deleteArticleMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/articles/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/articles"] });
+    },
+    onError: (error: Error) => handleUnauthorized(error),
+  });
+
+  // Project mutations
+  const addProjectMutation = useMutation({
+    mutationFn: async (data: Partial<Project>) => {
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+    },
+    onError: (error: Error) => handleUnauthorized(error),
+  });
+
+  const updateProjectMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<Project> }) => {
+      const res = await fetch(`/api/projects/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+    },
+    onError: (error: Error) => handleUnauthorized(error),
+  });
+
+  const deleteProjectMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/projects/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+    },
+    onError: (error: Error) => handleUnauthorized(error),
+  });
+
+  // Work Experience mutations
+  const addWorkMutation = useMutation({
+    mutationFn: async (data: Partial<WorkExperience>) => {
+      const res = await fetch("/api/work-experiences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/work-experiences"] });
+    },
+    onError: (error: Error) => handleUnauthorized(error),
+  });
+
+  const updateWorkMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<WorkExperience> }) => {
+      const res = await fetch(`/api/work-experiences/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/work-experiences"] });
+    },
+    onError: (error: Error) => handleUnauthorized(error),
+  });
+
+  const deleteWorkMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/work-experiences/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/work-experiences"] });
+    },
+    onError: (error: Error) => handleUnauthorized(error),
+  });
+
+  // Reading List mutations
+  const addReadingListItemMutation = useMutation({
+    mutationFn: async (data: Partial<ReadingListItem>) => {
+      const res = await fetch("/api/reading-list", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/reading-list"] });
+    },
+    onError: (error: Error) => handleUnauthorized(error),
+  });
+
+  const updateReadingListItemMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<ReadingListItem> }) => {
+      const res = await fetch(`/api/reading-list/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/reading-list"] });
+    },
+    onError: (error: Error) => handleUnauthorized(error),
+  });
+
+  const deleteReadingListItemMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/reading-list/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/reading-list"] });
+    },
+    onError: (error: Error) => handleUnauthorized(error),
+  });
+
+  const value: ContentContextType = {
+    profile,
+    articles,
+    projects,
+    workHistory,
+    readingList,
+    isLoading: profileLoading || articlesLoading || projectsLoading || workLoading || readingLoading,
+    updateProfile: (data) => updateProfileMutation.mutateAsync(data),
+    addArticle: (data) => addArticleMutation.mutateAsync(data),
+    updateArticle: (id, data) => updateArticleMutation.mutateAsync({ id, data }),
+    deleteArticle: (id) => deleteArticleMutation.mutateAsync(id),
+    addProject: (data) => addProjectMutation.mutateAsync(data),
+    updateProject: (id, data) => updateProjectMutation.mutateAsync({ id, data }),
+    deleteProject: (id) => deleteProjectMutation.mutateAsync(id),
+    addWork: (data) => addWorkMutation.mutateAsync(data),
+    updateWork: (id, data) => updateWorkMutation.mutateAsync({ id, data }),
+    deleteWork: (id) => deleteWorkMutation.mutateAsync(id),
+    addReadingListItem: (data) => addReadingListItemMutation.mutateAsync(data),
+    updateReadingListItem: (id, data) => updateReadingListItemMutation.mutateAsync({ id, data }),
+    deleteReadingListItem: (id) => deleteReadingListItemMutation.mutateAsync(id),
   };
 
-  const updateArticle = (id: string, updatedArticle: Partial<Article>) => {
-    setArticles((prev) => prev.map(a => a.id === id ? { ...a, ...updatedArticle } : a));
-  };
-
-  const deleteArticle = (id: string) => {
-    setArticles((prev) => prev.filter(a => a.id !== id));
-  };
-
-  const addProject = (project: Project) => {
-    setProjects((prev) => [project, ...prev]);
-  };
-
-  const updateProject = (id: string, updatedProject: Partial<Project>) => {
-    setProjects((prev) => prev.map(p => p.id === id ? { ...p, ...updatedProject } : p));
-  };
-
-  const deleteProject = (id: string) => {
-    setProjects((prev) => prev.filter(p => p.id !== id));
-  };
-
-  const addWork = (work: WorkExperience) => {
-    setWorkHistory((prev) => [work, ...prev]);
-  };
-
-  const updateWork = (id: string, updatedWork: Partial<WorkExperience>) => {
-    setWorkHistory((prev) => prev.map(w => w.id === id ? { ...w, ...updatedWork } : w));
-  };
-
-  const deleteWork = (id: string) => {
-    setWorkHistory((prev) => prev.filter(w => w.id !== id));
-  };
-
-  return (
-    <ContentContext.Provider value={{ 
-      profile, articles, projects, workHistory,
-      updateProfile, addArticle, updateArticle, deleteArticle,
-      addProject, updateProject, deleteProject,
-      addWork, updateWork, deleteWork
-    }}>
-      {children}
-    </ContentContext.Provider>
-  );
+  return <ContentContext.Provider value={value}>{children}</ContentContext.Provider>;
 }
 
 export function useContent() {
   const context = useContext(ContentContext);
-  if (context === undefined) {
-    throw new Error("useContent must be used within a ContentProvider");
+  if (!context) {
+    throw new Error("useContent must be used within ContentProvider");
   }
   return context;
 }

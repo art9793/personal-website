@@ -8,15 +8,27 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 export default function Home() {
-  const { profile, projects, articles } = useContent();
+  const { profile, projects, articles, isLoading } = useContent();
+
+  if (isLoading || !profile) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
 
   const featuredProjects = projects
     .filter(p => p.status === "Active" && p.featured)
-    .slice(0, 4); // Show up to 4 featured projects
+    .slice(0, 4);
 
   const recentPosts = articles
     .filter(a => a.status === "Published")
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .sort((a, b) => {
+      const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+      const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+      return dateB - dateA;
+    })
     .slice(0, 3);
 
   const getProjectColor = (title: string) => {
@@ -42,7 +54,7 @@ export default function Home() {
               {profile.name}
             </h1>
             <p className="text-xl text-muted-foreground font-medium">
-              {profile.jobTitle}
+              {profile.title}
             </p>
           </div>
           <div className="space-y-6 max-w-xl">
