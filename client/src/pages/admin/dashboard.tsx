@@ -397,25 +397,25 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="p-4 border-t bg-background/50 backdrop-blur space-y-2">
-          <div className={cn("flex items-center", isSidebarExpanded ? "justify-between px-2" : "justify-center")}>
-            {isSidebarExpanded && <span className="text-sm font-medium"></span>}
-            <div className={cn(isSidebarExpanded ? "ml-auto" : "")}>
-              <ThemeToggle />
-            </div>
-          </div>
+        <div className={cn(
+          "p-4 border-t bg-background/50 backdrop-blur flex items-center gap-2",
+          isSidebarExpanded ? "justify-between" : "flex-col justify-center"
+        )}>
           <Button 
             variant="ghost" 
             onClick={handleSignOut} 
             className={cn(
-              "w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10",
-              isSidebarExpanded ? "justify-start gap-2" : "justify-center px-0"
+              "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
+              isSidebarExpanded ? "flex-1 justify-start gap-2" : "w-full justify-center px-0"
             )}
             title="Sign Out"
           >
             <LogOut className="h-4 w-4" />
             {isSidebarExpanded && "Sign Out"}
           </Button>
+          <div className={cn(isSidebarExpanded ? "flex-shrink-0" : "")}>
+            <ThemeToggle />
+          </div>
         </div>
       </aside>
 
