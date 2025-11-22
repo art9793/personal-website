@@ -5,6 +5,7 @@ import {
   projects,
   workExperiences,
   readingList,
+  seoSettings,
   type User,
   type UpsertUser,
   type Profile,
@@ -17,6 +18,8 @@ import {
   type InsertWorkExperience,
   type ReadingListItem,
   type InsertReadingList,
+  type SeoSettings,
+  type InsertSeoSettings,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
@@ -29,6 +32,10 @@ export interface IStorage {
   // Profile operations
   getProfile(): Promise<Profile | undefined>;
   updateProfile(data: Partial<InsertProfile>): Promise<Profile>;
+
+  // SEO Settings operations
+  getSeoSettings(): Promise<SeoSettings | undefined>;
+  updateSeoSettings(data: Partial<InsertSeoSettings>): Promise<SeoSettings>;
 
   // Article operations
   getArticles(): Promise<Article[]>;
@@ -102,6 +109,31 @@ export class DatabaseStorage implements IStorage {
       const [created] = await db
         .insert(profiles)
         .values(data as InsertProfile)
+        .returning();
+      return created;
+    }
+  }
+
+  // SEO Settings operations
+  async getSeoSettings(): Promise<SeoSettings | undefined> {
+    const [settings] = await db.select().from(seoSettings).limit(1);
+    return settings;
+  }
+
+  async updateSeoSettings(data: Partial<InsertSeoSettings>): Promise<SeoSettings> {
+    const existingSettings = await this.getSeoSettings();
+    
+    if (existingSettings) {
+      const [updated] = await db
+        .update(seoSettings)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(seoSettings.id, existingSettings.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(seoSettings)
+        .values(data as InsertSeoSettings)
         .returning();
       return created;
     }

@@ -7,7 +7,8 @@ import {
   insertArticleSchema,
   insertProjectSchema,
   insertWorkExperienceSchema,
-  insertReadingListSchema
+  insertReadingListSchema,
+  insertSeoSettingsSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -45,6 +46,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating profile:", error);
       res.status(400).json({ message: "Failed to update profile" });
+    }
+  });
+
+  // SEO Settings routes
+  app.get('/api/seo-settings', async (req, res) => {
+    try {
+      const settings = await storage.getSeoSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching SEO settings:", error);
+      res.status(500).json({ message: "Failed to fetch SEO settings" });
+    }
+  });
+
+  app.put('/api/seo-settings', isAdmin, async (req, res) => {
+    try {
+      const validated = insertSeoSettingsSchema.partial().parse(req.body);
+      const settings = await storage.updateSeoSettings(validated);
+      res.json(settings);
+    } catch (error) {
+      console.error("Error updating SEO settings:", error);
+      res.status(400).json({ message: "Failed to update SEO settings" });
     }
   });
 

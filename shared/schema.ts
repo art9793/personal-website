@@ -51,6 +51,10 @@ export const profiles = pgTable("profiles", {
   github: varchar("github", { length: 255 }),
   website: varchar("website", { length: 255 }),
   avatarUrl: text("avatar_url"),
+  showTwitter: boolean("show_twitter").notNull().default(true),
+  showLinkedin: boolean("show_linkedin").notNull().default(true),
+  showGithub: boolean("show_github").notNull().default(true),
+  showEmail: boolean("show_email").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -63,6 +67,32 @@ export const insertProfileSchema = createInsertSchema(profiles).omit({
 
 export type InsertProfile = z.infer<typeof insertProfileSchema>;
 export type Profile = typeof profiles.$inferSelect;
+
+// SEO Settings table for website-wide metadata
+export const seoSettings = pgTable("seo_settings", {
+  id: serial("id").primaryKey(),
+  siteTitle: varchar("site_title", { length: 255 }).notNull().default("Portfolio"),
+  siteDescription: text("site_description").notNull().default("Welcome to my portfolio"),
+  siteKeywords: text("site_keywords"),
+  ogTitle: varchar("og_title", { length: 255 }),
+  ogDescription: text("og_description"),
+  ogImage: text("og_image"),
+  twitterCard: varchar("twitter_card", { length: 50 }).default("summary_large_image"),
+  twitterSite: varchar("twitter_site", { length: 255 }),
+  twitterCreator: varchar("twitter_creator", { length: 255 }),
+  faviconUrl: text("favicon_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertSeoSettingsSchema = createInsertSchema(seoSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertSeoSettings = z.infer<typeof insertSeoSettingsSchema>;
+export type SeoSettings = typeof seoSettings.$inferSelect;
 
 // Articles table
 export const articles = pgTable("articles", {
