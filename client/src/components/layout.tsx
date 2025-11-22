@@ -51,7 +51,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background font-sans flex flex-col md:flex-row">
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="font-semibold">Brian Lovin</div>
+        <div className="font-semibold">Arshad Teli</div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <Sheet>
@@ -61,7 +61,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-64 p-6">
-              <div className="mb-8 font-semibold text-lg">Brian Lovin</div>
+              <div className="mb-8 font-semibold text-lg">Arshad Teli</div>
               <NavContent />
             </SheetContent>
           </Sheet>
@@ -71,7 +71,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-64 fixed inset-y-0 left-0 border-r bg-card/30 backdrop-blur-sm p-6">
         <div className="flex items-center justify-between mb-8 pl-3">
-           <div className="font-bold text-lg tracking-tight">Brian Lovin</div>
+           <div className="font-bold text-lg tracking-tight">Arshad Teli</div>
         </div>
         
         <div className="flex-1">

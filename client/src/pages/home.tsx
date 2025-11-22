@@ -10,28 +10,25 @@ export default function Home() {
       <div className="flex flex-col-reverse md:flex-row md:items-center gap-8 md:gap-12">
         <div className="flex-1 space-y-6">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-primary">
-            Hey, I'm Brian. I'm a software designer currently living in San Francisco.
+            Hey there! I’m Arshad. I’m a Product Manager & Designer currently working at a UK based fintech!
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed">
-            I'm currently designing AI products at Notion. Before Notion, I was the co-founder of Campsite, an app that combined posts, docs, calls, and chat to enable thoughtful team collaboration.
-          </p>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            I believe in quality, craft, and building software that feels like a tool you want to use, not one you have to use.
+            Outside of work, I like to read, write and build!
           </p>
           
           <div className="flex items-center gap-4 pt-4">
             <Button variant="outline" size="icon" asChild>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
+              <a href="https://x.com/art9793" target="_blank" rel="noopener noreferrer">
                 <Twitter className="h-4 w-4" />
               </a>
             </Button>
             <Button variant="outline" size="icon" asChild>
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+              <a href="https://github.com/art9793" target="_blank" rel="noopener noreferrer">
                 <Github className="h-4 w-4" />
               </a>
             </Button>
             <Button variant="outline" size="icon" asChild>
-              <a href="mailto:hello@example.com">
+              <a href="mailto:art9793@gmail.com">
                 <Mail className="h-4 w-4" />
               </a>
             </Button>
