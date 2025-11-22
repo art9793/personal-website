@@ -251,14 +251,6 @@ export default function AdminDashboard() {
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto bg-background">
-        {/* Header - Removed Breadcrumbs as requested */}
-        <header className="h-16 border-b px-8 flex items-center justify-end sticky top-0 bg-background/80 backdrop-blur z-10">
-          <div className="flex items-center gap-3">
-            {activeTab === "settings" && <Button size="sm" onClick={handleSaveProfile}>Save Changes</Button>}
-            {isWriting && <Button size="sm" onClick={handleSaveArticle}>Save Article</Button>}
-          </div>
-        </header>
-
         <div className="p-8 max-w-[1600px] mx-auto space-y-8">
           {activeTab === "overview" && (
             <div className="space-y-6">
@@ -467,6 +459,8 @@ export default function AdminDashboard() {
                   <ArrowLeft className="h-4 w-4" /> Back
                 </Button>
                 <div className="flex items-center gap-3">
+                   <Button size="sm" onClick={handleSaveArticle} className="h-7 text-xs">Save</Button>
+                   <Separator orientation="vertical" className="h-4" />
                    <span className="text-xs text-muted-foreground">
                       {editingArticle.content.split(/\s/g).length} words
                    </span>
