@@ -516,93 +516,92 @@ export default function AdminDashboard() {
           )}
 
           {activeTab === "writing" && isWriting && editingArticle && (
-            <div className="space-y-6 animate-in fade-in-50 slide-in-from-right-2 duration-300">
-              <div className="flex items-center gap-4 mb-6">
-                <Button variant="ghost" size="sm" onClick={() => { setIsWriting(false); setEditingArticle(null); }} className="gap-2 pl-0 hover:pl-2 transition-all">
-                  <ArrowLeft className="h-4 w-4" /> Back to Articles
+            <div className="animate-in fade-in-50 slide-in-from-right-2 duration-300 max-w-4xl mx-auto">
+              <div className="flex items-center justify-between mb-8">
+                <Button variant="ghost" size="sm" onClick={() => { setIsWriting(false); setEditingArticle(null); }} className="gap-2 pl-0 hover:pl-2 transition-all text-muted-foreground">
+                  <ArrowLeft className="h-4 w-4" /> Back
                 </Button>
+                <div className="flex items-center gap-3">
+                   <span className="text-xs text-muted-foreground">
+                      {editingArticle.content.split(/\s/g).length} words
+                   </span>
+                   <Separator orientation="vertical" className="h-4" />
+                   <span className="text-xs text-muted-foreground">
+                      {editingArticle.status === "Published" ? "Published" : "Draft"}
+                   </span>
+                </div>
               </div>
 
-              <div className="grid grid-cols-12 gap-8">
-                <div className="col-span-8 space-y-6">
-                   <Card className="border-none shadow-sm">
-                     <CardContent className="p-0 space-y-6">
-                       <div className="space-y-2">
-                         <Input 
-                           className="text-4xl font-bold h-auto border-none px-0 focus-visible:ring-0 placeholder:text-muted-foreground/50" 
-                           placeholder="Article Title..." 
-                           value={editingArticle.title}
-                           onChange={(e) => setEditingArticle({...editingArticle, title: e.target.value})}
-                         />
-                       </div>
-                       <Editor 
-                         content={editingArticle.content} 
-                         onChange={(html) => setEditingArticle({...editingArticle, content: html})}
-                       />
-                     </CardContent>
-                   </Card>
-                </div>
+              <div className="space-y-8">
+                  <Input 
+                    className="text-5xl font-bold h-auto border-none px-0 focus-visible:ring-0 placeholder:text-muted-foreground/30 bg-transparent tracking-tight" 
+                    placeholder="Untitled" 
+                    value={editingArticle.title}
+                    onChange={(e) => setEditingArticle({...editingArticle, title: e.target.value})}
+                  />
+                  
+                  <Editor 
+                    content={editingArticle.content} 
+                    onChange={(html) => setEditingArticle({...editingArticle, content: html})}
+                  />
+              </div>
 
-                <div className="col-span-4 space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm">Publishing</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <Label className="text-xs">Status</Label>
-                        <div className="flex items-center gap-2">
-                          <Badge 
-                            variant={editingArticle.status === "Published" ? "default" : "secondary"}
-                            className="cursor-pointer"
-                            onClick={() => setEditingArticle({...editingArticle, status: editingArticle.status === "Published" ? "Draft" : "Published"})}
-                          >
-                            {editingArticle.status}
-                          </Badge>
+              {/* Settings Drawer/Panel - Moved to bottom or side to be less intrusive */}
+              <div className="mt-20 border-t pt-8 grid grid-cols-1 md:grid-cols-3 gap-12 opacity-50 hover:opacity-100 transition-opacity">
+                  <div className="space-y-4">
+                     <h4 className="text-sm font-medium">Publishing</h4>
+                     <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs text-muted-foreground">Status</Label>
+                          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setEditingArticle({...editingArticle, status: editingArticle.status === "Published" ? "Draft" : "Published"})}>
+                            <Badge variant={editingArticle.status === "Published" ? "default" : "outline"}>
+                              {editingArticle.status}
+                            </Badge>
+                          </div>
                         </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-xs">Publish Date</Label>
-                        <Input 
-                          type="date" 
-                          value={editingArticle.date}
-                          onChange={(e) => setEditingArticle({...editingArticle, date: e.target.value})}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-xs">Slug</Label>
-                        <Input 
-                          placeholder="url-slug" 
-                          value={editingArticle.slug}
-                          onChange={(e) => setEditingArticle({...editingArticle, slug: e.target.value})}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs text-muted-foreground">Date</Label>
+                          <Input 
+                            type="date" 
+                            className="h-8 text-xs"
+                            value={editingArticle.date}
+                            onChange={(e) => setEditingArticle({...editingArticle, date: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs text-muted-foreground">Slug</Label>
+                          <Input 
+                            placeholder="url-slug" 
+                            className="h-8 text-xs"
+                            value={editingArticle.slug}
+                            onChange={(e) => setEditingArticle({...editingArticle, slug: e.target.value})}
+                          />
+                        </div>
+                     </div>
+                  </div>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-sm">SEO & Metadata</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                       <div className="space-y-2">
-                         <Label className="text-xs">Description</Label>
-                         <Textarea className="h-20 text-xs" placeholder="Meta description for SEO..." />
-                       </div>
-                       <div className="space-y-2">
-                         <Label className="text-xs">Tags</Label>
-                         <Input placeholder="Design, AI, Future" />
-                       </div>
-                       <div className="space-y-2">
-                         <Label className="text-xs">Cover Image</Label>
-                         <div className="border-2 border-dashed rounded-md p-4 flex flex-col items-center justify-center text-muted-foreground hover:bg-secondary/50 transition-colors cursor-pointer">
-                            <Upload className="h-6 w-6 mb-2" />
-                            <span className="text-xs">Upload Image</span>
+                  <div className="space-y-4 md:col-span-2">
+                     <h4 className="text-sm font-medium">SEO & Metadata</h4>
+                     <div className="grid grid-cols-2 gap-6">
+                       <div className="space-y-4">
+                         <div className="space-y-1.5">
+                           <Label className="text-xs text-muted-foreground">Description</Label>
+                           <Textarea className="h-20 text-xs resize-none" placeholder="Meta description..." />
+                         </div>
+                         <div className="space-y-1.5">
+                           <Label className="text-xs text-muted-foreground">Tags</Label>
+                           <Input placeholder="Design, AI..." className="h-8 text-xs" />
                          </div>
                        </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                       <div className="space-y-1.5">
+                         <Label className="text-xs text-muted-foreground">Cover Image</Label>
+                         <div className="h-32 border-2 border-dashed rounded-md flex flex-col items-center justify-center text-muted-foreground hover:bg-secondary/50 transition-colors cursor-pointer">
+                            <Upload className="h-4 w-4 mb-2" />
+                            <span className="text-[10px]">Upload</span>
+                         </div>
+                       </div>
+                     </div>
+                  </div>
               </div>
             </div>
           )}

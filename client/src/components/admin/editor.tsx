@@ -16,7 +16,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
   }
 
   return (
-    <div className="border-b p-2 flex flex-wrap gap-1 bg-muted/20">
+    <div className="border-b py-4 mb-8 flex flex-wrap gap-2 bg-background sticky top-16 z-10 opacity-30 hover:opacity-100 transition-opacity duration-300">
       <Button
         variant="ghost"
         size="sm"
@@ -129,13 +129,13 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
         openOnClick: false,
       }),
       Placeholder.configure({
-        placeholder: 'Start writing your story...',
+        placeholder: 'Tell your story...',
       }),
     ],
     content: content || '',
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl m-5 focus:outline-none min-h-[300px]',
+        class: 'prose prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[500px] leading-relaxed',
       },
     },
     onUpdate: ({ editor }) => {
@@ -144,9 +144,9 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
   })
 
   return (
-    <div className="border rounded-md bg-background overflow-hidden focus-within:ring-1 focus-within:ring-ring">
+    <div className="relative min-h-[500px] w-full">
       <MenuBar editor={editor} />
-      <EditorContent editor={editor} />
+      <EditorContent editor={editor} className="mt-8" />
     </div>
   )
 }
