@@ -10,9 +10,23 @@ interface Profile {
   linkedin: string;
 }
 
+export interface Article {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  date: string;
+  status: "Draft" | "Published";
+  views: string;
+}
+
 interface ContentContextType {
   profile: Profile;
+  articles: Article[];
   updateProfile: (newProfile: Partial<Profile>) => void;
+  addArticle: (article: Article) => void;
+  updateArticle: (id: string, updatedArticle: Partial<Article>) => void;
+  deleteArticle: (id: string) => void;
 }
 
 const defaultProfile: Profile = {
@@ -25,6 +39,13 @@ const defaultProfile: Profile = {
   linkedin: "",
 };
 
+const defaultArticles: Article[] = [
+  { id: "1", title: "Designing for AI", slug: "designing-for-ai", content: "<h2>Introduction</h2><p>Start writing...</p>", date: "2024-10-24", status: "Published", views: "2.4k" },
+  { id: "2", title: "The craft of software", slug: "craft-of-software", content: "<h2>Introduction</h2><p>Start writing...</p>", date: "2024-08-12", status: "Published", views: "1.8k" },
+  { id: "3", title: "Building Campsite", slug: "building-campsite", content: "<h2>Introduction</h2><p>Start writing...</p>", date: "2024-05-03", status: "Published", views: "3.2k" },
+  { id: "4", title: "Future of Interfaces", slug: "future-of-interfaces", content: "<h2>Introduction</h2><p>Start writing...</p>", date: "2024-11-22", status: "Draft", views: "0" }
+];
+
 const ContentContext = createContext<ContentContextType | undefined>(undefined);
 
 export function ContentProvider({ children }: { children: React.ReactNode }) {
@@ -33,16 +54,37 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
     return saved ? JSON.parse(saved) : defaultProfile;
   });
 
+  const [articles, setArticles] = useState<Article[]>(() => {
+    const saved = localStorage.getItem("site-articles");
+    return saved ? JSON.parse(saved) : defaultArticles;
+  });
+
   useEffect(() => {
     localStorage.setItem("site-profile", JSON.stringify(profile));
   }, [profile]);
+
+  useEffect(() => {
+    localStorage.setItem("site-articles", JSON.stringify(articles));
+  }, [articles]);
 
   const updateProfile = (newProfile: Partial<Profile>) => {
     setProfile((prev) => ({ ...prev, ...newProfile }));
   };
 
+  const addArticle = (article: Article) => {
+    setArticles((prev) => [article, ...prev]);
+  };
+
+  const updateArticle = (id: string, updatedArticle: Partial<Article>) => {
+    setArticles((prev) => prev.map(a => a.id === id ? { ...a, ...updatedArticle } : a));
+  };
+
+  const deleteArticle = (id: string) => {
+    setArticles((prev) => prev.filter(a => a.id !== id));
+  };
+
   return (
-    <ContentContext.Provider value={{ profile, updateProfile }}>
+    <ContentContext.Provider value={{ profile, articles, updateProfile, addArticle, updateArticle, deleteArticle }}>
       {children}
     </ContentContext.Provider>
   );
