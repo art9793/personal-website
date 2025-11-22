@@ -1051,14 +1051,44 @@ export default function AdminDashboard() {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="logo">Company Initials/Logo</Label>
-                                            <Input 
-                                                id="logo" 
-                                                value={editingWork.logo} 
-                                                onChange={(e) => setEditingWork({...editingWork, logo: e.target.value})}
-                                                placeholder="e.g. AC"
-                                                maxLength={2}
-                                            />
+                                            <Label htmlFor="logo">Company Logo</Label>
+                                            <div className="flex items-center gap-3">
+                                              {editingWork.logo ? (
+                                                <div className="relative h-9 w-9 group/logo">
+                                                  <img 
+                                                    src={editingWork.logo} 
+                                                    alt="Logo" 
+                                                    className="h-full w-full object-cover rounded-md border"
+                                                  />
+                                                  <button
+                                                    onClick={() => setEditingWork({...editingWork, logo: ""})}
+                                                    className="absolute -top-1 -right-1 h-4 w-4 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity"
+                                                  >
+                                                    <span className="sr-only">Remove</span>
+                                                    <span className="text-[10px]">×</span>
+                                                  </button>
+                                                </div>
+                                              ) : (
+                                                <div className="relative flex-1">
+                                                  <Input 
+                                                      id="logo" 
+                                                      type="file" 
+                                                      accept="image/*"
+                                                      className="cursor-pointer text-xs file:mr-4 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                                                      onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) {
+                                                          const reader = new FileReader();
+                                                          reader.onloadend = () => {
+                                                            setEditingWork({...editingWork, logo: reader.result as string});
+                                                          };
+                                                          reader.readAsDataURL(file);
+                                                        }
+                                                      }}
+                                                  />
+                                                </div>
+                                              )}
+                                            </div>
                                         </div>
                                     </div>
                                     
@@ -1168,9 +1198,13 @@ export default function AdminDashboard() {
                     {filteredWork.map((work) => (
                       <TableRow key={work.id} className="group cursor-pointer hover:bg-muted/50" onClick={() => handleEditWork(work)}>
                         <TableCell>
-                          <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center text-primary font-bold text-xs border border-primary/20">
-                             {work.logo || work.company.substring(0, 2).toUpperCase()}
-                          </div>
+                          {work.logo ? (
+                            <img src={work.logo} alt={work.company} className="h-8 w-8 rounded object-cover border border-border/50" />
+                          ) : (
+                            <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center text-primary font-bold text-xs border border-primary/20">
+                               {work.company.substring(0, 2).toUpperCase()}
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell className="font-medium">{work.company}</TableCell>
                         <TableCell>{work.role}</TableCell>
