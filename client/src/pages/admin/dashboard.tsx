@@ -119,7 +119,18 @@ export default function AdminDashboard() {
   }, [profile]);
 
   useEffect(() => {
-    setSeoFormData(seoSettings);
+    setSeoFormData(seoSettings || {
+      siteTitle: "Portfolio",
+      siteDescription: "Welcome to my portfolio",
+      siteKeywords: "",
+      ogTitle: "",
+      ogDescription: "",
+      ogImage: "",
+      twitterCard: "summary_large_image",
+      twitterSite: "",
+      twitterCreator: "",
+      faviconUrl: ""
+    });
   }, [seoSettings]);
 
   const handleSignOut = () => {
@@ -204,9 +215,7 @@ export default function AdminDashboard() {
     return article.slug?.trim() !== '' && article.title?.trim() !== '';
   };
 
-  const toggleArticleStatus = async (article: Article, e: React.MouseEvent) => {
-    e.stopPropagation();
-    
+  const toggleArticleStatus = async (article: Article) => {
     if (article.status === "Draft" && !canPublishArticle(article)) {
       toast({
         title: "Cannot Publish",
@@ -225,6 +234,11 @@ export default function AdminDashboard() {
       });
     } catch (error) {
       console.error("Error updating article status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update article status.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -1011,14 +1025,9 @@ export default function AdminDashboard() {
                                     <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                                         <Checkbox 
                                             checked={article.status === "Published"} 
-                                            onCheckedChange={() => {
-                                                const newStatus = article.status === "Published" ? "Draft" : "Published";
-                                                updateArticle(article.id, { status: newStatus });
-                                                toast({
-                                                    title: `Article ${newStatus}`,
-                                                    description: `"${article.title}" is now ${newStatus.toLowerCase()}.`,
-                                                });
-                                            }}
+                                            disabled={article.status === "Draft" && !canPublishArticle(article)}
+                                            onCheckedChange={() => toggleArticleStatus(article)}
+                                            data-testid={`checkbox-publish-${article.id}`}
                                         />
                                     </TableCell>
                                     <TableCell>
@@ -1374,10 +1383,31 @@ export default function AdminDashboard() {
                      <div className="space-y-5">
                         <div className="flex items-center justify-between group/item p-2 -mx-2 rounded-md hover:bg-secondary/40 transition-colors">
                           <Label className="text-xs text-muted-foreground font-normal">Status</Label>
-                          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setEditingArticle({...editingArticle, status: editingArticle.status === "Published" ? "Draft" : "Published"})}>
-                            <Badge variant={editingArticle.status === "Published" ? "default" : "outline"} className="font-normal">
+                          <div className="flex items-center gap-2 cursor-pointer" onClick={() => {
+                            const newStatus = editingArticle.status === "Published" ? "Draft" : "Published";
+                            if (newStatus === "Published" && !canPublishArticle(editingArticle)) {
+                              toast({
+                                title: "Cannot Publish",
+                                description: "Article must have a title and slug before publishing.",
+                                variant: "destructive"
+                              });
+                              return;
+                            }
+                            setEditingArticle({...editingArticle, status: newStatus});
+                          }}>
+                            <Badge variant={editingArticle.status === "Published" ? "default" : "outline"} className="font-normal" data-testid="badge-article-status">
                               {editingArticle.status}
                             </Badge>
+                            {editingArticle.status === "Draft" && !canPublishArticle(editingArticle) && (
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <AlertCircle className="h-3 w-3 text-muted-foreground" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="text-xs">Title and slug required to publish</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
                           </div>
                         </div>
                         <div className="space-y-2 group/item p-2 -mx-2 rounded-md hover:bg-secondary/40 transition-colors">

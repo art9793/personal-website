@@ -414,8 +414,17 @@ export function ContentProvider({ children }: { children: ReactNode }) {
     onError: (error: Error) => handleUnauthorized(error),
   });
 
+  // Normalize profile visibility fields to booleans
+  const normalizedProfile = profile ? {
+    ...profile,
+    showTwitter: profile.showTwitter ?? true,
+    showLinkedin: profile.showLinkedin ?? true,
+    showGithub: profile.showGithub ?? true,
+    showEmail: profile.showEmail ?? true,
+  } : undefined;
+
   const value: ContentContextType = {
-    profile,
+    profile: normalizedProfile,
     seoSettings,
     articles,
     projects,

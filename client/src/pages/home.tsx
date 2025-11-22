@@ -64,28 +64,28 @@ export default function Home() {
           </div>
           
           <div className="flex items-center gap-4 pt-2">
-            {profile.twitter && profile.showTwitter !== false && (
+            {profile.twitter && (profile.showTwitter ?? true) && (
               <Button variant="outline" size="icon" asChild data-testid="link-twitter">
                 <a href={profile.twitter} target="_blank" rel="noopener noreferrer">
                   <Twitter className="h-4 w-4" />
                 </a>
               </Button>
             )}
-            {profile.linkedin && profile.showLinkedin !== false && (
+            {profile.linkedin && (profile.showLinkedin ?? true) && (
               <Button variant="outline" size="icon" asChild data-testid="link-linkedin">
                 <a href={profile.linkedin} target="_blank" rel="noopener noreferrer">
                   <Linkedin className="h-4 w-4" />
                 </a>
               </Button>
             )}
-            {profile.github && profile.showGithub !== false && (
+            {profile.github && (profile.showGithub ?? true) && (
               <Button variant="outline" size="icon" asChild data-testid="link-github">
                 <a href={profile.github} target="_blank" rel="noopener noreferrer">
                   <Github className="h-4 w-4" />
                 </a>
               </Button>
             )}
-            {profile.email && profile.showEmail !== false && (
+            {profile.email && (profile.showEmail ?? true) && (
               <Button variant="outline" size="icon" asChild data-testid="link-email">
                 <a href={`mailto:${profile.email}`}>
                   <Mail className="h-4 w-4" />
