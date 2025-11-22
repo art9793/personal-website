@@ -9,12 +9,22 @@ export default function Home() {
     <div className="space-y-12">
       <div className="flex flex-col-reverse md:flex-row md:items-center gap-8 md:gap-12">
         <div className="flex-1 space-y-6">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-primary">
-            Hey there! I’m Arshad. I’m a Product Manager & Designer currently working at a UK based fintech!
-          </h1>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            Outside of work, I like to read, write and build!
-          </p>
+          <div className="space-y-2">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-primary">
+              Arshad Teli
+            </h1>
+            <p className="text-xl md:text-2xl font-medium text-muted-foreground">
+              Product Manager
+            </p>
+          </div>
+          <div className="space-y-4">
+            <p className="text-lg text-primary leading-relaxed font-medium">
+              Hey there! I’m a Product Manager & Designer currently working at a UK based fintech!
+            </p>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Outside of work, I like to read, write and build!
+            </p>
+          </div>
           
           <div className="flex items-center gap-4 pt-4">
             <Button variant="outline" size="icon" asChild>
