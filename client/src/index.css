@@ -200,7 +200,7 @@
 
 .ProseMirror ul[data-type="taskList"] li {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.5rem;
   margin-top: 0.25rem;
   margin-bottom: 0.25rem;
@@ -208,9 +208,9 @@
 
 .ProseMirror ul[data-type="taskList"] li > label {
   display: flex;
+  align-items: center;
   cursor: pointer;
   user-select: none;
-  margin-top: 0.125rem;
 }
 
 .ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"] {
@@ -223,6 +223,12 @@
 
 .ProseMirror ul[data-type="taskList"] li > div {
   flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.ProseMirror ul[data-type="taskList"] li > div > p {
+  margin: 0;
 }
 
 .ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div > p {
@@ -370,7 +376,7 @@
 
 .prose ul[data-type="taskList"] li {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.5rem;
   margin-top: 0.25rem;
   margin-bottom: 0.25rem;
@@ -378,9 +384,9 @@
 
 .prose ul[data-type="taskList"] li > label {
   display: flex;
+  align-items: center;
   cursor: pointer;
   user-select: none;
-  margin-top: 0.125rem;
 }
 
 .prose ul[data-type="taskList"] li > label input[type="checkbox"] {
@@ -393,6 +399,12 @@
 
 .prose ul[data-type="taskList"] li > div {
   flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.prose ul[data-type="taskList"] li > div > p {
+  margin: 0;
 }
 
 .prose ul[data-type="taskList"] li[data-checked="true"] > div > p {
