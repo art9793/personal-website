@@ -153,6 +153,7 @@ export default function AdminDashboard() {
       const query = filterQuery.toLowerCase();
       result = result.filter(article => 
         article.title.toLowerCase().includes(query) ||
+        article.content.toLowerCase().includes(query) ||
         (article.tags && article.tags.toLowerCase().includes(query)) ||
         (article.seoKeywords && article.seoKeywords.toLowerCase().includes(query))
       );
@@ -310,8 +311,7 @@ export default function AdminDashboard() {
             <div className="space-y-4 animate-in fade-in-50 duration-500">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-2xl font-bold tracking-tight">Database</h2>
-                  <p className="text-muted-foreground text-sm mt-1">Manage your content database.</p>
+                  <h2 className="text-2xl font-bold tracking-tight">Writing</h2>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="relative w-64">
@@ -331,23 +331,35 @@ export default function AdminDashboard() {
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-muted/50 hover:bg-muted/50">
-                            <TableHead className="w-[300px]">Title</TableHead>
-                            <TableHead className="w-[200px]">Excerpt</TableHead>
-                            <TableHead className="w-[80px] text-center">Image</TableHead>
-                            <TableHead className="w-[80px] text-center">Published</TableHead>
-                            <TableHead className="cursor-pointer hover:text-foreground" onClick={() => handleSort('date')}>
+                            <TableHead className="w-[300px] cursor-pointer hover:text-foreground" onClick={() => handleSort('title')}>
                                 <div className="flex items-center gap-1">
-                                    Date {sortConfig?.key === 'date' && <ArrowUpDown className="h-3 w-3" />}
+                                    Title {sortConfig?.key === 'title' && <ArrowUpDown className="h-3 w-3" />}
                                 </div>
                             </TableHead>
-                            <TableHead>SEO Keywords</TableHead>
-                            <TableHead>Slug</TableHead>
-                            <TableHead>Tags</TableHead>
-                            <TableHead>Author</TableHead>
+                            <TableHead className="cursor-pointer hover:text-foreground" onClick={() => handleSort('seoKeywords')}>
+                                <div className="flex items-center gap-1">
+                                    SEO Keywords {sortConfig?.key === 'seoKeywords' && <ArrowUpDown className="h-3 w-3" />}
+                                </div>
+                            </TableHead>
+                            <TableHead className="cursor-pointer hover:text-foreground" onClick={() => handleSort('tags')}>
+                                <div className="flex items-center gap-1">
+                                    Tags {sortConfig?.key === 'tags' && <ArrowUpDown className="h-3 w-3" />}
+                                </div>
+                            </TableHead>
                             <TableHead className="whitespace-nowrap">Read Time</TableHead>
                             <TableHead className="cursor-pointer hover:text-foreground text-right" onClick={() => handleSort('views')}>
                                 <div className="flex items-center justify-end gap-1">
                                     Views {sortConfig?.key === 'views' && <ArrowUpDown className="h-3 w-3" />}
+                                </div>
+                            </TableHead>
+                            <TableHead className="cursor-pointer hover:text-foreground" onClick={() => handleSort('date')}>
+                                <div className="flex items-center gap-1">
+                                    Published Date {sortConfig?.key === 'date' && <ArrowUpDown className="h-3 w-3" />}
+                                </div>
+                            </TableHead>
+                            <TableHead className="w-[80px] text-center cursor-pointer hover:text-foreground" onClick={() => handleSort('status')}>
+                                <div className="flex items-center justify-center gap-1">
+                                    Published {sortConfig?.key === 'status' && <ArrowUpDown className="h-3 w-3" />}
                                 </div>
                             </TableHead>
                             <TableHead className="w-[50px]"></TableHead>
@@ -356,7 +368,7 @@ export default function AdminDashboard() {
                     <TableBody>
                         {filteredArticles.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={12} className="h-24 text-center text-muted-foreground">
+                                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                                     No results found.
                                 </TableCell>
                             </TableRow>
@@ -375,17 +387,25 @@ export default function AdminDashboard() {
                                             <span className="truncate max-w-[250px]">{article.title || "Untitled"}</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">
-                                        {article.excerpt || "—"}
+                                    <TableCell className="text-xs text-muted-foreground max-w-[150px] truncate">
+                                        {article.seoKeywords || "—"}
                                     </TableCell>
-                                    <TableCell className="text-center">
-                                        {article.featuredImage ? (
-                                            <div className="h-6 w-10 bg-muted rounded overflow-hidden mx-auto">
-                                                <img src={article.featuredImage} alt="" className="h-full w-full object-cover" />
-                                            </div>
-                                        ) : (
-                                            <span className="text-xs text-muted-foreground">—</span>
-                                        )}
+                                    <TableCell className="text-xs">
+                                        {article.tags ? (
+                                            <Badge variant="secondary" className="text-[10px] font-normal h-5">
+                                                {article.tags.split(',')[0]}
+                                                {article.tags.split(',').length > 1 && ` +${article.tags.split(',').length - 1}`}
+                                            </Badge>
+                                        ) : "—"}
+                                    </TableCell>
+                                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                                        {getReadingTime(article.content)}
+                                    </TableCell>
+                                    <TableCell className="text-xs text-right font-mono">
+                                        {article.views}
+                                    </TableCell>
+                                    <TableCell className="text-xs whitespace-nowrap">
+                                        {article.date}
                                     </TableCell>
                                     <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                                         <Checkbox 
@@ -399,32 +419,6 @@ export default function AdminDashboard() {
                                                 });
                                             }}
                                         />
-                                    </TableCell>
-                                    <TableCell className="text-xs whitespace-nowrap">
-                                        {article.date}
-                                    </TableCell>
-                                    <TableCell className="text-xs text-muted-foreground max-w-[150px] truncate">
-                                        {article.seoKeywords || "—"}
-                                    </TableCell>
-                                    <TableCell className="text-xs text-muted-foreground max-w-[150px] truncate">
-                                        {article.slug || "—"}
-                                    </TableCell>
-                                    <TableCell className="text-xs">
-                                        {article.tags ? (
-                                            <Badge variant="secondary" className="text-[10px] font-normal h-5">
-                                                {article.tags.split(',')[0]}
-                                                {article.tags.split(',').length > 1 && ` +${article.tags.split(',').length - 1}`}
-                                            </Badge>
-                                        ) : "—"}
-                                    </TableCell>
-                                    <TableCell className="text-xs text-muted-foreground">
-                                        {article.author || profile.name}
-                                    </TableCell>
-                                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                                        {getReadingTime(article.content)}
-                                    </TableCell>
-                                    <TableCell className="text-xs text-right font-mono">
-                                        {article.views}
                                     </TableCell>
                                     <TableCell>
                                         <DropdownMenu>
