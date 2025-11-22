@@ -167,7 +167,7 @@
   @apply line-through opacity-70;
 }
 .ProseMirror mark {
-  @apply bg-yellow-200 dark:bg-yellow-800/50 px-1 rounded;
+  @apply bg-yellow-200 dark:bg-amber-900/40 px-1 rounded;
 }
 .ProseMirror code {
   @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-primary;
@@ -287,7 +287,7 @@
   @apply line-through opacity-70;
 }
 .prose mark {
-  @apply bg-yellow-200 dark:bg-yellow-800/50 px-1 rounded;
+  @apply bg-yellow-200 dark:bg-amber-900/40 px-1 rounded;
 }
 .prose img {
   @apply rounded-lg my-8 border max-w-full h-auto;
