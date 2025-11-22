@@ -467,7 +467,7 @@ export default function AdminDashboard() {
 
               <div className="space-y-4">
                   <Textarea 
-                    className="text-4xl md:text-5xl lg:text-6xl font-semibold h-auto min-h-[1.5em] border-none px-0 focus-visible:ring-0 placeholder:text-muted-foreground/30 bg-transparent tracking-tight shadow-none rounded-none p-0 leading-[1.1] resize-none overflow-hidden" 
+                    className="text-3xl md:text-4xl font-bold tracking-tight h-auto min-h-[1.5em] border-none px-0 focus-visible:ring-0 placeholder:text-muted-foreground/30 bg-transparent shadow-none rounded-none p-0 leading-tight resize-none overflow-hidden text-primary" 
                     placeholder="Untitled" 
                     value={editingArticle.title}
                     onChange={(e) => {
