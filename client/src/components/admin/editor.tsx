@@ -6,18 +6,21 @@ import Placeholder from '@tiptap/extension-placeholder'
 import Underline from '@tiptap/extension-underline'
 import Strike from '@tiptap/extension-strike'
 import Highlight from '@tiptap/extension-highlight'
-import CodeBlock from '@tiptap/extension-code-block'
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import HorizontalRule from '@tiptap/extension-horizontal-rule'
 import { TextStyle } from '@tiptap/extension-text-style'
 import { Color } from '@tiptap/extension-color'
+import { common, createLowlight } from 'lowlight'
 import { Button } from "@/components/ui/button"
 import { 
-  Bold, Italic, Underline as UnderlineIcon, Strikethrough, Highlighter, Code,
+  Bold, Italic, Underline as UnderlineIcon, Strikethrough, Highlighter, Code, FileCode,
   List, ListOrdered, Image as ImageIcon, Link as LinkIcon, Quote, 
   Heading1, Heading2, Heading3, Heading4, Minus, Undo, Redo 
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRef, useEffect } from "react"
+
+const lowlight = createLowlight(common)
 
 const MenuBar = ({ editor }: { editor: any }) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -170,7 +173,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
         className={cn(editor.isActive('codeBlock') ? 'bg-muted' : '')}
         title="Code Block"
       >
-        <Code className="h-4 w-4" />
+        <FileCode className="h-4 w-4" />
       </Button>
       <Button
         type="button"
@@ -257,7 +260,8 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
       }),
       Underline,
       Strike,
-      CodeBlock.configure({
+      CodeBlockLowlight.configure({
+        lowlight,
         HTMLAttributes: {
           class: 'code-block',
         },

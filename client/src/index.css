@@ -191,6 +191,60 @@
   content: "";
 }
 
+/* Syntax highlighting for code blocks */
+.ProseMirror .hljs-comment,
+.ProseMirror .hljs-quote {
+  @apply text-muted-foreground/70 italic;
+}
+.ProseMirror .hljs-keyword,
+.ProseMirror .hljs-selector-tag,
+.ProseMirror .hljs-addition {
+  @apply text-purple-600 dark:text-purple-400;
+}
+.ProseMirror .hljs-number,
+.ProseMirror .hljs-string,
+.ProseMirror .hljs-meta .hljs-string,
+.ProseMirror .hljs-literal,
+.ProseMirror .hljs-doctag,
+.ProseMirror .hljs-regexp {
+  @apply text-green-600 dark:text-green-400;
+}
+.ProseMirror .hljs-title,
+.ProseMirror .hljs-section,
+.ProseMirror .hljs-name,
+.ProseMirror .hljs-selector-id,
+.ProseMirror .hljs-selector-class {
+  @apply text-blue-600 dark:text-blue-400;
+}
+.ProseMirror .hljs-attribute,
+.ProseMirror .hljs-attr,
+.ProseMirror .hljs-variable,
+.ProseMirror .hljs-template-variable,
+.ProseMirror .hljs-class .hljs-title,
+.ProseMirror .hljs-type {
+  @apply text-orange-600 dark:text-orange-400;
+}
+.ProseMirror .hljs-symbol,
+.ProseMirror .hljs-bullet,
+.ProseMirror .hljs-subst,
+.ProseMirror .hljs-meta,
+.ProseMirror .hljs-link {
+  @apply text-cyan-600 dark:text-cyan-400;
+}
+.ProseMirror .hljs-built_in,
+.ProseMirror .hljs-deletion {
+  @apply text-red-600 dark:text-red-400;
+}
+.ProseMirror .hljs-formula {
+  @apply bg-muted-foreground/10;
+}
+.ProseMirror .hljs-emphasis {
+  @apply italic;
+}
+.ProseMirror .hljs-strong {
+  @apply font-bold;
+}
+
 /* Article Content Styles */
 .prose h1 {
   @apply text-3xl font-bold mt-8 mb-4 leading-tight;
@@ -261,4 +315,58 @@
 }
 .prose br {
   content: "";
+}
+
+/* Syntax highlighting for code blocks */
+.prose .hljs-comment,
+.prose .hljs-quote {
+  @apply text-muted-foreground/70 italic;
+}
+.prose .hljs-keyword,
+.prose .hljs-selector-tag,
+.prose .hljs-addition {
+  @apply text-purple-600 dark:text-purple-400;
+}
+.prose .hljs-number,
+.prose .hljs-string,
+.prose .hljs-meta .hljs-string,
+.prose .hljs-literal,
+.prose .hljs-doctag,
+.prose .hljs-regexp {
+  @apply text-green-600 dark:text-green-400;
+}
+.prose .hljs-title,
+.prose .hljs-section,
+.prose .hljs-name,
+.prose .hljs-selector-id,
+.prose .hljs-selector-class {
+  @apply text-blue-600 dark:text-blue-400;
+}
+.prose .hljs-attribute,
+.prose .hljs-attr,
+.prose .hljs-variable,
+.prose .hljs-template-variable,
+.prose .hljs-class .hljs-title,
+.prose .hljs-type {
+  @apply text-orange-600 dark:text-orange-400;
+}
+.prose .hljs-symbol,
+.prose .hljs-bullet,
+.prose .hljs-subst,
+.prose .hljs-meta,
+.prose .hljs-link {
+  @apply text-cyan-600 dark:text-cyan-400;
+}
+.prose .hljs-built_in,
+.prose .hljs-deletion {
+  @apply text-red-600 dark:text-red-400;
+}
+.prose .hljs-formula {
+  @apply bg-muted-foreground/10;
+}
+.prose .hljs-emphasis {
+  @apply italic;
+}
+.prose .hljs-strong {
+  @apply font-bold;
 }
