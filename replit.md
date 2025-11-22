@@ -24,10 +24,31 @@ Preferred communication style: Simple, everyday language.
 - New York style variant with neutral base color scheme
 - Lucide React for consistent iconography
 
-**Rich Text Editing**
-- TiptapEditor for article content creation
-- StarterKit, Image, Link, and Placeholder extensions enabled
-- Custom toolbar for formatting controls
+**Rich Text Editing - World-Class Editor**
+- TipTap editor with comprehensive formatting capabilities comparable to Notion/Google Docs
+- **Toolbar Features:**
+  - Text formatting: Bold, italic, underline, strikethrough, inline code, highlight
+  - Headings: H1, H2, H3, H4
+  - Lists: Bullet lists, numbered lists
+  - Blocks: Blockquotes, code blocks with syntax highlighting, horizontal rules
+  - Media: Images (base64 upload), links with auto-detection
+  - History: Undo/redo support
+- **Slash Commands:**
+  - Type "/" to open quick formatting menu
+  - Keyboard navigation (arrow keys + enter) and mouse selection
+  - Filterable options for instant access to formatting
+  - Commands: Headings (1-3), Bullet List, Numbered List, Quote, Code Block, Divider
+- **Code Block Syntax Highlighting:**
+  - CodeBlockLowlight with lowlight library
+  - Common language pack support (JavaScript, TypeScript, Python, etc.)
+  - Color-coded syntax tokens (keywords, strings, comments, etc.)
+  - Light/dark mode compatible highlighting
+- **Technical Implementation:**
+  - Extensions: StarterKit, Underline, Strike, Highlight, CodeBlockLowlight, HorizontalRule, TextStyle, Color, Image, Link, Placeholder
+  - Custom slash command extension using TipTap Suggestion plugin
+  - Tippy.js for dropdown positioning
+  - ReactRenderer for menu component integration
+  - Comprehensive prose CSS for both editor (.ProseMirror) and public website (.prose)
 
 **Design System**
 - Custom CSS variables for theming (light/dark mode support)
