@@ -194,20 +194,20 @@
 
 /* Task Lists - Each task on its own line with nested indentation */
 .ProseMirror ul[data-type="taskList"] {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
+  list-style: none !important;
+  padding-left: 0 !important;
+  margin: 0.5rem 0 !important;
 }
 
 .ProseMirror ul[data-type="taskList"] li {
-  display: block;
+  display: block !important;
   position: relative;
-  margin: 0.25rem 0;
+  margin: 0.375rem 0 !important;
 }
 
 .ProseMirror ul[data-type="taskList"] li > label,
 .ProseMirror ul[data-type="taskList"] li > div {
-  display: inline-flex;
+  display: inline-flex !important;
   align-items: center;
   vertical-align: middle;
 }
@@ -222,7 +222,7 @@
   width: 1rem;
   height: 1rem;
   cursor: pointer;
-  margin: 0;
+  margin: 0 !important;
   flex-shrink: 0;
 }
 
@@ -232,7 +232,7 @@
 }
 
 .ProseMirror ul[data-type="taskList"] li > div > p {
-  margin: 0;
+  margin: 0 !important;
   display: inline;
 }
 
@@ -243,12 +243,12 @@
 
 /* Nested task lists - indented to the right */
 .ProseMirror ul[data-type="taskList"] ul[data-type="taskList"] {
-  display: block;
+  display: block !important;
   width: 100%;
-  margin-left: 1.5rem;
-  margin-top: 0.25rem;
-  margin-bottom: 0;
-  padding-left: 0;
+  margin-left: 1.5rem !important;
+  margin-top: 0.25rem !important;
+  margin-bottom: 0 !important;
+  padding-left: 0 !important;
 }
 
 /* Syntax highlighting for code blocks */
@@ -380,20 +380,20 @@
 
 /* Task Lists - Each task on its own line with nested indentation */
 .prose ul[data-type="taskList"] {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
+  list-style: none !important;
+  padding-left: 0 !important;
+  margin: 0.5rem 0 !important;
 }
 
 .prose ul[data-type="taskList"] li {
-  display: block;
+  display: block !important;
   position: relative;
-  margin: 0.25rem 0;
+  margin: 0.375rem 0 !important;
 }
 
 .prose ul[data-type="taskList"] li > label,
 .prose ul[data-type="taskList"] li > div {
-  display: inline-flex;
+  display: inline-flex !important;
   align-items: center;
   vertical-align: middle;
 }
@@ -408,7 +408,7 @@
   width: 1rem;
   height: 1rem;
   cursor: pointer;
-  margin: 0;
+  margin: 0 !important;
   flex-shrink: 0;
 }
 
@@ -418,7 +418,7 @@
 }
 
 .prose ul[data-type="taskList"] li > div > p {
-  margin: 0;
+  margin: 0 !important;
   display: inline;
 }
 
@@ -429,12 +429,12 @@
 
 /* Nested task lists - indented to the right */
 .prose ul[data-type="taskList"] ul[data-type="taskList"] {
-  display: block;
+  display: block !important;
   width: 100%;
-  margin-left: 1.5rem;
-  margin-top: 0.25rem;
-  margin-bottom: 0;
-  padding-left: 0;
+  margin-left: 1.5rem !important;
+  margin-top: 0.25rem !important;
+  margin-bottom: 0 !important;
+  padding-left: 0 !important;
 }
 
 /* Syntax highlighting for code blocks */

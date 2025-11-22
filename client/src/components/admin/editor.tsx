@@ -519,9 +519,16 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
         multicolor: false,
       }),
       HorizontalRule,
-      TaskList,
+      TaskList.configure({
+        HTMLAttributes: {
+          class: 'task-list-block',
+        },
+      }),
       TaskItem.configure({
         nested: true,
+        HTMLAttributes: {
+          class: 'task-item-block',
+        },
       }),
       TextStyle,
       Color,
