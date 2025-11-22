@@ -52,7 +52,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background font-sans flex flex-col md:flex-row overflow-x-hidden">
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between px-6 py-4 border-b bg-background/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="font-semibold text-lg tracking-tight">Arshad Teli</div>
+        <Link href="/">
+          <a className="font-semibold text-lg tracking-tight">Arshad Teli</a>
+        </Link>
         <div className="flex items-center gap-1">
           <ThemeToggle />
           <Sheet open={open} onOpenChange={setOpen}>
@@ -101,7 +103,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col w-64 fixed inset-y-0 left-0 border-r bg-card/30 backdrop-blur-sm p-6">
         <div className="flex items-center justify-between mb-8 px-3 py-2">
-           <div className="font-semibold text-lg tracking-tight">Arshad Teli</div>
+           <Link href="/">
+             <a className="font-semibold text-lg tracking-tight">Arshad Teli</a>
+           </Link>
         </div>
         
         <div className="flex-1">
