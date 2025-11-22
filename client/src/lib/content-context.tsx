@@ -36,10 +36,20 @@ export interface Project {
   date: string;
 }
 
+export interface WorkExperience {
+  id: string;
+  company: string;
+  role: string;
+  period: string;
+  description: string;
+  logo?: string;
+}
+
 interface ContentContextType {
   profile: Profile;
   articles: Article[];
   projects: Project[];
+  workHistory: WorkExperience[];
   updateProfile: (newProfile: Partial<Profile>) => void;
   addArticle: (article: Article) => void;
   updateArticle: (id: string, updatedArticle: Partial<Article>) => void;
@@ -47,6 +57,9 @@ interface ContentContextType {
   addProject: (project: Project) => void;
   updateProject: (id: string, updatedProject: Partial<Project>) => void;
   deleteProject: (id: string) => void;
+  addWork: (work: WorkExperience) => void;
+  updateWork: (id: string, updatedWork: Partial<WorkExperience>) => void;
+  deleteWork: (id: string) => void;
 }
 
 const defaultProfile: Profile = {
@@ -147,6 +160,25 @@ const defaultProjects: Project[] = [
   }
 ];
 
+const defaultWorkHistory: WorkExperience[] = [
+  {
+    id: "1",
+    company: "Acme Corp",
+    role: "Senior Product Manager",
+    period: "2022 - Present",
+    description: "Leading the core product team to build the future of finance.",
+    logo: "AC"
+  },
+  {
+    id: "2",
+    company: "TechStart",
+    role: "Product Designer",
+    period: "2020 - 2022",
+    description: "Designed the initial MVP and scaled the design system.",
+    logo: "TS"
+  }
+];
+
 const ContentContext = createContext<ContentContextType | undefined>(undefined);
 
 export function ContentProvider({ children }: { children: React.ReactNode }) {
@@ -165,6 +197,11 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
     return saved ? JSON.parse(saved) : defaultProjects;
   });
 
+  const [workHistory, setWorkHistory] = useState<WorkExperience[]>(() => {
+    const saved = localStorage.getItem("site-work");
+    return saved ? JSON.parse(saved) : defaultWorkHistory;
+  });
+
   useEffect(() => {
     localStorage.setItem("site-profile", JSON.stringify(profile));
   }, [profile]);
@@ -176,6 +213,10 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem("site-projects", JSON.stringify(projects));
   }, [projects]);
+
+  useEffect(() => {
+    localStorage.setItem("site-work", JSON.stringify(workHistory));
+  }, [workHistory]);
 
   const updateProfile = (newProfile: Partial<Profile>) => {
     setProfile((prev) => ({ ...prev, ...newProfile }));
@@ -205,11 +246,24 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
     setProjects((prev) => prev.filter(p => p.id !== id));
   };
 
+  const addWork = (work: WorkExperience) => {
+    setWorkHistory((prev) => [work, ...prev]);
+  };
+
+  const updateWork = (id: string, updatedWork: Partial<WorkExperience>) => {
+    setWorkHistory((prev) => prev.map(w => w.id === id ? { ...w, ...updatedWork } : w));
+  };
+
+  const deleteWork = (id: string) => {
+    setWorkHistory((prev) => prev.filter(w => w.id !== id));
+  };
+
   return (
     <ContentContext.Provider value={{ 
-      profile, articles, projects,
+      profile, articles, projects, workHistory,
       updateProfile, addArticle, updateArticle, deleteArticle,
-      addProject, updateProject, deleteProject
+      addProject, updateProject, deleteProject,
+      addWork, updateWork, deleteWork
     }}>
       {children}
     </ContentContext.Provider>

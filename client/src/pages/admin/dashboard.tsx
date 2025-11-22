@@ -10,7 +10,7 @@ import {
   LogOut, Image as ImageIcon, Save, Plus, Search, Globe,
   ChevronsLeft, ChevronsRight, Link as LinkIcon, Star,
   ChevronRight, Upload, Trash2, Edit2, ArrowLeft, Eye, CheckCircle,
-  MoreHorizontal, Clock, Calendar as CalendarIcon, ArrowUpDown, Filter
+  MoreHorizontal, Clock, Calendar as CalendarIcon, ArrowUpDown, Filter, Briefcase
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -18,7 +18,7 @@ import { Editor } from "@/components/admin/editor";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { useContent, Article, Project } from "@/lib/content-context";
+import { useContent, Article, Project, WorkExperience } from "@/lib/content-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,17 +60,20 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
   const { 
-    profile, articles, projects, 
+    profile, articles, projects, workHistory,
     updateProfile, addArticle, updateArticle, deleteArticle,
-    addProject, updateProject, deleteProject
+    addProject, updateProject, deleteProject,
+    addWork, updateWork, deleteWork
   } = useContent();
   
   const [formData, setFormData] = useState(profile);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [editingWork, setEditingWork] = useState<WorkExperience | null>(null);
   const [isWriting, setIsWriting] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [isProjectSheetOpen, setIsProjectSheetOpen] = useState(false);
+  const [isWorkSheetOpen, setIsWorkSheetOpen] = useState(false);
   
   const [sortConfig, setSortConfig] = useState<{ key: keyof Article | keyof Project; direction: 'asc' | 'desc' } | null>(null);
   const [filterQuery, setFilterQuery] = useState("");
@@ -84,6 +87,10 @@ export default function AdminDashboard() {
     if (activeTab !== 'projects') {
       setIsProjectSheetOpen(false);
       setEditingProject(null);
+    }
+    if (activeTab !== 'work') {
+      setIsWorkSheetOpen(false);
+      setEditingWork(null);
     }
     // Reset sort and filter
     setSortConfig(null);
@@ -212,6 +219,53 @@ export default function AdminDashboard() {
       toast({
         title: "Project Deleted",
         description: "The project has been permanently removed.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleNewWork = () => {
+    const newWork: WorkExperience = {
+      id: Date.now().toString(),
+      company: "",
+      role: "",
+      period: "",
+      description: "",
+      logo: ""
+    };
+    setEditingWork(newWork);
+    setIsWorkSheetOpen(true);
+  };
+
+  const handleEditWork = (work: WorkExperience) => {
+    setEditingWork(work);
+    setIsWorkSheetOpen(true);
+  };
+
+  const handleSaveWork = () => {
+    if (!editingWork) return;
+
+    if (workHistory.some(w => w.id === editingWork.id)) {
+      updateWork(editingWork.id, editingWork);
+    } else {
+      addWork(editingWork);
+    }
+
+    toast({
+      title: "Work Experience Saved",
+      description: `"${editingWork.company}" has been saved successfully.`,
+    });
+    setIsWorkSheetOpen(false);
+    setEditingWork(null);
+  };
+
+  const handleDeleteWork = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("Are you sure you want to delete this work experience?")) {
+      deleteWork(id);
+      toast({
+        title: "Work Experience Deleted",
+        description: "The entry has been permanently removed.",
         variant: "destructive"
       });
     }
@@ -394,6 +448,7 @@ export default function AdminDashboard() {
             <SidebarItem icon={Settings} label="Home Page" id="settings" />
             <SidebarItem icon={PenTool} label="Writing" id="writing" />
             <SidebarItem icon={FolderGit2} label="Projects" id="projects" />
+            <SidebarItem icon={Briefcase} label="Work History" id="work" />
             <SidebarItem icon={BookOpen} label="Reading List" id="reading" />
           </div>
 
@@ -920,6 +975,133 @@ export default function AdminDashboard() {
                         )}
                     </TableBody>
                 </Table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "work" && (
+            <div className="space-y-4 animate-in fade-in-50 duration-500">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold tracking-tight">Work History</h2>
+                </div>
+                <div>
+                    <Sheet open={isWorkSheetOpen} onOpenChange={(open) => {
+                        setIsWorkSheetOpen(open);
+                        if (!open) setEditingWork(null);
+                    }}>
+                        <SheetTrigger asChild>
+                            <Button onClick={handleNewWork} size="sm" className="gap-2 h-9 shadow-none"><Plus className="h-4 w-4" /> Add Experience</Button>
+                        </SheetTrigger>
+                        <SheetContent className="sm:max-w-[540px] overflow-y-auto">
+                            <SheetHeader className="mb-6">
+                                <SheetTitle>{editingWork?.company ? 'Edit Experience' : 'New Experience'}</SheetTitle>
+                                <SheetDescription>
+                                    Add details about your professional background.
+                                </SheetDescription>
+                            </SheetHeader>
+                            {editingWork && (
+                                <div className="space-y-6">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="company">Company Name</Label>
+                                            <Input 
+                                                id="company" 
+                                                value={editingWork.company} 
+                                                onChange={(e) => setEditingWork({...editingWork, company: e.target.value})}
+                                                placeholder="e.g. Acme Corp"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="logo">Company Initials/Logo</Label>
+                                            <Input 
+                                                id="logo" 
+                                                value={editingWork.logo} 
+                                                onChange={(e) => setEditingWork({...editingWork, logo: e.target.value})}
+                                                placeholder="e.g. AC"
+                                                maxLength={2}
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="space-y-2">
+                                        <Label htmlFor="role">Role Title</Label>
+                                        <Input 
+                                            id="role" 
+                                            value={editingWork.role} 
+                                            onChange={(e) => setEditingWork({...editingWork, role: e.target.value})}
+                                            placeholder="e.g. Senior Product Manager"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="period">Period</Label>
+                                        <Input 
+                                            id="period" 
+                                            value={editingWork.period} 
+                                            onChange={(e) => setEditingWork({...editingWork, period: e.target.value})}
+                                            placeholder="e.g. 2022 - Present"
+                                        />
+                                    </div>
+                                    
+                                    <div className="space-y-2">
+                                        <Label htmlFor="description">Description</Label>
+                                        <Textarea 
+                                            id="description" 
+                                            value={editingWork.description} 
+                                            onChange={(e) => setEditingWork({...editingWork, description: e.target.value})}
+                                            placeholder="Brief description of your responsibilities and achievements..."
+                                            className="min-h-[120px]"
+                                        />
+                                    </div>
+
+                                    <div className="pt-4 flex justify-end gap-2 border-t mt-6">
+                                        <Button variant="outline" onClick={() => setIsWorkSheetOpen(false)}>Cancel</Button>
+                                        <Button onClick={handleSaveWork}>Save Experience</Button>
+                                    </div>
+                                </div>
+                            )}
+                        </SheetContent>
+                    </Sheet>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                 {workHistory.map((work) => (
+                    <Card key={work.id} className="group relative overflow-hidden border-border/50 shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => handleEditWork(work)}>
+                      <div className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 z-10">
+                        <Button size="icon" variant="secondary" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); handleEditWork(work); }}>
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button size="icon" variant="destructive" className="h-8 w-8" onClick={(e) => handleDeleteWork(work.id, e)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <div className="h-12 w-12 rounded-lg bg-primary/5 flex items-center justify-center text-primary font-bold text-lg border border-border/50 flex-shrink-0">
+                            {work.logo || work.company.substring(0, 2).toUpperCase()}
+                          </div>
+                          <div className="space-y-1 flex-1">
+                            <div className="flex items-center justify-between pr-16">
+                              <h3 className="font-semibold text-lg">{work.company}</h3>
+                              <Badge variant="outline" className="font-normal text-muted-foreground bg-background">{work.period}</Badge>
+                            </div>
+                            <p className="text-medium font-medium text-foreground/80">{work.role}</p>
+                            <p className="text-muted-foreground text-sm leading-relaxed pt-1">{work.description}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                 ))}
+                 
+                 {workHistory.length === 0 && (
+                    <div className="text-center py-12 text-muted-foreground bg-muted/10 rounded-lg border border-dashed">
+                      <Briefcase className="h-10 w-10 mx-auto mb-3 opacity-20" />
+                      <p>No work experience added yet.</p>
+                      <Button variant="link" onClick={handleNewWork} className="mt-2">Add your first role</Button>
+                    </div>
+                 )}
               </div>
             </div>
           )}
