@@ -9,7 +9,7 @@ import {
   LayoutDashboard, PenTool, FolderGit2, BookOpen, Settings, 
   LogOut, Image as ImageIcon, Save, Plus, Search, Globe,
   ChevronRight, Upload, Trash2, Edit2, ArrowLeft, Eye, CheckCircle,
-  MoreHorizontal, Clock, Calendar
+  MoreHorizontal, Clock, Calendar as CalendarIcon
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -25,6 +25,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
@@ -313,7 +316,7 @@ export default function AdminDashboard() {
                                   {article.status}
                                 </Badge>
                                 <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <Calendar className="h-3 w-3" /> {article.date}
+                                  <CalendarIcon className="h-3 w-3" /> {article.date}
                                 </span>
                              </div>
                              
@@ -386,7 +389,7 @@ export default function AdminDashboard() {
                                   {article.status}
                                 </Badge>
                                 <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <Calendar className="h-3 w-3" /> {article.date}
+                                  <CalendarIcon className="h-3 w-3" /> {article.date}
                                 </span>
                              </div>
                              
@@ -452,7 +455,7 @@ export default function AdminDashboard() {
                                   {article.status}
                                 </Badge>
                                 <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <Calendar className="h-3 w-3" /> {article.date}
+                                  <CalendarIcon className="h-3 w-3" /> {article.date}
                                 </span>
                              </div>
                              
@@ -563,12 +566,28 @@ export default function AdminDashboard() {
                         </div>
                         <div className="space-y-2 group/item p-2 -mx-2 rounded-md hover:bg-secondary/40 transition-colors">
                           <Label className="text-xs text-muted-foreground font-normal">Publish Date</Label>
-                          <Input 
-                            type="date" 
-                            className="h-8 text-xs border-none bg-transparent shadow-none p-0 focus-visible:ring-0 text-foreground placeholder:text-muted-foreground/50"
-                            value={editingArticle.date}
-                            onChange={(e) => setEditingArticle({...editingArticle, date: e.target.value})}
-                          />
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant={"ghost"}
+                                className={cn(
+                                  "h-8 w-full justify-start text-left font-normal text-xs p-0 shadow-none bg-transparent hover:bg-transparent hover:text-foreground",
+                                  !editingArticle.date && "text-muted-foreground"
+                                )}
+                              >
+                                <CalendarIcon className="mr-2 h-3 w-3 opacity-50" />
+                                {editingArticle.date ? format(new Date(editingArticle.date), "MMMM do, yyyy") : <span>Pick a date</span>}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={editingArticle.date ? new Date(editingArticle.date) : undefined}
+                                onSelect={(date) => date && setEditingArticle({...editingArticle, date: format(date, "yyyy-MM-dd")})}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
                         </div>
                         <div className="space-y-2 group/item p-2 -mx-2 rounded-md hover:bg-secondary/40 transition-colors">
                           <Label className="text-xs text-muted-foreground font-normal">URL Slug</Label>
