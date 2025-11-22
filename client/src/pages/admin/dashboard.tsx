@@ -337,32 +337,30 @@ export default function AdminDashboard() {
         isSidebarExpanded ? "w-64" : "w-[72px]"
       )}>
         <div className={cn(
-          "bg-background/50 backdrop-blur flex items-center transition-all",
-          isSidebarExpanded ? "p-6 justify-between border-b" : "p-4 justify-center border-b-0"
+          "bg-background/50 backdrop-blur transition-all flex flex-col",
+          isSidebarExpanded ? "p-6 border-b" : "p-4 border-b-0 items-center"
         )}>
-          {isSidebarExpanded && (
-            <div className="flex items-center gap-3 overflow-hidden">
-              <div className="h-8 w-8 rounded-lg bg-primary flex-shrink-0 flex items-center justify-center text-primary-foreground font-bold">
-                {profile.name.charAt(0)}
-              </div>
-              <div>
-                <div className="font-semibold text-sm truncate max-w-[100px]">{profile.name}</div>
-                <div className="text-xs text-muted-foreground truncate">Admin</div>
-              </div>
-            </div>
-          )}
-          {!isSidebarExpanded && (
-            <div className="h-8 w-8 rounded-lg bg-primary flex-shrink-0 flex items-center justify-center text-primary-foreground font-bold">
-              {profile.name.charAt(0)}
-            </div>
-          )}
+          <div className={cn(
+            "flex items-center gap-3 overflow-hidden w-full",
+            isSidebarExpanded ? "" : "justify-center"
+          )}>
+             <div className="h-8 w-8 rounded-lg bg-primary flex-shrink-0 flex items-center justify-center text-primary-foreground font-bold">
+               {profile.name.charAt(0)}
+             </div>
+             {isSidebarExpanded && (
+               <div>
+                 <div className="font-semibold text-sm truncate max-w-[100px]">{profile.name}</div>
+                 <div className="text-xs text-muted-foreground truncate">Admin</div>
+               </div>
+             )}
+          </div>
           
           <Button 
              variant="ghost" 
              size="icon" 
              className={cn(
-               "h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-secondary",
-               isSidebarExpanded ? "absolute right-2" : ""
+               "h-6 w-6 text-muted-foreground hover:bg-secondary mt-4",
+               isSidebarExpanded ? "self-end" : ""
              )}
              onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
            >
