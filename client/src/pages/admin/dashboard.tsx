@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { 
   LayoutDashboard, PenTool, FolderGit2, BookOpen, Settings, 
   LogOut, Image as ImageIcon, Save, Plus, Search, Globe,
-  ChevronRight, Upload, Trash2, Edit2, ArrowLeft, Eye, CheckCircle
+  ChevronRight, Upload, Trash2, Edit2, ArrowLeft, Eye, CheckCircle,
+  MoreHorizontal, Clock, Calendar
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useContent, Article } from "@/lib/content-context";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
@@ -124,6 +132,14 @@ export default function AdminDashboard() {
       {label}
     </button>
   );
+
+  const getReadingTime = (content: string) => {
+    const wordsPerMinute = 200;
+    const text = content.replace(/<[^>]*>?/gm, ''); 
+    const noOfWords = text.split(/\s/g).length;
+    const minutes = Math.ceil(noOfWords / wordsPerMinute);
+    return `${minutes} min read`;
+  };
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
@@ -244,69 +260,258 @@ export default function AdminDashboard() {
           )}
 
           {activeTab === "writing" && !isWriting && (
-            <div className="space-y-6">
+            <div className="space-y-6 max-w-5xl mx-auto animate-in fade-in-50 duration-500">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold tracking-tight">Writing</h2>
-                  <p className="text-muted-foreground">Manage your blog posts and articles.</p>
+                  <h2 className="text-3xl font-bold tracking-tight">Writing</h2>
+                  <p className="text-muted-foreground mt-1">Manage your articles and thoughts.</p>
                 </div>
-                <Button onClick={handleNewPost} className="gap-2"><Plus className="h-4 w-4" /> New Post</Button>
+                <Button onClick={handleNewPost} className="gap-2 shadow-sm"><Plus className="h-4 w-4" /> New Post</Button>
               </div>
 
-              <Card>
-                 <CardContent className="p-0">
-                    <div className="divide-y">
-                       {articles.length === 0 ? (
-                         <div className="p-8 text-center text-muted-foreground">
-                           No articles found. Create your first post!
-                         </div>
-                       ) : (
-                         articles.map((article) => (
-                           <div 
-                             key={article.id} 
-                             onClick={() => handleEditPost(article)}
-                             className="flex items-center justify-between p-4 hover:bg-secondary/20 transition-colors cursor-pointer group"
-                           >
-                              <div className="space-y-1">
-                                 <div className="font-medium text-base group-hover:text-primary transition-colors">{article.title || "Untitled Draft"}</div>
-                                 <div className="text-xs text-muted-foreground flex items-center gap-3">
-                                    <span className={cn(
-                                      "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border",
-                                      article.status === "Published" 
-                                        ? "bg-green-500/10 text-green-600 border-green-200" 
-                                        : "bg-yellow-500/10 text-yellow-600 border-yellow-200"
-                                    )}>
-                                      <div className={cn(
-                                        "h-1.5 w-1.5 rounded-full",
-                                        article.status === "Published" ? "bg-green-500" : "bg-yellow-500"
-                                      )} />
-                                      {article.status}
-                                    </span>
-                                    <span>Published on {article.date}</span>
-                                    {article.views !== "0" && (
-                                      <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {article.views}</span>
-                                    )}
-                                 </div>
-                              </div>
-                              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                 <Button 
-                                   variant="ghost" 
-                                   size="sm" 
-                                   className={cn("gap-2", article.status === "Published" ? "text-yellow-600 hover:text-yellow-700" : "text-green-600 hover:text-green-700")}
-                                   onClick={(e) => toggleArticleStatus(article, e)}
-                                 >
-                                   {article.status === "Published" ? "Unpublish" : "Publish"}
+              <Tabs defaultValue="all" className="w-full space-y-6">
+                <div className="flex items-center justify-between gap-4">
+                  <TabsList className="grid w-[300px] grid-cols-3 bg-muted/50">
+                    <TabsTrigger value="all">All</TabsTrigger>
+                    <TabsTrigger value="published">Published</TabsTrigger>
+                    <TabsTrigger value="draft">Drafts</TabsTrigger>
+                  </TabsList>
+                  
+                  <div className="relative w-72">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input placeholder="Search articles..." className="pl-8 bg-background" />
+                  </div>
+                </div>
+
+                <TabsContent value="all" className="space-y-4 mt-0">
+                  {articles.length === 0 ? (
+                     <div className="flex flex-col items-center justify-center h-[400px] border border-dashed rounded-xl bg-muted/10">
+                       <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                         <PenTool className="h-6 w-6 text-primary" />
+                       </div>
+                       <h3 className="text-lg font-semibold">No articles yet</h3>
+                       <p className="text-muted-foreground text-sm max-w-sm text-center mt-2 mb-6">
+                         Start writing your first article to share your thoughts with the world.
+                       </p>
+                       <Button onClick={handleNewPost}>Create Article</Button>
+                     </div>
+                   ) : (
+                     articles.map((article) => (
+                       <div 
+                         key={article.id} 
+                         onClick={() => handleEditPost(article)}
+                         className="group flex items-start justify-between p-6 border rounded-xl hover:border-primary/20 hover:shadow-sm hover:bg-secondary/10 transition-all cursor-pointer bg-card"
+                       >
+                          <div className="space-y-3 flex-1 pr-8">
+                             <div className="flex items-center gap-3">
+                                <Badge 
+                                  variant={article.status === "Published" ? "default" : "secondary"} 
+                                  className={cn(
+                                    "text-[10px] h-5 px-2 font-medium uppercase tracking-wider",
+                                    article.status === "Published" ? "bg-green-100 text-green-700 hover:bg-green-100 border-green-200" : "bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-yellow-200"
+                                  )}
+                                >
+                                  {article.status}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" /> {article.date}
+                                </span>
+                             </div>
+                             
+                             <div>
+                               <h3 className="text-xl font-bold tracking-tight text-foreground group-hover:text-primary transition-colors mb-2">
+                                 {article.title || "Untitled Draft"}
+                               </h3>
+                               <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
+                                 {article.content.replace(/<[^>]*>?/gm, '').substring(0, 160) || "No content preview available..."}
+                               </p>
+                             </div>
+
+                             <div className="flex items-center gap-6 text-xs text-muted-foreground pt-1">
+                               <span className="flex items-center gap-1.5">
+                                 <Clock className="h-3.5 w-3.5" /> {getReadingTime(article.content)}
+                               </span>
+                               <span className="flex items-center gap-1.5">
+                                 <Eye className="h-3.5 w-3.5" /> {article.views} views
+                               </span>
+                             </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity self-center">
+                             <Button 
+                               variant="ghost" 
+                               size="sm"
+                               className={cn("text-xs", article.status === "Published" ? "text-muted-foreground hover:text-destructive" : "text-primary hover:text-primary/80")}
+                               onClick={(e) => toggleArticleStatus(article, e)}
+                             >
+                               {article.status === "Published" ? "Unpublish" : "Publish"}
+                             </Button>
+                             
+                             <DropdownMenu>
+                               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                                   <MoreHorizontal className="h-4 w-4" />
                                  </Button>
-                                 <Separator orientation="vertical" className="h-4" />
-                                 <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleEditPost(article); }}><Edit2 className="h-4 w-4" /></Button>
-                                 <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={(e) => handleDeleteArticle(article.id, e)}><Trash2 className="h-4 w-4" /></Button>
-                              </div>
-                           </div>
-                         ))
-                       )}
-                    </div>
-                 </CardContent>
-              </Card>
+                               </DropdownMenuTrigger>
+                               <DropdownMenuContent align="end">
+                                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEditPost(article); }}>
+                                   <Edit2 className="mr-2 h-4 w-4" /> Edit
+                                 </DropdownMenuItem>
+                                 <DropdownMenuItem onClick={(e) => toggleArticleStatus(article, e)}>
+                                   {article.status === "Published" ? <><ArrowLeft className="mr-2 h-4 w-4" /> Unpublish</> : <><CheckCircle className="mr-2 h-4 w-4" /> Publish</>}
+                                 </DropdownMenuItem>
+                                 <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => handleDeleteArticle(article.id, e)}>
+                                   <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                 </DropdownMenuItem>
+                               </DropdownMenuContent>
+                             </DropdownMenu>
+                          </div>
+                       </div>
+                     ))
+                   )}
+                </TabsContent>
+                
+                <TabsContent value="published" className="space-y-4 mt-0">
+                  {articles.filter(a => a.status === "Published").map((article) => (
+                       <div 
+                         key={article.id} 
+                         onClick={() => handleEditPost(article)}
+                         className="group flex items-start justify-between p-6 border rounded-xl hover:border-primary/20 hover:shadow-sm hover:bg-secondary/10 transition-all cursor-pointer bg-card"
+                       >
+                          <div className="space-y-3 flex-1 pr-8">
+                             <div className="flex items-center gap-3">
+                                <Badge 
+                                  variant="default" 
+                                  className="text-[10px] h-5 px-2 font-medium uppercase tracking-wider bg-green-100 text-green-700 hover:bg-green-100 border-green-200"
+                                >
+                                  {article.status}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" /> {article.date}
+                                </span>
+                             </div>
+                             
+                             <div>
+                               <h3 className="text-xl font-bold tracking-tight text-foreground group-hover:text-primary transition-colors mb-2">
+                                 {article.title || "Untitled Draft"}
+                               </h3>
+                               <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
+                                 {article.content.replace(/<[^>]*>?/gm, '').substring(0, 160) || "No content preview available..."}
+                               </p>
+                             </div>
+
+                             <div className="flex items-center gap-6 text-xs text-muted-foreground pt-1">
+                               <span className="flex items-center gap-1.5">
+                                 <Clock className="h-3.5 w-3.5" /> {getReadingTime(article.content)}
+                               </span>
+                               <span className="flex items-center gap-1.5">
+                                 <Eye className="h-3.5 w-3.5" /> {article.views} views
+                               </span>
+                             </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity self-center">
+                             <DropdownMenu>
+                               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                                   <MoreHorizontal className="h-4 w-4" />
+                                 </Button>
+                               </DropdownMenuTrigger>
+                               <DropdownMenuContent align="end">
+                                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEditPost(article); }}>
+                                   <Edit2 className="mr-2 h-4 w-4" /> Edit
+                                 </DropdownMenuItem>
+                                 <DropdownMenuItem onClick={(e) => toggleArticleStatus(article, e)}>
+                                   <ArrowLeft className="mr-2 h-4 w-4" /> Unpublish
+                                 </DropdownMenuItem>
+                                 <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => handleDeleteArticle(article.id, e)}>
+                                   <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                 </DropdownMenuItem>
+                               </DropdownMenuContent>
+                             </DropdownMenu>
+                          </div>
+                       </div>
+                   ))}
+                   {articles.filter(a => a.status === "Published").length === 0 && (
+                      <div className="text-center py-12 text-muted-foreground">No published articles yet.</div>
+                   )}
+                </TabsContent>
+
+                <TabsContent value="draft" className="space-y-4 mt-0">
+                  {articles.filter(a => a.status === "Draft").map((article) => (
+                       <div 
+                         key={article.id} 
+                         onClick={() => handleEditPost(article)}
+                         className="group flex items-start justify-between p-6 border rounded-xl hover:border-primary/20 hover:shadow-sm hover:bg-secondary/10 transition-all cursor-pointer bg-card"
+                       >
+                          <div className="space-y-3 flex-1 pr-8">
+                             <div className="flex items-center gap-3">
+                                <Badge 
+                                  variant="secondary" 
+                                  className="text-[10px] h-5 px-2 font-medium uppercase tracking-wider bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-yellow-200"
+                                >
+                                  {article.status}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" /> {article.date}
+                                </span>
+                             </div>
+                             
+                             <div>
+                               <h3 className="text-xl font-bold tracking-tight text-foreground group-hover:text-primary transition-colors mb-2">
+                                 {article.title || "Untitled Draft"}
+                               </h3>
+                               <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
+                                 {article.content.replace(/<[^>]*>?/gm, '').substring(0, 160) || "No content preview available..."}
+                               </p>
+                             </div>
+
+                             <div className="flex items-center gap-6 text-xs text-muted-foreground pt-1">
+                               <span className="flex items-center gap-1.5">
+                                 <Clock className="h-3.5 w-3.5" /> {getReadingTime(article.content)}
+                               </span>
+                               <span className="flex items-center gap-1.5">
+                                 <Eye className="h-3.5 w-3.5" /> {article.views} views
+                               </span>
+                             </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity self-center">
+                             <Button 
+                               variant="ghost" 
+                               size="sm"
+                               className="text-xs text-primary hover:text-primary/80"
+                               onClick={(e) => toggleArticleStatus(article, e)}
+                             >
+                               Publish
+                             </Button>
+                             
+                             <DropdownMenu>
+                               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                                   <MoreHorizontal className="h-4 w-4" />
+                                 </Button>
+                               </DropdownMenuTrigger>
+                               <DropdownMenuContent align="end">
+                                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEditPost(article); }}>
+                                   <Edit2 className="mr-2 h-4 w-4" /> Edit
+                                 </DropdownMenuItem>
+                                 <DropdownMenuItem onClick={(e) => toggleArticleStatus(article, e)}>
+                                   <CheckCircle className="mr-2 h-4 w-4" /> Publish
+                                 </DropdownMenuItem>
+                                 <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => handleDeleteArticle(article.id, e)}>
+                                   <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                 </DropdownMenuItem>
+                               </DropdownMenuContent>
+                             </DropdownMenu>
+                          </div>
+                       </div>
+                   ))}
+                   {articles.filter(a => a.status === "Draft").length === 0 && (
+                      <div className="text-center py-12 text-muted-foreground">No drafts.</div>
+                   )}
+                </TabsContent>
+              </Tabs>
             </div>
           )}
 
