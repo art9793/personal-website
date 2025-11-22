@@ -18,6 +18,11 @@ export interface Article {
   date: string;
   status: "Draft" | "Published";
   views: string;
+  excerpt?: string;
+  featuredImage?: string;
+  seoKeywords?: string;
+  tags?: string;
+  author?: string;
 }
 
 interface ContentContextType {
@@ -40,10 +45,58 @@ const defaultProfile: Profile = {
 };
 
 const defaultArticles: Article[] = [
-  { id: "1", title: "Designing for AI", slug: "designing-for-ai", content: "<h2>Introduction</h2><p>Start writing...</p>", date: "2024-10-24", status: "Published", views: "2.4k" },
-  { id: "2", title: "The craft of software", slug: "craft-of-software", content: "<h2>Introduction</h2><p>Start writing...</p>", date: "2024-08-12", status: "Published", views: "1.8k" },
-  { id: "3", title: "Building Campsite", slug: "building-campsite", content: "<h2>Introduction</h2><p>Start writing...</p>", date: "2024-05-03", status: "Published", views: "3.2k" },
-  { id: "4", title: "Future of Interfaces", slug: "future-of-interfaces", content: "<h2>Introduction</h2><p>Start writing...</p>", date: "2024-11-22", status: "Draft", views: "0" }
+  { 
+    id: "1", 
+    title: "Designing for AI", 
+    slug: "designing-for-ai", 
+    content: "<h2>Introduction</h2><p>Start writing...</p>", 
+    date: "2024-10-24", 
+    status: "Published", 
+    views: "2.4k",
+    excerpt: "Exploring the challenges and opportunities...",
+    tags: "Design, AI",
+    author: "Arshad Teli",
+    seoKeywords: "ai, design, ux"
+  },
+  { 
+    id: "2", 
+    title: "The craft of software", 
+    slug: "craft-of-software", 
+    content: "<h2>Introduction</h2><p>Start writing...</p>", 
+    date: "2024-08-12", 
+    status: "Published", 
+    views: "1.8k",
+    excerpt: "Why details matter in software...",
+    tags: "Engineering, Craft",
+    author: "Arshad Teli",
+    seoKeywords: "software, craft, engineering"
+  },
+  { 
+    id: "3", 
+    title: "Building Campsite", 
+    slug: "building-campsite", 
+    content: "<h2>Introduction</h2><p>Start writing...</p>", 
+    date: "2024-05-03", 
+    status: "Published", 
+    views: "3.2k",
+    excerpt: "A journey of building a new product...",
+    tags: "Product, Startup",
+    author: "Arshad Teli",
+    seoKeywords: "startup, product, campsite"
+  },
+  { 
+    id: "4", 
+    title: "Future of Interfaces", 
+    slug: "future-of-interfaces", 
+    content: "<h2>Introduction</h2><p>Start writing...</p>", 
+    date: "2024-11-22", 
+    status: "Draft", 
+    views: "0",
+    excerpt: "What comes after screens?",
+    tags: "Future, UI",
+    author: "Arshad Teli",
+    seoKeywords: "ui, future, interfaces"
+  }
 ];
 
 const ContentContext = createContext<ContentContextType | undefined>(undefined);

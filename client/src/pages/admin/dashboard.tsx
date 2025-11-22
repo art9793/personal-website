@@ -9,7 +9,7 @@ import {
   LayoutDashboard, PenTool, FolderGit2, BookOpen, Settings, 
   LogOut, Image as ImageIcon, Save, Plus, Search, Globe,
   ChevronRight, Upload, Trash2, Edit2, ArrowLeft, Eye, CheckCircle,
-  MoreHorizontal, Clock, Calendar as CalendarIcon
+  MoreHorizontal, Clock, Calendar as CalendarIcon, ArrowUpDown, Filter
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -23,11 +23,21 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
@@ -38,6 +48,9 @@ export default function AdminDashboard() {
   const [formData, setFormData] = useState(profile);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [isWriting, setIsWriting] = useState(false);
+  
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Article; direction: 'asc' | 'desc' } | null>(null);
+  const [filterQuery, setFilterQuery] = useState("");
 
   // Reset writing state when changing tabs
   useEffect(() => {
@@ -71,7 +84,11 @@ export default function AdminDashboard() {
       content: "",
       date: new Date().toISOString().split('T')[0],
       status: "Draft",
-      views: "0"
+      views: "0",
+      excerpt: "",
+      tags: "",
+      seoKeywords: "",
+      author: profile.name
     };
     setEditingArticle(newArticle);
     setIsWriting(true);
@@ -120,6 +137,53 @@ export default function AdminDashboard() {
       description: `"${article.title}" is now ${newStatus.toLowerCase()}.`,
     });
   };
+
+  const handleSort = (key: keyof Article) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortedAndFilteredArticles = () => {
+    let result = [...articles];
+
+    if (filterQuery) {
+      const query = filterQuery.toLowerCase();
+      result = result.filter(article => 
+        article.title.toLowerCase().includes(query) ||
+        (article.tags && article.tags.toLowerCase().includes(query)) ||
+        (article.seoKeywords && article.seoKeywords.toLowerCase().includes(query))
+      );
+    }
+
+    if (sortConfig) {
+      result.sort((a, b) => {
+        const aValue = a[sortConfig.key] || "";
+        const bValue = b[sortConfig.key] || "";
+        
+        // Special handling for numbers (views)
+        if (sortConfig.key === 'views') {
+             const aNum = parseInt(aValue.toString().replace(/[^0-9]/g, '')) || 0;
+             const bNum = parseInt(bValue.toString().replace(/[^0-9]/g, '')) || 0;
+             return sortConfig.direction === 'asc' ? aNum - bNum : bNum - aNum;
+        }
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+
+    return result;
+  };
+
+  const filteredArticles = getSortedAndFilteredArticles();
 
   const SidebarItem = ({ icon: Icon, label, id }: { icon: any, label: string, id: string }) => (
     <button
@@ -187,26 +251,15 @@ export default function AdminDashboard() {
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto bg-background">
-        {/* Header */}
-        <header className="h-16 border-b px-8 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur z-10">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Admin</span>
-            <ChevronRight className="h-4 w-4" />
-            <span className="font-medium text-foreground capitalize">{activeTab === 'settings' ? 'Home Page' : activeTab}</span>
-            {isWriting && (
-              <>
-                <ChevronRight className="h-4 w-4" />
-                <span className="font-medium text-foreground">Editor</span>
-              </>
-            )}
-          </div>
+        {/* Header - Removed Breadcrumbs as requested */}
+        <header className="h-16 border-b px-8 flex items-center justify-end sticky top-0 bg-background/80 backdrop-blur z-10">
           <div className="flex items-center gap-3">
             {activeTab === "settings" && <Button size="sm" onClick={handleSaveProfile}>Save Changes</Button>}
             {isWriting && <Button size="sm" onClick={handleSaveArticle}>Save Article</Button>}
           </div>
         </header>
 
-        <div className="p-8 max-w-5xl mx-auto space-y-8">
+        <div className="p-8 max-w-[1600px] mx-auto space-y-8">
           {activeTab === "overview" && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -262,258 +315,148 @@ export default function AdminDashboard() {
           )}
 
           {activeTab === "writing" && !isWriting && (
-            <div className="space-y-6 max-w-5xl mx-auto animate-in fade-in-50 duration-500">
-              <div className="flex items-center justify-between">
+            <div className="space-y-4 animate-in fade-in-50 duration-500">
+              <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-3xl font-bold tracking-tight">Writing</h2>
-                  <p className="text-muted-foreground mt-1">Manage your articles and thoughts.</p>
+                  <h2 className="text-2xl font-bold tracking-tight">Database</h2>
+                  <p className="text-muted-foreground text-sm mt-1">Manage your content database.</p>
                 </div>
-                <Button onClick={handleNewPost} className="gap-2 shadow-sm"><Plus className="h-4 w-4" /> New Post</Button>
+                <div className="flex items-center gap-3">
+                    <div className="relative w-64">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input 
+                            placeholder="Filter by tags or keywords..." 
+                            className="pl-8 h-9 text-sm" 
+                            value={filterQuery}
+                            onChange={(e) => setFilterQuery(e.target.value)}
+                        />
+                    </div>
+                    <Button onClick={handleNewPost} size="sm" className="gap-2 h-9"><Plus className="h-4 w-4" /> New</Button>
+                </div>
               </div>
 
-              <Tabs defaultValue="all" className="w-full space-y-6">
-                <div className="flex items-center justify-between gap-4">
-                  <TabsList className="grid w-[300px] grid-cols-3 bg-muted/50">
-                    <TabsTrigger value="all">All</TabsTrigger>
-                    <TabsTrigger value="published">Published</TabsTrigger>
-                    <TabsTrigger value="draft">Drafts</TabsTrigger>
-                  </TabsList>
-                  
-                  <div className="relative w-72">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Search articles..." className="pl-8 bg-background" />
-                  </div>
-                </div>
-
-                <TabsContent value="all" className="space-y-4 mt-0">
-                  {articles.length === 0 ? (
-                     <div className="flex flex-col items-center justify-center h-[400px] border border-dashed rounded-xl bg-muted/10">
-                       <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                         <PenTool className="h-6 w-6 text-primary" />
-                       </div>
-                       <h3 className="text-lg font-semibold">No articles yet</h3>
-                       <p className="text-muted-foreground text-sm max-w-sm text-center mt-2 mb-6">
-                         Start writing your first article to share your thoughts with the world.
-                       </p>
-                       <Button onClick={handleNewPost}>Create Article</Button>
-                     </div>
-                   ) : (
-                     articles.map((article) => (
-                       <div 
-                         key={article.id} 
-                         onClick={() => handleEditPost(article)}
-                         className="group flex items-start justify-between p-6 border rounded-xl hover:border-primary/20 hover:shadow-sm hover:bg-secondary/10 transition-all cursor-pointer bg-card"
-                       >
-                          <div className="space-y-3 flex-1 pr-8">
-                             <div className="flex items-center gap-3">
-                                <Badge 
-                                  variant={article.status === "Published" ? "default" : "secondary"} 
-                                  className={cn(
-                                    "text-[10px] h-5 px-2 font-medium uppercase tracking-wider",
-                                    article.status === "Published" ? "bg-green-100 text-green-700 hover:bg-green-100 border-green-200" : "bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-yellow-200"
-                                  )}
+              <div className="border rounded-md bg-background overflow-hidden">
+                <Table>
+                    <TableHeader>
+                        <TableRow className="bg-muted/50 hover:bg-muted/50">
+                            <TableHead className="w-[300px]">Title</TableHead>
+                            <TableHead className="w-[200px]">Excerpt</TableHead>
+                            <TableHead className="w-[80px] text-center">Image</TableHead>
+                            <TableHead className="w-[80px] text-center">Published</TableHead>
+                            <TableHead className="cursor-pointer hover:text-foreground" onClick={() => handleSort('date')}>
+                                <div className="flex items-center gap-1">
+                                    Date {sortConfig?.key === 'date' && <ArrowUpDown className="h-3 w-3" />}
+                                </div>
+                            </TableHead>
+                            <TableHead>SEO Keywords</TableHead>
+                            <TableHead>Slug</TableHead>
+                            <TableHead>Tags</TableHead>
+                            <TableHead>Author</TableHead>
+                            <TableHead className="whitespace-nowrap">Read Time</TableHead>
+                            <TableHead className="cursor-pointer hover:text-foreground text-right" onClick={() => handleSort('views')}>
+                                <div className="flex items-center justify-end gap-1">
+                                    Views {sortConfig?.key === 'views' && <ArrowUpDown className="h-3 w-3" />}
+                                </div>
+                            </TableHead>
+                            <TableHead className="w-[50px]"></TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {filteredArticles.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={12} className="h-24 text-center text-muted-foreground">
+                                    No results found.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            filteredArticles.map((article) => (
+                                <TableRow 
+                                    key={article.id} 
+                                    className="group cursor-pointer hover:bg-muted/30"
+                                    onClick={() => handleEditPost(article)}
                                 >
-                                  {article.status}
-                                </Badge>
-                                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <CalendarIcon className="h-3 w-3" /> {article.date}
-                                </span>
-                             </div>
-                             
-                             <div>
-                               <h3 className="text-xl font-bold tracking-tight text-foreground group-hover:text-primary transition-colors mb-2">
-                                 {article.title || "Untitled Draft"}
-                               </h3>
-                               <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
-                                 {article.content.replace(/<[^>]*>?/gm, '').substring(0, 160) || "No content preview available..."}
-                               </p>
-                             </div>
-
-                             <div className="flex items-center gap-6 text-xs text-muted-foreground pt-1">
-                               <span className="flex items-center gap-1.5">
-                                 <Clock className="h-3.5 w-3.5" /> {getReadingTime(article.content)}
-                               </span>
-                               <span className="flex items-center gap-1.5">
-                                 <Eye className="h-3.5 w-3.5" /> {article.views} views
-                               </span>
-                             </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity self-center">
-                             <Button 
-                               variant="ghost" 
-                               size="sm"
-                               className={cn("text-xs", article.status === "Published" ? "text-muted-foreground hover:text-destructive" : "text-primary hover:text-primary/80")}
-                               onClick={(e) => toggleArticleStatus(article, e)}
-                             >
-                               {article.status === "Published" ? "Unpublish" : "Publish"}
-                             </Button>
-                             
-                             <DropdownMenu>
-                               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
-                                   <MoreHorizontal className="h-4 w-4" />
-                                 </Button>
-                               </DropdownMenuTrigger>
-                               <DropdownMenuContent align="end">
-                                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEditPost(article); }}>
-                                   <Edit2 className="mr-2 h-4 w-4" /> Edit
-                                 </DropdownMenuItem>
-                                 <DropdownMenuItem onClick={(e) => toggleArticleStatus(article, e)}>
-                                   {article.status === "Published" ? <><ArrowLeft className="mr-2 h-4 w-4" /> Unpublish</> : <><CheckCircle className="mr-2 h-4 w-4" /> Publish</>}
-                                 </DropdownMenuItem>
-                                 <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => handleDeleteArticle(article.id, e)}>
-                                   <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                 </DropdownMenuItem>
-                               </DropdownMenuContent>
-                             </DropdownMenu>
-                          </div>
-                       </div>
-                     ))
-                   )}
-                </TabsContent>
-                
-                <TabsContent value="published" className="space-y-4 mt-0">
-                  {articles.filter(a => a.status === "Published").map((article) => (
-                       <div 
-                         key={article.id} 
-                         onClick={() => handleEditPost(article)}
-                         className="group flex items-start justify-between p-6 border rounded-xl hover:border-primary/20 hover:shadow-sm hover:bg-secondary/10 transition-all cursor-pointer bg-card"
-                       >
-                          <div className="space-y-3 flex-1 pr-8">
-                             <div className="flex items-center gap-3">
-                                <Badge 
-                                  variant="default" 
-                                  className="text-[10px] h-5 px-2 font-medium uppercase tracking-wider bg-green-100 text-green-700 hover:bg-green-100 border-green-200"
-                                >
-                                  {article.status}
-                                </Badge>
-                                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <CalendarIcon className="h-3 w-3" /> {article.date}
-                                </span>
-                             </div>
-                             
-                             <div>
-                               <h3 className="text-xl font-bold tracking-tight text-foreground group-hover:text-primary transition-colors mb-2">
-                                 {article.title || "Untitled Draft"}
-                               </h3>
-                               <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
-                                 {article.content.replace(/<[^>]*>?/gm, '').substring(0, 160) || "No content preview available..."}
-                               </p>
-                             </div>
-
-                             <div className="flex items-center gap-6 text-xs text-muted-foreground pt-1">
-                               <span className="flex items-center gap-1.5">
-                                 <Clock className="h-3.5 w-3.5" /> {getReadingTime(article.content)}
-                               </span>
-                               <span className="flex items-center gap-1.5">
-                                 <Eye className="h-3.5 w-3.5" /> {article.views} views
-                               </span>
-                             </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity self-center">
-                             <DropdownMenu>
-                               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
-                                   <MoreHorizontal className="h-4 w-4" />
-                                 </Button>
-                               </DropdownMenuTrigger>
-                               <DropdownMenuContent align="end">
-                                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEditPost(article); }}>
-                                   <Edit2 className="mr-2 h-4 w-4" /> Edit
-                                 </DropdownMenuItem>
-                                 <DropdownMenuItem onClick={(e) => toggleArticleStatus(article, e)}>
-                                   <ArrowLeft className="mr-2 h-4 w-4" /> Unpublish
-                                 </DropdownMenuItem>
-                                 <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => handleDeleteArticle(article.id, e)}>
-                                   <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                 </DropdownMenuItem>
-                               </DropdownMenuContent>
-                             </DropdownMenu>
-                          </div>
-                       </div>
-                   ))}
-                   {articles.filter(a => a.status === "Published").length === 0 && (
-                      <div className="text-center py-12 text-muted-foreground">No published articles yet.</div>
-                   )}
-                </TabsContent>
-
-                <TabsContent value="draft" className="space-y-4 mt-0">
-                  {articles.filter(a => a.status === "Draft").map((article) => (
-                       <div 
-                         key={article.id} 
-                         onClick={() => handleEditPost(article)}
-                         className="group flex items-start justify-between p-6 border rounded-xl hover:border-primary/20 hover:shadow-sm hover:bg-secondary/10 transition-all cursor-pointer bg-card"
-                       >
-                          <div className="space-y-3 flex-1 pr-8">
-                             <div className="flex items-center gap-3">
-                                <Badge 
-                                  variant="secondary" 
-                                  className="text-[10px] h-5 px-2 font-medium uppercase tracking-wider bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-yellow-200"
-                                >
-                                  {article.status}
-                                </Badge>
-                                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <CalendarIcon className="h-3 w-3" /> {article.date}
-                                </span>
-                             </div>
-                             
-                             <div>
-                               <h3 className="text-xl font-bold tracking-tight text-foreground group-hover:text-primary transition-colors mb-2">
-                                 {article.title || "Untitled Draft"}
-                               </h3>
-                               <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
-                                 {article.content.replace(/<[^>]*>?/gm, '').substring(0, 160) || "No content preview available..."}
-                               </p>
-                             </div>
-
-                             <div className="flex items-center gap-6 text-xs text-muted-foreground pt-1">
-                               <span className="flex items-center gap-1.5">
-                                 <Clock className="h-3.5 w-3.5" /> {getReadingTime(article.content)}
-                               </span>
-                               <span className="flex items-center gap-1.5">
-                                 <Eye className="h-3.5 w-3.5" /> {article.views} views
-                               </span>
-                             </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity self-center">
-                             <Button 
-                               variant="ghost" 
-                               size="sm"
-                               className="text-xs text-primary hover:text-primary/80"
-                               onClick={(e) => toggleArticleStatus(article, e)}
-                             >
-                               Publish
-                             </Button>
-                             
-                             <DropdownMenu>
-                               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
-                                   <MoreHorizontal className="h-4 w-4" />
-                                 </Button>
-                               </DropdownMenuTrigger>
-                               <DropdownMenuContent align="end">
-                                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEditPost(article); }}>
-                                   <Edit2 className="mr-2 h-4 w-4" /> Edit
-                                 </DropdownMenuItem>
-                                 <DropdownMenuItem onClick={(e) => toggleArticleStatus(article, e)}>
-                                   <CheckCircle className="mr-2 h-4 w-4" /> Publish
-                                 </DropdownMenuItem>
-                                 <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => handleDeleteArticle(article.id, e)}>
-                                   <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                 </DropdownMenuItem>
-                               </DropdownMenuContent>
-                             </DropdownMenu>
-                          </div>
-                       </div>
-                   ))}
-                   {articles.filter(a => a.status === "Draft").length === 0 && (
-                      <div className="text-center py-12 text-muted-foreground">No drafts.</div>
-                   )}
-                </TabsContent>
-              </Tabs>
+                                    <TableCell className="font-medium">
+                                        <div className="flex items-center gap-2">
+                                            <div className="h-6 w-6 rounded bg-secondary/50 flex items-center justify-center text-[10px] text-muted-foreground">
+                                                📄
+                                            </div>
+                                            <span className="truncate max-w-[250px]">{article.title || "Untitled"}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">
+                                        {article.excerpt || "—"}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                        {article.featuredImage ? (
+                                            <div className="h-6 w-10 bg-muted rounded overflow-hidden mx-auto">
+                                                <img src={article.featuredImage} alt="" className="h-full w-full object-cover" />
+                                            </div>
+                                        ) : (
+                                            <span className="text-xs text-muted-foreground">—</span>
+                                        )}
+                                    </TableCell>
+                                    <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                                        <Checkbox 
+                                            checked={article.status === "Published"} 
+                                            onCheckedChange={() => {
+                                                const newStatus = article.status === "Published" ? "Draft" : "Published";
+                                                updateArticle(article.id, { status: newStatus });
+                                                toast({
+                                                    title: `Article ${newStatus}`,
+                                                    description: `"${article.title}" is now ${newStatus.toLowerCase()}.`,
+                                                });
+                                            }}
+                                        />
+                                    </TableCell>
+                                    <TableCell className="text-xs whitespace-nowrap">
+                                        {article.date}
+                                    </TableCell>
+                                    <TableCell className="text-xs text-muted-foreground max-w-[150px] truncate">
+                                        {article.seoKeywords || "—"}
+                                    </TableCell>
+                                    <TableCell className="text-xs text-muted-foreground max-w-[150px] truncate">
+                                        {article.slug || "—"}
+                                    </TableCell>
+                                    <TableCell className="text-xs">
+                                        {article.tags ? (
+                                            <Badge variant="secondary" className="text-[10px] font-normal h-5">
+                                                {article.tags.split(',')[0]}
+                                                {article.tags.split(',').length > 1 && ` +${article.tags.split(',').length - 1}`}
+                                            </Badge>
+                                        ) : "—"}
+                                    </TableCell>
+                                    <TableCell className="text-xs text-muted-foreground">
+                                        {article.author || profile.name}
+                                    </TableCell>
+                                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                                        {getReadingTime(article.content)}
+                                    </TableCell>
+                                    <TableCell className="text-xs text-right font-mono">
+                                        {article.views}
+                                    </TableCell>
+                                    <TableCell>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100">
+                                                    <MoreHorizontal className="h-3 w-3" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEditPost(article); }}>
+                                                    <Edit2 className="mr-2 h-3 w-3" /> Edit
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem className="text-destructive" onClick={(e) => handleDeleteArticle(article.id, e)}>
+                                                    <Trash2 className="mr-2 h-3 w-3" /> Delete
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+              </div>
             </div>
           )}
 
@@ -609,17 +552,30 @@ export default function AdminDashboard() {
                      <div className="grid grid-cols-2 gap-12">
                        <div className="space-y-5">
                          <div className="space-y-2 group/item p-2 -mx-2 rounded-md hover:bg-secondary/40 transition-colors">
-                           <Label className="text-xs text-muted-foreground font-normal">Description</Label>
+                           <Label className="text-xs text-muted-foreground font-normal">Excerpt</Label>
                            <Textarea 
-                             className="min-h-[100px] text-xs resize-none border-none bg-transparent shadow-none p-0 focus-visible:ring-0 text-foreground placeholder:text-muted-foreground/50 leading-relaxed" 
-                             placeholder="Enter a short description for search engines and social previews..." 
+                             className="min-h-[60px] text-xs resize-none border-none bg-transparent shadow-none p-0 focus-visible:ring-0 text-foreground placeholder:text-muted-foreground/50 leading-relaxed" 
+                             placeholder="Short summary..." 
+                             value={editingArticle.excerpt || ""}
+                             onChange={(e) => setEditingArticle({...editingArticle, excerpt: e.target.value})}
+                           />
+                         </div>
+                         <div className="space-y-2 group/item p-2 -mx-2 rounded-md hover:bg-secondary/40 transition-colors">
+                           <Label className="text-xs text-muted-foreground font-normal">SEO Keywords</Label>
+                           <Input 
+                             placeholder="ai, design, future..." 
+                             className="h-8 text-xs border-none bg-transparent shadow-none p-0 focus-visible:ring-0 text-foreground placeholder:text-muted-foreground/50" 
+                             value={editingArticle.seoKeywords || ""}
+                             onChange={(e) => setEditingArticle({...editingArticle, seoKeywords: e.target.value})}
                            />
                          </div>
                          <div className="space-y-2 group/item p-2 -mx-2 rounded-md hover:bg-secondary/40 transition-colors">
                            <Label className="text-xs text-muted-foreground font-normal">Tags</Label>
                            <Input 
-                             placeholder="Design, AI, Future..." 
+                             placeholder="Design, Tech..." 
                              className="h-8 text-xs border-none bg-transparent shadow-none p-0 focus-visible:ring-0 text-foreground placeholder:text-muted-foreground/50" 
+                             value={editingArticle.tags || ""}
+                             onChange={(e) => setEditingArticle({...editingArticle, tags: e.target.value})}
                            />
                          </div>
                        </div>
@@ -640,176 +596,173 @@ export default function AdminDashboard() {
           {!isWriting && activeTab === "projects" && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
+                <div>
+                  <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
+                  <p className="text-muted-foreground mt-1">Showcase your work.</p>
+                </div>
                 <Button className="gap-2"><Plus className="h-4 w-4" /> Add Project</Button>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 {[
-                    { title: "Campsite", desc: "Communication platform for teams", tags: ["React", "Node"] },
-                    { title: "Staff Design", desc: "Interviews with designers", tags: ["Content"] },
-                    { title: "Details", desc: "Design details collection", tags: ["Design"] },
-                    { title: "Spectrum", desc: "Community platform", tags: ["Open Source"] }
-                 ].map((project, i) => (
-                   <Card key={i} className="group relative overflow-hidden">
-                     <CardHeader>
-                       <CardTitle>{project.title}</CardTitle>
-                       <CardDescription>{project.desc}</CardDescription>
-                     </CardHeader>
-                     <CardContent>
-                       <div className="flex gap-2">
-                         {project.tags.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
-                       </div>
-                     </CardContent>
-                     <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 bg-background/80 backdrop-blur-sm p-1 rounded-md shadow-sm">
-                        <Button variant="ghost" size="icon" className="h-8 w-8"><Edit2 className="h-3.5 w-3.5" /></Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button>
-                     </div>
-                   </Card>
-                 ))}
-              </div>
-            </div>
-          )}
-
-          {!isWriting && activeTab === "reading" && (
-            <div className="space-y-6">
-               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold tracking-tight">Reading List</h2>
-                <Button className="gap-2"><Plus className="h-4 w-4" /> Add Book</Button>
-              </div>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Bookshelf</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-1">
-                    {[
-                      { title: "The Design of Everyday Things", author: "Don Norman", year: "2024", rating: "5/5" },
-                      { title: "Shape Up", author: "Ryan Singer", year: "2024", rating: "4/5" },
-                      { title: "Build", author: "Tony Fadell", year: "2023", rating: "5/5" },
-                    ].map((book, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 hover:bg-secondary/20 rounded-lg transition-colors group">
-                        <div className="flex items-center gap-4">
-                          <div className="h-12 w-8 bg-neutral-200 rounded shadow-sm flex-shrink-0" />
-                          <div>
-                            <div className="font-medium">{book.title}</div>
-                            <div className="text-sm text-muted-foreground">{book.author}</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-6">
-                           <div className="text-sm text-muted-foreground">{book.year}</div>
-                           <Badge variant="outline">{book.rating}</Badge>
-                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button variant="ghost" size="icon" className="h-8 w-8"><Edit2 className="h-3.5 w-3.5" /></Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button>
-                           </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+              <Card className="border-dashed shadow-none">
+                <CardContent className="flex flex-col items-center justify-center h-[400px] text-center">
+                  <FolderGit2 className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
+                  <h3 className="text-lg font-medium">No projects yet</h3>
+                  <p className="text-muted-foreground max-w-sm mt-2 mb-6">
+                    Add your first project to showcase your work to the world.
+                  </p>
+                  <Button variant="outline">Create Project</Button>
                 </CardContent>
               </Card>
             </div>
           )}
 
-          {!isWriting && activeTab === "settings" && (
-            <div className="space-y-6 max-w-2xl">
-               <div className="space-y-2">
-                 <h2 className="text-2xl font-bold tracking-tight">Home Page Content</h2>
-                 <p className="text-muted-foreground">Manage your profile information displayed on the home page.</p>
-               </div>
-               
-               <Card>
-                 <CardHeader>
-                   <CardTitle>Profile Information</CardTitle>
-                   <CardDescription>This information is displayed on your home page.</CardDescription>
-                 </CardHeader>
-                 <CardContent className="space-y-6">
-                   <div className="flex items-center gap-6">
-                      <Avatar className="h-20 w-20">
-                        <AvatarImage src="/attached_assets/logo.jpg" />
-                        <AvatarFallback>AT</AvatarFallback>
-                      </Avatar>
-                      <Button variant="outline" size="sm">Change Photo</Button>
-                   </div>
-                   
-                   <div className="grid gap-4">
-                     <div className="grid grid-cols-2 gap-4">
-                       <div className="space-y-2">
-                         <Label>Full Name</Label>
-                         <Input 
-                           value={formData.name} 
-                           onChange={(e) => setFormData({...formData, name: e.target.value})} 
-                         />
-                       </div>
-                       <div className="space-y-2">
-                         <Label>Job Title</Label>
-                         <Input 
-                           value={formData.jobTitle} 
-                           onChange={(e) => setFormData({...formData, jobTitle: e.target.value})} 
-                         />
-                       </div>
-                     </div>
-                     
-                     <div className="space-y-2">
-                       <Label>Bio</Label>
-                       <Textarea 
-                         className="h-32" 
-                         value={formData.bio} 
-                         onChange={(e) => setFormData({...formData, bio: e.target.value})} 
-                       />
-                       <p className="text-xs text-muted-foreground">Markdown supported</p>
-                     </div>
-
-                     <div className="space-y-2">
-                       <Label>Email</Label>
-                       <Input 
-                         value={formData.email} 
-                         onChange={(e) => setFormData({...formData, email: e.target.value})} 
-                       />
-                     </div>
-                   </div>
-                 </CardContent>
-               </Card>
-
-               <Card>
-                 <CardHeader>
-                   <CardTitle>Social Links</CardTitle>
-                 </CardHeader>
-                 <CardContent className="space-y-4">
-                   <div className="space-y-2">
-                     <Label>Twitter URL</Label>
-                     <Input 
-                       value={formData.twitter} 
-                       onChange={(e) => setFormData({...formData, twitter: e.target.value})} 
-                     />
-                   </div>
-                   <div className="space-y-2">
-                     <Label>GitHub URL</Label>
-                     <Input 
-                       value={formData.github} 
-                       onChange={(e) => setFormData({...formData, github: e.target.value})} 
-                     />
-                   </div>
-                   <div className="space-y-2">
-                     <Label>LinkedIn URL</Label>
-                     <Input 
-                       value={formData.linkedin} 
-                       onChange={(e) => setFormData({...formData, linkedin: e.target.value})}
-                       placeholder="https://linkedin.com/in/..." 
-                     />
-                   </div>
+          {!isWriting && activeTab === "reading" && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold tracking-tight">Reading List</h2>
+                  <p className="text-muted-foreground mt-1">Books and articles you're reading.</p>
+                </div>
+                <Button className="gap-2"><Plus className="h-4 w-4" /> Add Book</Button>
+              </div>
+              <Card className="border-dashed shadow-none">
+                 <CardContent className="flex flex-col items-center justify-center h-[400px] text-center">
+                   <BookOpen className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
+                   <h3 className="text-lg font-medium">Empty reading list</h3>
+                   <p className="text-muted-foreground max-w-sm mt-2 mb-6">
+                     Keep track of books you've read or want to read.
+                   </p>
+                   <Button variant="outline">Add Book</Button>
                  </CardContent>
                </Card>
             </div>
           )}
-          
-          {/* Placeholder for other tabs */}
-          {!isWriting && (activeTab === "media" || activeTab === "seo") && (
-            <div className="flex flex-col items-center justify-center h-[50vh] text-muted-foreground border-2 border-dashed rounded-xl">
-              <Settings className="h-10 w-10 mb-4 opacity-20" />
-              <p>This section is under construction in this prototype.</p>
+
+          {!isWriting && activeTab === "media" && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold tracking-tight">Media Library</h2>
+                  <p className="text-muted-foreground mt-1">Manage your images and files.</p>
+                </div>
+                <Button className="gap-2"><Upload className="h-4 w-4" /> Upload</Button>
+              </div>
+              <Card className="border-dashed shadow-none">
+                 <CardContent className="flex flex-col items-center justify-center h-[400px] text-center">
+                   <ImageIcon className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
+                   <h3 className="text-lg font-medium">No media files</h3>
+                   <p className="text-muted-foreground max-w-sm mt-2 mb-6">
+                     Upload images and files to use in your articles and projects.
+                   </p>
+                   <Button variant="outline">Upload Files</Button>
+                 </CardContent>
+               </Card>
+            </div>
+          )}
+
+          {!isWriting && activeTab === "seo" && (
+             <div className="space-y-6">
+               <div>
+                 <h2 className="text-2xl font-bold tracking-tight">SEO & Metadata</h2>
+                 <p className="text-muted-foreground mt-1">Configure site-wide SEO settings.</p>
+               </div>
+               <Card>
+                 <CardHeader>
+                   <CardTitle>Global Settings</CardTitle>
+                   <CardDescription>Default metadata for your entire site.</CardDescription>
+                 </CardHeader>
+                 <CardContent className="space-y-4">
+                   <div className="space-y-2">
+                     <Label>Site Title</Label>
+                     <Input defaultValue={profile.name} />
+                   </div>
+                   <div className="space-y-2">
+                     <Label>Site Description</Label>
+                     <Textarea defaultValue={profile.bio} />
+                   </div>
+                   <div className="space-y-2">
+                     <Label>Twitter Handle</Label>
+                     <Input defaultValue="@username" />
+                   </div>
+                   <Button>Save SEO Settings</Button>
+                 </CardContent>
+               </Card>
+             </div>
+           )}
+
+          {activeTab === "settings" && (
+            <div className="max-w-2xl space-y-8">
+              <div>
+                <h2 className="text-2xl font-bold tracking-tight">Home Page Settings</h2>
+                <p className="text-muted-foreground mt-1">Manage your profile and home page content.</p>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Profile Information</CardTitle>
+                  <CardDescription>This will be displayed on your home page.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center gap-6">
+                    <Avatar className="h-20 w-20">
+                      <AvatarImage src="https://github.com/shadcn.png" />
+                      <AvatarFallback>AT</AvatarFallback>
+                    </Avatar>
+                    <Button variant="outline">Change Photo</Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Full Name</Label>
+                      <Input 
+                        id="name" 
+                        value={formData.name} 
+                        onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="role">Job Title</Label>
+                      <Input 
+                        id="role" 
+                        value={formData.jobTitle} 
+                        onChange={(e) => setFormData({...formData, jobTitle: e.target.value})} 
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="bio">Bio</Label>
+                      <Textarea 
+                        id="bio" 
+                        value={formData.bio} 
+                        onChange={(e) => setFormData({...formData, bio: e.target.value})} 
+                        className="h-24"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                       <Label>Social Links</Label>
+                       <div className="grid gap-3">
+                         <Input 
+                           placeholder="Email" 
+                           value={formData.email}
+                           onChange={(e) => setFormData({...formData, email: e.target.value})}
+                         />
+                         <Input 
+                           placeholder="Twitter URL" 
+                           value={formData.twitter}
+                           onChange={(e) => setFormData({...formData, twitter: e.target.value})}
+                         />
+                         <Input 
+                           placeholder="GitHub URL" 
+                           value={formData.github}
+                           onChange={(e) => setFormData({...formData, github: e.target.value})}
+                         />
+                       </div>
+                    </div>
+                  </div>
+                  <Button onClick={handleSaveProfile}>Save Changes</Button>
+                </CardContent>
+              </Card>
             </div>
           )}
         </div>
