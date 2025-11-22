@@ -138,26 +138,22 @@ export default function Home() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-primary tracking-tight">Recent Writing</h2>
-            <Link href="/writing">
-              <a className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors px-2 py-1 -mr-2 rounded-md hover:bg-secondary/50">
-                Read more <ArrowRight className="h-3 w-3" />
-              </a>
+            <Link href="/writing" className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors px-2 py-1 -mr-2 rounded-md hover:bg-secondary/50">
+              Read more <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
 
           <div className="space-y-2">
             {recentPosts.map((post) => (
-              <Link key={post.id} href={`/article/${post.slug || post.id}`}>
-                <a className="block group">
-                  <div className="flex items-baseline justify-between py-3 border-b border-border/50 group-hover:border-border transition-colors">
-                    <span className="text-base font-medium text-primary group-hover:text-blue-600 transition-colors truncate pr-4">
-                      {post.title || "Untitled"}
-                    </span>
-                    <span className="text-sm text-muted-foreground tabular-nums font-mono flex-shrink-0">
-                      {format(new Date(post.date), "MMM yyyy")}
-                    </span>
-                  </div>
-                </a>
+              <Link key={post.id} href={`/article/${post.slug || post.id}`} className="block group">
+                <div className="flex items-baseline justify-between py-3 border-b border-border/50 group-hover:border-border transition-colors">
+                  <span className="text-base font-medium text-primary group-hover:text-blue-600 transition-colors truncate pr-4">
+                    {post.title || "Untitled"}
+                  </span>
+                  <span className="text-sm text-muted-foreground tabular-nums font-mono flex-shrink-0">
+                    {post.publishedAt ? format(new Date(post.publishedAt), "MMM yyyy") : "Draft"}
+                  </span>
+                </div>
               </Link>
             ))}
           </div>

@@ -8,10 +8,15 @@ export default function Writing() {
   // Filter for Published status only and sort by date descending
   const publishedPosts = articles
     .filter(a => a.status === "Published")
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a, b) => {
+      const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+      const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+      return dateB - dateA;
+    });
 
   const postsByYear = publishedPosts.reduce((acc, post) => {
-    const year = new Date(post.date).getFullYear().toString();
+    if (!post.publishedAt) return acc;
+    const year = new Date(post.publishedAt).getFullYear().toString();
     if (!acc[year]) acc[year] = [];
     acc[year].push(post);
     return acc;
@@ -41,7 +46,7 @@ export default function Writing() {
                           {post.title || "Untitled"}
                         </span>
                         <span className="text-sm text-muted-foreground tabular-nums ml-4 font-mono">
-                          {format(new Date(post.date), "MMM dd")}
+                          {post.publishedAt ? format(new Date(post.publishedAt), "MMM dd") : ""}
                         </span>
                       </div>
                   </Link>

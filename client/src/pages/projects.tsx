@@ -11,7 +11,7 @@ export default function Projects() {
     .sort((a, b) => {
       if (a.featured && !b.featured) return -1;
       if (!a.featured && b.featured) return 1;
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
+      return 0;
     });
 
   const getProjectColor = (title: string) => {
