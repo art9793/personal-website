@@ -167,7 +167,7 @@
   @apply line-through opacity-70;
 }
 .ProseMirror mark {
-  @apply bg-yellow-200 dark:bg-amber-900/40 px-1 rounded;
+  @apply bg-yellow-200 dark:bg-yellow-500/30 px-1 rounded;
 }
 .ProseMirror code {
   @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-primary;
@@ -196,20 +196,20 @@
   @apply list-none pl-0;
 }
 .ProseMirror ul[data-type="taskList"] li {
-  @apply flex items-start gap-2 my-2;
+  @apply flex items-center gap-2 my-2;
 }
 .ProseMirror ul[data-type="taskList"] li > label {
   @apply flex items-center cursor-pointer flex-shrink-0;
 }
 .ProseMirror ul[data-type="taskList"] li > label > input[type="checkbox"] {
-  @apply w-4 h-4 rounded border-2 border-input cursor-pointer;
+  @apply w-4 h-4 rounded border-2 border-input cursor-pointer mt-0;
   @apply checked:bg-primary checked:border-primary;
   @apply focus:ring-2 focus:ring-ring focus:ring-offset-2;
 }
 .ProseMirror ul[data-type="taskList"] li > div {
   @apply flex-1;
 }
-.ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div {
+.ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div > p {
   @apply line-through opacity-60;
 }
 .ProseMirror ul[data-type="taskList"] ul[data-type="taskList"] {
@@ -312,7 +312,7 @@
   @apply line-through opacity-70;
 }
 .prose mark {
-  @apply bg-yellow-200 dark:bg-amber-900/40 px-1 rounded;
+  @apply bg-yellow-200 dark:bg-yellow-500/30 px-1 rounded;
 }
 .prose img {
   @apply rounded-lg my-8 border max-w-full h-auto;
@@ -347,20 +347,20 @@
   @apply list-none pl-0;
 }
 .prose ul[data-type="taskList"] li {
-  @apply flex items-start gap-2 my-2;
+  @apply flex items-center gap-2 my-2;
 }
 .prose ul[data-type="taskList"] li > label {
   @apply flex items-center cursor-pointer flex-shrink-0;
 }
 .prose ul[data-type="taskList"] li > label > input[type="checkbox"] {
-  @apply w-4 h-4 rounded border-2 border-input cursor-pointer;
+  @apply w-4 h-4 rounded border-2 border-input cursor-pointer mt-0;
   @apply checked:bg-primary checked:border-primary;
   @apply focus:ring-2 focus:ring-ring focus:ring-offset-2;
 }
 .prose ul[data-type="taskList"] li > div {
   @apply flex-1;
 }
-.prose ul[data-type="taskList"] li[data-checked="true"] > div {
+.prose ul[data-type="taskList"] li[data-checked="true"] > div > p {
   @apply line-through opacity-60;
 }
 .prose ul[data-type="taskList"] ul[data-type="taskList"] {
