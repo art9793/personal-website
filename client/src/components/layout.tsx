@@ -38,16 +38,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           return (
             <Tooltip key={item.href} delayDuration={0}>
               <TooltipTrigger asChild>
-                <Link href={item.href}>
-                  <a
-                    className={cn(
-                      "group flex items-center justify-center rounded-md h-10 w-10 text-sm font-medium transition-all hover:bg-secondary/80",
-                      isActive ? "bg-secondary text-primary" : "text-muted-foreground hover:text-primary"
-                    )}
-                  >
-                    <item.icon className={cn("h-4 w-4 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
-                    <span className="sr-only">{item.label}</span>
-                  </a>
+                <Link href={item.href}
+                  className={cn(
+                    "group flex items-center justify-center rounded-md h-10 w-10 text-sm font-medium transition-all hover:bg-secondary/80",
+                    isActive ? "bg-secondary text-primary" : "text-muted-foreground hover:text-primary"
+                  )}
+                >
+                  <item.icon className={cn("h-4 w-4 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
+                  <span className="sr-only">{item.label}</span>
                 </Link>
               </TooltipTrigger>
               <TooltipContent side="right">{item.label}</TooltipContent>
@@ -56,16 +54,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         }
 
         return (
-          <Link key={item.href} href={item.href}>
-            <a
-              className={cn(
-                "group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all hover:bg-secondary/80",
-                isActive ? "bg-secondary text-primary" : "text-muted-foreground hover:text-primary"
-              )}
-            >
-              <item.icon className={cn("h-4 w-4 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
-              <span>{item.label}</span>
-            </a>
+          <Link key={item.href} href={item.href}
+            className={cn(
+              "group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all hover:bg-secondary/80",
+              isActive ? "bg-secondary text-primary" : "text-muted-foreground hover:text-primary"
+            )}
+          >
+            <item.icon className={cn("h-4 w-4 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
+            <span>{item.label}</span>
           </Link>
         );
       })}
@@ -76,8 +72,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background font-sans flex flex-col md:flex-row overflow-x-hidden">
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between px-6 py-4 border-b bg-background/80 backdrop-blur-xl sticky top-0 z-50">
-        <Link href="/">
-          <a className="font-semibold text-lg tracking-tight">Arshad Teli</a>
+        <Link href="/" className="font-semibold text-lg tracking-tight">
+          Arshad Teli
         </Link>
         <div className="flex items-center gap-1">
           <ThemeToggle />
@@ -97,16 +93,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   {navItems.map((item) => {
                     const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
                     return (
-                      <Link key={item.href} href={item.href} onClick={() => setOpen(false)}>
-                        <a
-                          className={cn(
-                            "group flex items-center gap-4 rounded-xl px-4 py-3 text-lg font-medium transition-all",
-                            isActive ? "bg-secondary text-primary" : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
-                          )}
-                        >
-                          <item.icon className={cn("h-5 w-5 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
-                          <span>{item.label}</span>
-                        </a>
+                      <Link key={item.href} href={item.href} onClick={() => setOpen(false)}
+                        className={cn(
+                          "group flex items-center gap-4 rounded-xl px-4 py-3 text-lg font-medium transition-all",
+                          isActive ? "bg-secondary text-primary" : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
+                        )}
+                      >
+                        <item.icon className={cn("h-5 w-5 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
+                        <span>{item.label}</span>
                       </Link>
                     );
                   })}
@@ -131,12 +125,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       )}>
         <div className={cn("flex items-center mb-8 py-2 relative", isExpanded ? "justify-between px-3" : "justify-center flex-col gap-4")}>
            {isExpanded ? (
-             <Link href="/">
-               <a className="font-semibold text-lg tracking-tight">Arshad Teli</a>
+             <Link href="/" className="font-semibold text-lg tracking-tight">
+               Arshad Teli
              </Link>
            ) : (
-             <Link href="/">
-               <a className="font-bold text-xl tracking-tight">AT</a>
+             <Link href="/" className="font-bold text-xl tracking-tight">
+               AT
              </Link>
            )}
            <Button 
@@ -160,10 +154,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
            <div className={cn("flex items-center", isExpanded ? "justify-between" : "flex-col gap-4")}>
              {isExpanded && <span className="text-xs text-muted-foreground">© {new Date().getFullYear()}</span>}
              <div className={cn("flex items-center", isExpanded ? "gap-2" : "flex-col gap-4")}>
-                <Link href="/admin">
-                  <a className="text-muted-foreground hover:text-primary transition-colors" aria-label="Admin Access">
-                    <Lock className="h-3 w-3" />
-                  </a>
+                <Link href="/admin" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Admin Access">
+                  <Lock className="h-3 w-3" />
                 </Link>
                 <ThemeToggle />
              </div>

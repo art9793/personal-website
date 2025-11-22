@@ -160,3 +160,23 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     return;
   }
 };
+
+// Admin authorization - only allow specific email
+export const isAdmin: RequestHandler = async (req, res, next) => {
+  const user = req.user as any;
+
+  if (!req.isAuthenticated() || !user.claims) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const allowedEmail = "art9793@gmail.com";
+  const userEmail = user.claims.email;
+
+  if (userEmail !== allowedEmail) {
+    return res.status(403).json({ 
+      message: "Access denied. Only the site owner can access this area." 
+    });
+  }
+
+  return next();
+};

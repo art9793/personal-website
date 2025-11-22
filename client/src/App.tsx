@@ -17,7 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
 
   useEffect(() => {
@@ -36,6 +36,28 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 
   if (!isAuthenticated) {
     return null;
+  }
+
+  // Check if user's email is authorized for admin access
+  const authorizedEmail = "art9793@gmail.com";
+  if (user && user.email !== authorizedEmail) {
+    return (
+      <div className="flex items-center justify-center min-h-screen px-4">
+        <div className="max-w-md text-center space-y-4">
+          <div className="text-5xl mb-4">🔒</div>
+          <h1 className="text-2xl font-bold">Access Denied</h1>
+          <p className="text-muted-foreground">
+            Only the site owner can access the admin dashboard.
+          </p>
+          <a 
+            href="/" 
+            className="inline-block mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+          >
+            Go Home
+          </a>
+        </div>
+      </div>
+    );
   }
 
   return <Component />;

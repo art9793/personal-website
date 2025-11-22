@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
 import { 
   insertProfileSchema,
   insertArticleSchema,
@@ -37,7 +37,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/profile', isAuthenticated, async (req, res) => {
+  app.put('/api/profile', isAdmin, async (req, res) => {
     try {
       const validated = insertProfileSchema.partial().parse(req.body);
       const profile = await storage.updateProfile(validated);
@@ -86,7 +86,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/articles', isAuthenticated, async (req, res) => {
+  app.post('/api/articles', isAdmin, async (req, res) => {
     try {
       const validated = insertArticleSchema.parse(req.body);
       const article = await storage.createArticle(validated);
@@ -97,7 +97,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/articles/:id', isAuthenticated, async (req, res) => {
+  app.put('/api/articles/:id', isAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const validated = insertArticleSchema.partial().parse(req.body);
@@ -109,7 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/articles/:id', isAuthenticated, async (req, res) => {
+  app.delete('/api/articles/:id', isAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteArticle(id);
@@ -145,7 +145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/projects', isAuthenticated, async (req, res) => {
+  app.post('/api/projects', isAdmin, async (req, res) => {
     try {
       const validated = insertProjectSchema.parse(req.body);
       const project = await storage.createProject(validated);
@@ -156,7 +156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/projects/:id', isAuthenticated, async (req, res) => {
+  app.put('/api/projects/:id', isAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const validated = insertProjectSchema.partial().parse(req.body);
@@ -168,7 +168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/projects/:id', isAuthenticated, async (req, res) => {
+  app.delete('/api/projects/:id', isAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteProject(id);
@@ -204,7 +204,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/work-experiences', isAuthenticated, async (req, res) => {
+  app.post('/api/work-experiences', isAdmin, async (req, res) => {
     try {
       const validated = insertWorkExperienceSchema.parse(req.body);
       const work = await storage.createWorkExperience(validated);
@@ -215,7 +215,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/work-experiences/:id', isAuthenticated, async (req, res) => {
+  app.put('/api/work-experiences/:id', isAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const validated = insertWorkExperienceSchema.partial().parse(req.body);
@@ -227,7 +227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/work-experiences/:id', isAuthenticated, async (req, res) => {
+  app.delete('/api/work-experiences/:id', isAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteWorkExperience(id);
@@ -263,7 +263,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/reading-list', isAuthenticated, async (req, res) => {
+  app.post('/api/reading-list', isAdmin, async (req, res) => {
     try {
       const validated = insertReadingListSchema.parse(req.body);
       const item = await storage.createReadingListItem(validated);
@@ -274,7 +274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/reading-list/:id', isAuthenticated, async (req, res) => {
+  app.put('/api/reading-list/:id', isAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const validated = insertReadingListSchema.partial().parse(req.body);
@@ -286,7 +286,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/reading-list/:id', isAuthenticated, async (req, res) => {
+  app.delete('/api/reading-list/:id', isAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteReadingListItem(id);
