@@ -1396,31 +1396,13 @@ export default function AdminDashboard() {
                   <ArrowLeft className="h-4 w-4" /> Back
                 </Button>
                 <div className="flex items-center gap-3">
-                   {saveStatus === "saving" && (
-                     <div className="flex items-center gap-2 text-xs text-muted-foreground" data-testid="status-saving">
-                       <Loader2 className="h-3 w-3 animate-spin" />
-                       Saving...
-                     </div>
-                   )}
-                   {saveStatus === "saved" && (
-                     <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-500" data-testid="status-saved">
-                       <Check className="h-3 w-3" />
-                       Saved
-                     </div>
-                   )}
-                   {saveStatus === "idle" && (
-                     <Button size="sm" onClick={handleSaveArticle} variant="ghost" className="h-7 text-xs" data-testid="button-save-article">
-                       <Save className="h-3 w-3 mr-1" /> Save & Close
-                     </Button>
-                   )}
-                   <Separator orientation="vertical" className="h-4" />
                    <span className="text-xs text-muted-foreground">
                       {editingArticle.content.split(/\s/g).length} words
                    </span>
                    <Separator orientation="vertical" className="h-4" />
-                   <span className="text-xs text-muted-foreground">
+                   <Badge variant={editingArticle.status === "Published" ? "default" : "outline"} className="text-xs font-normal">
                       {editingArticle.status === "Published" ? "Published" : "Draft"}
-                   </span>
+                   </Badge>
                 </div>
               </div>
 
@@ -1492,17 +1474,17 @@ export default function AdminDashboard() {
                           <Popover>
                             <PopoverTrigger asChild>
                               <Button
-                                variant={"ghost"}
+                                variant={"outline"}
                                 className={cn(
-                                  "h-8 w-full justify-start text-left font-normal text-xs p-0 shadow-none bg-transparent hover:bg-transparent hover:text-foreground",
+                                  "h-9 w-full justify-start text-left font-normal text-xs",
                                   !editingArticle.publishedAt && "text-muted-foreground"
                                 )}
                               >
-                                <CalendarIcon className="mr-2 h-3 w-3 opacity-50" />
-                                {editingArticle.publishedAt ? format(new Date(editingArticle.publishedAt), "MMMM do, yyyy") : <span>Pick a date</span>}
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {editingArticle.publishedAt ? format(new Date(editingArticle.publishedAt), "MMM d, yyyy") : <span>Pick a date</span>}
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0 min-w-[300px]" align="start">
+                            <PopoverContent className="w-auto p-0" align="start">
                               <Calendar
                                 mode="single"
                                 selected={editingArticle.publishedAt ? new Date(editingArticle.publishedAt) : undefined}
@@ -1793,108 +1775,104 @@ export default function AdminDashboard() {
                     <div className="space-y-4">
                        <Label>Social Links</Label>
                        <p className="text-sm text-muted-foreground">Add your social profiles and control their visibility on your website.</p>
-                       <div className="space-y-4">
+                       <div className="space-y-3">
                          {/* Twitter */}
-                         <div className="flex items-start gap-3">
-                           <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-muted flex items-center justify-center mt-0.5">
+                         <div className="flex items-center gap-3 pb-3 border-b">
+                           <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
                              <Twitter className="h-5 w-5 text-muted-foreground" />
                            </div>
-                           <div className="flex-1 space-y-2">
-                             <Input 
-                               placeholder="Twitter URL" 
-                               value={formData?.twitter || ''}
-                               onChange={(e) => setFormData(formData ? {...formData, twitter: e.target.value} : undefined)}
-                               data-testid="input-twitter"
+                           <Input 
+                             placeholder="Twitter URL" 
+                             value={formData?.twitter || ''}
+                             onChange={(e) => setFormData(formData ? {...formData, twitter: e.target.value} : undefined)}
+                             className="flex-1"
+                             data-testid="input-twitter"
+                           />
+                           <div className="flex items-center gap-2 flex-shrink-0">
+                             <Switch
+                               id="show-twitter"
+                               checked={formData?.showTwitter ?? true}
+                               onCheckedChange={(checked) => setFormData(formData ? {...formData, showTwitter: checked} : undefined)}
+                               data-testid="switch-show-twitter"
                              />
-                             <div className="flex items-center gap-2">
-                               <Switch
-                                 id="show-twitter"
-                                 checked={formData?.showTwitter ?? true}
-                                 onCheckedChange={(checked) => setFormData(formData ? {...formData, showTwitter: checked} : undefined)}
-                                 data-testid="switch-show-twitter"
-                               />
-                               <Label htmlFor="show-twitter" className="text-sm font-normal cursor-pointer">
-                                 Show on website
-                               </Label>
-                             </div>
+                             <Label htmlFor="show-twitter" className="text-sm font-normal cursor-pointer whitespace-nowrap">
+                               Show on website
+                             </Label>
                            </div>
                          </div>
 
                          {/* LinkedIn */}
-                         <div className="flex items-start gap-3">
-                           <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-muted flex items-center justify-center mt-0.5">
+                         <div className="flex items-center gap-3 pb-3 border-b">
+                           <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
                              <Linkedin className="h-5 w-5 text-muted-foreground" />
                            </div>
-                           <div className="flex-1 space-y-2">
-                             <Input 
-                               placeholder="LinkedIn URL" 
-                               value={formData?.linkedin || ''}
-                               onChange={(e) => setFormData(formData ? {...formData, linkedin: e.target.value} : undefined)}
-                               data-testid="input-linkedin"
+                           <Input 
+                             placeholder="LinkedIn URL" 
+                             value={formData?.linkedin || ''}
+                             onChange={(e) => setFormData(formData ? {...formData, linkedin: e.target.value} : undefined)}
+                             className="flex-1"
+                             data-testid="input-linkedin"
+                           />
+                           <div className="flex items-center gap-2 flex-shrink-0">
+                             <Switch
+                               id="show-linkedin"
+                               checked={formData?.showLinkedin ?? true}
+                               onCheckedChange={(checked) => setFormData(formData ? {...formData, showLinkedin: checked} : undefined)}
+                               data-testid="switch-show-linkedin"
                              />
-                             <div className="flex items-center gap-2">
-                               <Switch
-                                 id="show-linkedin"
-                                 checked={formData?.showLinkedin ?? true}
-                                 onCheckedChange={(checked) => setFormData(formData ? {...formData, showLinkedin: checked} : undefined)}
-                                 data-testid="switch-show-linkedin"
-                               />
-                               <Label htmlFor="show-linkedin" className="text-sm font-normal cursor-pointer">
-                                 Show on website
-                               </Label>
-                             </div>
+                             <Label htmlFor="show-linkedin" className="text-sm font-normal cursor-pointer whitespace-nowrap">
+                               Show on website
+                             </Label>
                            </div>
                          </div>
 
                          {/* GitHub */}
-                         <div className="flex items-start gap-3">
-                           <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-muted flex items-center justify-center mt-0.5">
+                         <div className="flex items-center gap-3 pb-3 border-b">
+                           <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
                              <Github className="h-5 w-5 text-muted-foreground" />
                            </div>
-                           <div className="flex-1 space-y-2">
-                             <Input 
-                               placeholder="GitHub URL" 
-                               value={formData?.github || ''}
-                               onChange={(e) => setFormData(formData ? {...formData, github: e.target.value} : undefined)}
-                               data-testid="input-github"
+                           <Input 
+                             placeholder="GitHub URL" 
+                             value={formData?.github || ''}
+                             onChange={(e) => setFormData(formData ? {...formData, github: e.target.value} : undefined)}
+                             className="flex-1"
+                             data-testid="input-github"
+                           />
+                           <div className="flex items-center gap-2 flex-shrink-0">
+                             <Switch
+                               id="show-github"
+                               checked={formData?.showGithub ?? true}
+                               onCheckedChange={(checked) => setFormData(formData ? {...formData, showGithub: checked} : undefined)}
+                               data-testid="switch-show-github"
                              />
-                             <div className="flex items-center gap-2">
-                               <Switch
-                                 id="show-github"
-                                 checked={formData?.showGithub ?? true}
-                                 onCheckedChange={(checked) => setFormData(formData ? {...formData, showGithub: checked} : undefined)}
-                                 data-testid="switch-show-github"
-                               />
-                               <Label htmlFor="show-github" className="text-sm font-normal cursor-pointer">
-                                 Show on website
-                               </Label>
-                             </div>
+                             <Label htmlFor="show-github" className="text-sm font-normal cursor-pointer whitespace-nowrap">
+                               Show on website
+                             </Label>
                            </div>
                          </div>
 
                          {/* Email */}
-                         <div className="flex items-start gap-3">
-                           <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-muted flex items-center justify-center mt-0.5">
+                         <div className="flex items-center gap-3 pb-3">
+                           <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
                              <Mail className="h-5 w-5 text-muted-foreground" />
                            </div>
-                           <div className="flex-1 space-y-2">
-                             <Input 
-                               placeholder="Email" 
-                               value={formData?.email || ''}
-                               onChange={(e) => setFormData(formData ? {...formData, email: e.target.value} : undefined)}
-                               data-testid="input-email"
+                           <Input 
+                             placeholder="Email" 
+                             value={formData?.email || ''}
+                             onChange={(e) => setFormData(formData ? {...formData, email: e.target.value} : undefined)}
+                             className="flex-1"
+                             data-testid="input-email"
+                           />
+                           <div className="flex items-center gap-2 flex-shrink-0">
+                             <Switch
+                               id="show-email"
+                               checked={formData?.showEmail ?? true}
+                               onCheckedChange={(checked) => setFormData(formData ? {...formData, showEmail: checked} : undefined)}
+                               data-testid="switch-show-email"
                              />
-                             <div className="flex items-center gap-2">
-                               <Switch
-                                 id="show-email"
-                                 checked={formData?.showEmail ?? true}
-                                 onCheckedChange={(checked) => setFormData(formData ? {...formData, showEmail: checked} : undefined)}
-                                 data-testid="switch-show-email"
-                               />
-                               <Label htmlFor="show-email" className="text-sm font-normal cursor-pointer">
-                                 Show on website
-                               </Label>
-                             </div>
+                             <Label htmlFor="show-email" className="text-sm font-normal cursor-pointer whitespace-nowrap">
+                               Show on website
+                             </Label>
                            </div>
                          </div>
                        </div>
