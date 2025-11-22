@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +11,7 @@ import {
   ChevronsLeft, ChevronsRight, Link as LinkIcon, Star,
   ChevronRight, Upload, Trash2, Edit2, ArrowLeft, Eye, CheckCircle,
   MoreHorizontal, Clock, Calendar as CalendarIcon, ArrowUpDown, Filter, Briefcase,
-  Twitter, Linkedin, Github, Mail, AlertCircle
+  Twitter, Linkedin, Github, Mail, AlertCircle, Check, Loader2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -73,6 +73,8 @@ export default function AdminDashboard() {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [editingWork, setEditingWork] = useState<WorkExperience | null>(null);
   const [isWriting, setIsWriting] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [isProjectSheetOpen, setIsProjectSheetOpen] = useState(false);
   const [isWorkSheetOpen, setIsWorkSheetOpen] = useState(false);
@@ -173,10 +175,58 @@ export default function AdminDashboard() {
     setIsWriting(true);
   };
 
+  const autoSaveArticle = useCallback(async (article: Article) => {
+    if (!article) return;
+    
+    try {
+      setSaveStatus("saving");
+      if (article.id && articles.some(a => a.id === article.id)) {
+        await updateArticle(article.id, article);
+      } else {
+        const newArticle = await addArticle(article);
+        if (newArticle && newArticle.id) {
+          setEditingArticle(prev => prev ? { ...prev, id: newArticle.id } : null);
+        }
+      }
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 2000);
+    } catch (error) {
+      console.error("Error auto-saving article:", error);
+      setSaveStatus("idle");
+      toast({
+        title: "Auto-save Failed",
+        description: "There was a problem saving your changes.",
+        variant: "destructive"
+      });
+    }
+  }, [articles, updateArticle, addArticle, toast]);
+
+  // Auto-save effect with debouncing
+  useEffect(() => {
+    if (!editingArticle || !isWriting) return;
+
+    // Clear existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Set new timeout for auto-save (2 seconds after last change)
+    saveTimeoutRef.current = setTimeout(() => {
+      autoSaveArticle(editingArticle);
+    }, 2000);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [editingArticle, isWriting, autoSaveArticle]);
+
   const handleSaveArticle = async () => {
     if (!editingArticle) return;
 
     try {
+      setSaveStatus("saving");
       if (editingArticle.id && articles.some(a => a.id === editingArticle.id)) {
         await updateArticle(editingArticle.id, editingArticle);
       } else {
@@ -187,10 +237,12 @@ export default function AdminDashboard() {
         title: "Article Saved",
         description: `"${editingArticle.title || 'Untitled'}" has been saved successfully.`,
       });
+      setSaveStatus("saved");
       setIsWriting(false);
       setEditingArticle(null);
     } catch (error) {
       console.error("Error saving article:", error);
+      setSaveStatus("idle");
     }
   };
 
@@ -1332,11 +1384,32 @@ export default function AdminDashboard() {
           {activeTab === "writing" && isWriting && editingArticle && (
             <div className="animate-in fade-in-50 slide-in-from-right-2 duration-300 max-w-4xl mx-auto">
               <div className="flex items-center justify-between mb-8">
-                <Button variant="ghost" size="sm" onClick={() => { setIsWriting(false); setEditingArticle(null); }} className="gap-2 pl-0 hover:pl-2 transition-all text-muted-foreground">
+                <Button variant="ghost" size="sm" onClick={() => { 
+                  if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+                  setIsWriting(false); 
+                  setEditingArticle(null);
+                  setSaveStatus("idle");
+                }} className="gap-2 pl-0 hover:pl-2 transition-all text-muted-foreground">
                   <ArrowLeft className="h-4 w-4" /> Back
                 </Button>
                 <div className="flex items-center gap-3">
-                   <Button size="sm" onClick={handleSaveArticle} className="h-7 text-xs">Save</Button>
+                   {saveStatus === "saving" && (
+                     <div className="flex items-center gap-2 text-xs text-muted-foreground" data-testid="status-saving">
+                       <Loader2 className="h-3 w-3 animate-spin" />
+                       Saving...
+                     </div>
+                   )}
+                   {saveStatus === "saved" && (
+                     <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-500" data-testid="status-saved">
+                       <Check className="h-3 w-3" />
+                       Saved
+                     </div>
+                   )}
+                   {saveStatus === "idle" && (
+                     <Button size="sm" onClick={handleSaveArticle} variant="ghost" className="h-7 text-xs" data-testid="button-save-article">
+                       <Save className="h-3 w-3 mr-1" /> Save & Close
+                     </Button>
+                   )}
                    <Separator orientation="vertical" className="h-4" />
                    <span className="text-xs text-muted-foreground">
                       {editingArticle.content.split(/\s/g).length} words
@@ -1365,6 +1438,7 @@ export default function AdminDashboard() {
                       target.style.height = target.scrollHeight + 'px';
                     }}
                     rows={1}
+                    data-testid="input-article-title"
                   />
                   
                   <Editor 

@@ -9,7 +9,7 @@ import {
   Link as LinkIcon, Quote, Heading1, Heading2, Undo, Redo 
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useRef } from "react"
+import { useRef, useEffect } from "react"
 
 const MenuBar = ({ editor }: { editor: any }) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -187,6 +187,17 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
       onChange?.(editor.getHTML())
     },
   })
+
+  // Sync content when prop changes (for loading existing articles)
+  useEffect(() => {
+    if (editor && content !== undefined) {
+      const currentContent = editor.getHTML()
+      // Only update if content is different to avoid cursor jumping
+      if (currentContent !== content) {
+        editor.commands.setContent(content, false)
+      }
+    }
+  }, [editor, content])
 
   return (
     <div className="relative min-h-[500px] w-full">
