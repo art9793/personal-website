@@ -32,14 +32,14 @@ export default function Reading() {
             <span className="absolute -left-[5px] top-2 h-2.5 w-2.5 rounded-full border-2 border-background bg-muted-foreground/30 ring-4 ring-background" />
             
             <div className="mb-6">
-              <span className="text-sm font-semibold text-muted-foreground">{year}</span>
+              <h2 className="text-sm font-semibold text-muted-foreground tracking-wider uppercase">{year}</h2>
             </div>
 
             <div className="space-y-6">
               {books.map((book, i) => (
-                <div key={i} className="group flex items-start justify-between gap-4">
+                <div key={i} className="group flex items-start justify-between gap-4 p-2 -mx-2 rounded-lg hover:bg-secondary/40 transition-colors">
                   <div>
-                    <h3 className="font-medium text-primary group-hover:text-blue-600 transition-colors">
+                    <h3 className="font-medium text-primary group-hover:text-primary transition-colors">
                       {book.title}
                     </h3>
                     <p className="text-sm text-muted-foreground mt-0.5">{book.author}</p>

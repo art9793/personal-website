@@ -29,15 +29,15 @@ export default function Writing() {
       <div className="space-y-10">
         {Object.entries(postsByYear).sort((a, b) => Number(b[0]) - Number(a[0])).map(([year, yearPosts]) => (
           <div key={year} className="space-y-4">
-            <h2 className="text-sm font-medium text-muted-foreground">{year}</h2>
-            <div className="space-y-2">
+            <h2 className="text-sm font-semibold text-muted-foreground tracking-wider uppercase pl-1">{year}</h2>
+            <div className="space-y-1">
               {yearPosts.map((post) => (
                 <Link key={post.slug} href="/article/sample" className="block group">
-                    <div className="flex items-baseline justify-between py-2 border-b border-transparent group-hover:border-border transition-colors">
+                    <div className="flex items-baseline justify-between py-3 border-b border-border/40 group-hover:border-border transition-colors">
                       <span className="text-base font-medium text-primary group-hover:text-blue-600 transition-colors">
                         {post.title}
                       </span>
-                      <span className="text-sm text-muted-foreground tabular-nums ml-4">
+                      <span className="text-sm text-muted-foreground tabular-nums ml-4 font-mono">
                         {post.date}
                       </span>
                     </div>

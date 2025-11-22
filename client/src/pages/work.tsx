@@ -41,20 +41,20 @@ export default function Work() {
         </p>
       </div>
 
-      <div className="space-y-10">
+      <div className="space-y-8">
         {history.map((item, i) => (
-          <div key={i} className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-8 group">
+          <div key={i} className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-8 group p-2 -mx-2 rounded-lg hover:bg-secondary/40 transition-colors">
             <div className="w-32 flex-shrink-0 text-sm text-muted-foreground font-mono">
               {item.period}
             </div>
-            <div className="flex-1 space-y-2">
-              <h3 className="text-lg font-medium text-primary group-hover:text-blue-600 transition-colors">
+            <div className="flex-1 space-y-1.5">
+              <h3 className="text-lg font-semibold text-primary transition-colors">
                 {item.company}
               </h3>
-              <div className="text-sm font-medium text-muted-foreground mb-1">
+              <div className="text-sm font-medium text-primary/80 mb-1">
                 {item.role}
               </div>
-              <p className="text-muted-foreground leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed text-base">
                 {item.description}
               </p>
             </div>

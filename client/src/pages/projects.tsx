@@ -49,7 +49,7 @@ export default function Projects() {
             href={project.link} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="group flex items-center gap-4 p-4 rounded-xl border hover:bg-muted/40 transition-all"
+            className="group flex items-center gap-4 p-4 rounded-xl border bg-card hover:bg-secondary/40 hover:border-secondary-foreground/10 transition-all active:scale-[0.98]"
           >
             <div className={`h-12 w-12 rounded-xl flex items-center justify-center shadow-sm ${project.color} flex-shrink-0`}>
                <div className="font-bold text-lg">{project.title[0]}</div>
@@ -57,12 +57,12 @@ export default function Projects() {
             
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
-                <h3 className="font-medium text-base truncate group-hover:text-primary transition-colors">
+                <h3 className="font-semibold text-base truncate text-primary group-hover:text-primary transition-colors">
                   {project.title}
                 </h3>
                 <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-sm text-muted-foreground truncate">
+              <p className="text-sm text-muted-foreground truncate leading-relaxed">
                 {project.description}
               </p>
             </div>

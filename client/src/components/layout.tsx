@@ -50,19 +50,48 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background font-sans flex flex-col md:flex-row">
       {/* Mobile Header */}
-      <div className="md:hidden flex items-center justify-between p-4 border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="font-semibold">Arshad Teli</div>
-        <div className="flex items-center gap-2">
+      <div className="md:hidden flex items-center justify-between px-6 py-4 border-b bg-background/80 backdrop-blur-xl sticky top-0 z-50">
+        <div className="font-bold text-lg tracking-tight">Arshad Teli</div>
+        <div className="flex items-center gap-1">
           <ThemeToggle />
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
+              <Button variant="ghost" size="icon" className="hover:bg-transparent">
+                <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-64 p-6">
-              <div className="mb-8 font-semibold text-lg">Arshad Teli</div>
-              <NavContent />
+            <SheetContent side="right" className="w-full sm:w-80 p-6 pt-12">
+              <div className="flex flex-col h-full">
+                <div className="mb-8">
+                   <div className="font-bold text-2xl tracking-tight mb-2">Arshad Teli</div>
+                   <p className="text-muted-foreground">Product Manager & Designer</p>
+                </div>
+                <nav className="flex flex-col gap-1">
+                  {navItems.map((item) => {
+                    const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
+                    return (
+                      <Link key={item.href} href={item.href}>
+                        <a
+                          className={cn(
+                            "group flex items-center gap-4 rounded-xl px-4 py-3 text-lg font-medium transition-all",
+                            isActive ? "bg-secondary text-primary" : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
+                          )}
+                        >
+                          <item.icon className={cn("h-5 w-5 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
+                          <span>{item.label}</span>
+                        </a>
+                      </Link>
+                    );
+                  })}
+                </nav>
+                <div className="mt-auto pt-8 border-t flex justify-between text-muted-foreground">
+                  <span className="text-sm">© {new Date().getFullYear()}</span>
+                  <div className="flex gap-4">
+                    <a href="https://x.com/art9793" target="_blank" rel="noopener noreferrer">Twitter</a>
+                    <a href="https://github.com/art9793" target="_blank" rel="noopener noreferrer">GitHub</a>
+                  </div>
+                </div>
+              </div>
             </SheetContent>
           </Sheet>
         </div>

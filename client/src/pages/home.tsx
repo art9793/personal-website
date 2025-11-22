@@ -48,9 +48,9 @@ export default function Home() {
 
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-primary">Selected Projects</h2>
+          <h2 className="text-lg font-semibold text-primary tracking-tight">Selected Projects</h2>
           <Link href="/projects">
-            <a className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors">
+            <a className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors px-2 py-1 -mr-2 rounded-md hover:bg-secondary/50">
               View all <ArrowRight className="h-3 w-3" />
             </a>
           </Link>
@@ -62,16 +62,16 @@ export default function Home() {
             { title: "Staff Design", desc: "Interviews with staff-level product designers.", color: "bg-purple-500 text-purple-50" }
           ].map((project, i) => (
             <Link key={i} href="/projects">
-              <a className="group flex items-center gap-4 p-3 rounded-lg border hover:bg-muted/40 transition-colors">
-                <div className={`h-10 w-10 rounded-lg flex items-center justify-center shadow-sm ${project.color} flex-shrink-0`}>
-                  <div className="font-bold text-base">{project.title[0]}</div>
+              <a className="group flex items-center gap-4 p-4 rounded-xl border bg-card hover:bg-secondary/40 hover:border-secondary-foreground/10 transition-all active:scale-[0.98]">
+                <div className={`h-12 w-12 rounded-xl flex items-center justify-center shadow-sm ${project.color} flex-shrink-0`}>
+                  <div className="font-bold text-lg">{project.title[0]}</div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium text-primary group-hover:text-primary transition-colors">{project.title}</h3>
-                    <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="flex items-center justify-between mb-0.5">
+                    <h3 className="font-semibold text-primary group-hover:text-primary transition-colors">{project.title}</h3>
+                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  <p className="text-sm text-muted-foreground truncate">{project.desc}</p>
+                  <p className="text-sm text-muted-foreground truncate leading-relaxed">{project.desc}</p>
                 </div>
               </a>
             </Link>
@@ -81,9 +81,9 @@ export default function Home() {
 
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-primary">Recent Writing</h2>
+          <h2 className="text-lg font-semibold text-primary tracking-tight">Recent Writing</h2>
           <Link href="/writing">
-            <a className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors">
+            <a className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors px-2 py-1 -mr-2 rounded-md hover:bg-secondary/50">
               Read more <ArrowRight className="h-3 w-3" />
             </a>
           </Link>
@@ -97,11 +97,11 @@ export default function Home() {
           ].map((post, i) => (
             <Link key={i} href="/article/sample">
               <a className="block group">
-                <div className="flex items-baseline justify-between py-2 border-b border-transparent group-hover:border-border transition-colors">
+                <div className="flex items-baseline justify-between py-3 border-b border-border/50 group-hover:border-border transition-colors">
                   <span className="text-base font-medium text-primary group-hover:text-blue-600 transition-colors">
                     {post.title}
                   </span>
-                  <span className="text-sm text-muted-foreground tabular-nums ml-4">
+                  <span className="text-sm text-muted-foreground tabular-nums ml-4 font-mono">
                     {post.date}
                   </span>
                 </div>
