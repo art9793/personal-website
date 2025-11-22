@@ -40,7 +40,8 @@ export interface WorkExperience {
   id: string;
   company: string;
   role: string;
-  period: string;
+  startDate: string;
+  endDate: string;
   description: string;
   logo?: string;
 }
@@ -165,7 +166,8 @@ const defaultWorkHistory: WorkExperience[] = [
     id: "1",
     company: "Acme Corp",
     role: "Senior Product Manager",
-    period: "2022 - Present",
+    startDate: "2022-05-01",
+    endDate: "Present",
     description: "Leading the core product team to build the future of finance.",
     logo: "AC"
   },
@@ -173,7 +175,8 @@ const defaultWorkHistory: WorkExperience[] = [
     id: "2",
     company: "TechStart",
     role: "Product Designer",
-    period: "2020 - 2022",
+    startDate: "2020-03-01",
+    endDate: "2022-04-30",
     description: "Designed the initial MVP and scaled the design system.",
     logo: "TS"
   }

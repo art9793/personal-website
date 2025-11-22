@@ -75,7 +75,7 @@ export default function AdminDashboard() {
   const [isProjectSheetOpen, setIsProjectSheetOpen] = useState(false);
   const [isWorkSheetOpen, setIsWorkSheetOpen] = useState(false);
   
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Article | keyof Project; direction: 'asc' | 'desc' } | null>(null);
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Article | keyof Project | keyof WorkExperience; direction: 'asc' | 'desc' } | null>(null);
   const [filterQuery, setFilterQuery] = useState("");
 
   // Reset states when changing tabs
@@ -229,7 +229,8 @@ export default function AdminDashboard() {
       id: Date.now().toString(),
       company: "",
       role: "",
-      period: "",
+      startDate: "",
+      endDate: "",
       description: "",
       logo: ""
     };
@@ -346,6 +347,34 @@ export default function AdminDashboard() {
   };
 
   const filteredArticles = getSortedAndFilteredArticles();
+
+  const getSortedAndFilteredWork = () => {
+    let result = [...workHistory];
+
+    if (filterQuery) {
+      const query = filterQuery.toLowerCase();
+      result = result.filter(work => 
+        work.company.toLowerCase().includes(query) ||
+        work.role.toLowerCase().includes(query) ||
+        work.description.toLowerCase().includes(query)
+      );
+    }
+
+    if (sortConfig) {
+      result.sort((a, b) => {
+        const aValue = (a as any)[sortConfig.key] || "";
+        const bValue = (b as any)[sortConfig.key] || "";
+        
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return result;
+  };
+
+  const filteredWork = getSortedAndFilteredWork();
 
   const SidebarItem = ({ icon: Icon, label, id }: { icon: any, label: string, id: string }) => {
     if (!isSidebarExpanded) {
@@ -985,7 +1014,16 @@ export default function AdminDashboard() {
                 <div>
                   <h2 className="text-2xl font-bold tracking-tight">Work History</h2>
                 </div>
-                <div>
+                <div className="flex items-center gap-3">
+                    <div className="relative w-64">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input 
+                            placeholder="Filter work history..." 
+                            className="pl-8 h-9 text-sm" 
+                            value={filterQuery}
+                            onChange={(e) => setFilterQuery(e.target.value)}
+                        />
+                    </div>
                     <Sheet open={isWorkSheetOpen} onOpenChange={(open) => {
                         setIsWorkSheetOpen(open);
                         if (!open) setEditingWork(null);
@@ -1034,14 +1072,41 @@ export default function AdminDashboard() {
                                         />
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <Label htmlFor="period">Period</Label>
-                                        <Input 
-                                            id="period" 
-                                            value={editingWork.period} 
-                                            onChange={(e) => setEditingWork({...editingWork, period: e.target.value})}
-                                            placeholder="e.g. 2022 - Present"
-                                        />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="startDate">Start Date</Label>
+                                            <Input 
+                                                id="startDate" 
+                                                type="date"
+                                                value={editingWork.startDate} 
+                                                onChange={(e) => setEditingWork({...editingWork, startDate: e.target.value})}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="endDate">End Date</Label>
+                                            <div className="flex gap-2">
+                                              <Input 
+                                                  id="endDate" 
+                                                  type="date"
+                                                  value={editingWork.endDate === "Present" ? "" : editingWork.endDate} 
+                                                  onChange={(e) => setEditingWork({...editingWork, endDate: e.target.value})}
+                                                  disabled={editingWork.endDate === "Present"}
+                                              />
+                                              <div className="flex items-center space-x-2">
+                                                <Checkbox 
+                                                  id="present" 
+                                                  checked={editingWork.endDate === "Present"}
+                                                  onCheckedChange={(checked) => setEditingWork({...editingWork, endDate: checked ? "Present" : ""})}
+                                                />
+                                                <label
+                                                  htmlFor="present"
+                                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                >
+                                                  Present
+                                                </label>
+                                              </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     
                                     <div className="space-y-2">
@@ -1066,42 +1131,79 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4">
-                 {workHistory.map((work) => (
-                    <Card key={work.id} className="group relative overflow-hidden border-border/50 shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => handleEditWork(work)}>
-                      <div className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 z-10">
-                        <Button size="icon" variant="secondary" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); handleEditWork(work); }}>
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button size="icon" variant="destructive" className="h-8 w-8" onClick={(e) => handleDeleteWork(work.id, e)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <CardContent className="p-6">
-                        <div className="flex items-start gap-4">
-                          <div className="h-12 w-12 rounded-lg bg-primary/5 flex items-center justify-center text-primary font-bold text-lg border border-border/50 flex-shrink-0">
-                            {work.logo || work.company.substring(0, 2).toUpperCase()}
-                          </div>
-                          <div className="space-y-1 flex-1">
-                            <div className="flex items-center justify-between pr-16">
-                              <h3 className="font-semibold text-lg">{work.company}</h3>
-                              <Badge variant="outline" className="font-normal text-muted-foreground bg-background">{work.period}</Badge>
-                            </div>
-                            <p className="text-medium font-medium text-foreground/80">{work.role}</p>
-                            <p className="text-muted-foreground text-sm leading-relaxed pt-1">{work.description}</p>
-                          </div>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[50px]"></TableHead>
+                      <TableHead className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleSort('company')}>
+                        <div className="flex items-center gap-2">
+                          Company
+                          {sortConfig?.key === 'company' && <ArrowUpDown className="h-3 w-3" />}
                         </div>
-                      </CardContent>
-                    </Card>
-                 ))}
-                 
-                 {workHistory.length === 0 && (
-                    <div className="text-center py-12 text-muted-foreground bg-muted/10 rounded-lg border border-dashed">
-                      <Briefcase className="h-10 w-10 mx-auto mb-3 opacity-20" />
-                      <p>No work experience added yet.</p>
-                      <Button variant="link" onClick={handleNewWork} className="mt-2">Add your first role</Button>
-                    </div>
-                 )}
+                      </TableHead>
+                      <TableHead className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleSort('role')}>
+                        <div className="flex items-center gap-2">
+                          Role
+                          {sortConfig?.key === 'role' && <ArrowUpDown className="h-3 w-3" />}
+                        </div>
+                      </TableHead>
+                      <TableHead className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleSort('startDate')}>
+                        <div className="flex items-center gap-2">
+                          Start Date
+                          {sortConfig?.key === 'startDate' && <ArrowUpDown className="h-3 w-3" />}
+                        </div>
+                      </TableHead>
+                      <TableHead className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleSort('endDate')}>
+                        <div className="flex items-center gap-2">
+                          End Date
+                          {sortConfig?.key === 'endDate' && <ArrowUpDown className="h-3 w-3" />}
+                        </div>
+                      </TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead className="w-[100px] text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredWork.map((work) => (
+                      <TableRow key={work.id} className="group cursor-pointer hover:bg-muted/50" onClick={() => handleEditWork(work)}>
+                        <TableCell>
+                          <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center text-primary font-bold text-xs border border-primary/20">
+                             {work.logo || work.company.substring(0, 2).toUpperCase()}
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-medium">{work.company}</TableCell>
+                        <TableCell>{work.role}</TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
+                          {work.startDate}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
+                          {work.endDate === "Present" ? <Badge variant="secondary" className="font-normal text-xs">Present</Badge> : work.endDate}
+                        </TableCell>
+                        <TableCell className="max-w-[300px] truncate text-muted-foreground text-sm">
+                          {work.description}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); handleEditWork(work); }}>
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={(e) => handleDeleteWork(work.id, e)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {filteredWork.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={7} className="h-24 text-center">
+                          No work experience found.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               </div>
             </div>
           )}
