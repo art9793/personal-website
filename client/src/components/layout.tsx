@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [isMobile, setIsMobile] = useState(false);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -54,7 +55,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="font-semibold text-lg tracking-tight">Arshad Teli</div>
         <div className="flex items-center gap-1">
           <ThemeToggle />
-          <Sheet>
+          <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="hover:bg-transparent">
                 <Menu className="h-6 w-6" />
@@ -70,7 +71,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   {navItems.map((item) => {
                     const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
                     return (
-                      <Link key={item.href} href={item.href}>
+                      <Link key={item.href} href={item.href} onClick={() => setOpen(false)}>
                         <a
                           className={cn(
                             "group flex items-center gap-4 rounded-xl px-4 py-3 text-lg font-medium transition-all",

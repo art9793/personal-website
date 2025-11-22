@@ -42,14 +42,14 @@ export default function Projects() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
         {projects.map((project, i) => (
           <a 
             key={i} 
             href={project.link} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="group flex items-center gap-4 p-4 rounded-xl border bg-card hover:bg-secondary/40 hover:border-secondary-foreground/10 transition-all active:scale-[0.98]"
+            className="group flex items-center gap-4 p-4 rounded-xl border bg-card hover:bg-secondary/40 hover:border-secondary-foreground/10 transition-all active:scale-[0.98] min-w-0"
           >
             <div className={`h-12 w-12 rounded-xl flex items-center justify-center shadow-sm ${project.color} flex-shrink-0`}>
                <div className="font-bold text-lg">{project.title[0]}</div>
