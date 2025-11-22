@@ -536,7 +536,7 @@ export default function AdminDashboard() {
 
               <div className="space-y-8">
                   <Input 
-                    className="text-5xl font-bold h-auto border-none px-0 focus-visible:ring-0 placeholder:text-muted-foreground/30 bg-transparent tracking-tight shadow-none rounded-none p-0" 
+                    className="text-7xl font-bold h-auto border-none px-0 focus-visible:ring-0 placeholder:text-muted-foreground/30 bg-transparent tracking-tight shadow-none rounded-none p-0 leading-tight" 
                     placeholder="Untitled" 
                     value={editingArticle.title}
                     onChange={(e) => setEditingArticle({...editingArticle, title: e.target.value})}
@@ -579,7 +579,7 @@ export default function AdminDashboard() {
                                 {editingArticle.date ? format(new Date(editingArticle.date), "MMMM do, yyyy") : <span>Pick a date</span>}
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
+                            <PopoverContent className="w-auto p-0 min-w-[300px]" align="start">
                               <Calendar
                                 mode="single"
                                 selected={editingArticle.date ? new Date(editingArticle.date) : undefined}

@@ -18,6 +18,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
   return (
     <div className="border-b py-4 mb-8 flex flex-wrap gap-2 bg-background sticky top-16 z-10 opacity-30 hover:opacity-100 transition-opacity duration-300">
       <Button
+        type="button"
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().toggleBold().run()}
@@ -26,6 +27,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
         <Bold className="h-4 w-4" />
       </Button>
       <Button
+        type="button"
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().toggleItalic().run()}
@@ -35,6 +37,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
       </Button>
       <div className="w-px h-6 bg-border mx-1 self-center" />
       <Button
+        type="button"
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
@@ -43,6 +46,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
         <Heading1 className="h-4 w-4" />
       </Button>
       <Button
+        type="button"
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
@@ -52,6 +56,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
       </Button>
       <div className="w-px h-6 bg-border mx-1 self-center" />
       <Button
+        type="button"
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -60,6 +65,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
         <List className="h-4 w-4" />
       </Button>
       <Button
+        type="button"
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
@@ -69,6 +75,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
       </Button>
       <div className="w-px h-6 bg-border mx-1 self-center" />
       <Button
+        type="button"
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
@@ -77,6 +84,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
         <Quote className="h-4 w-4" />
       </Button>
       <Button
+        type="button"
         variant="ghost"
         size="sm"
         onClick={() => {
@@ -90,6 +98,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
         <LinkIcon className="h-4 w-4" />
       </Button>
       <Button
+        type="button"
         variant="ghost"
         size="sm"
         onClick={() => {
@@ -103,6 +112,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
       </Button>
       <div className="flex-1" />
       <Button
+        type="button"
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().undo().run()}
@@ -110,6 +120,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
         <Undo className="h-4 w-4" />
       </Button>
       <Button
+        type="button"
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().redo().run()}
