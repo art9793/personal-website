@@ -60,7 +60,7 @@ export default function Article() {
       )}
 
       <div 
-        className="prose max-w-none"
+        className="prose prose-sm sm:prose max-w-none prose-headings:text-primary prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground prose-img:rounded-lg prose-img:border"
         dangerouslySetInnerHTML={{ __html: article.content }}
       />
     </article>

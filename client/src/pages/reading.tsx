@@ -26,9 +26,9 @@ export default function Reading() {
         </p>
       </div>
 
-      <div className="relative border-l border-border ml-3 space-y-12">
+      <div className="relative border-l border-border ml-2 sm:ml-3 space-y-12">
         {Object.entries(groupedBooks).sort((a, b) => b[0].localeCompare(a[0])).map(([year, books]) => (
-          <div key={year} className="relative pl-8">
+          <div key={year} className="relative pl-6 sm:pl-8">
             <span className="absolute -left-[5px] top-2 h-2.5 w-2.5 rounded-full border-2 border-background bg-muted-foreground/30 ring-4 ring-background" />
             
             <div className="mb-6">
@@ -37,15 +37,15 @@ export default function Reading() {
 
             <div className="space-y-6">
               {books.map((book, i) => (
-                <div key={i} className="group flex items-start justify-between gap-4 p-2 -mx-2 rounded-lg hover:bg-secondary/40 transition-colors">
-                  <div>
+                <div key={i} className="group flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 p-2 -mx-2 rounded-lg hover:bg-secondary/40 transition-colors">
+                  <div className="flex-1">
                     <h3 className="font-medium text-primary group-hover:text-primary transition-colors">
                       {book.title}
                     </h3>
                     <p className="text-sm text-muted-foreground mt-0.5">{book.author}</p>
                   </div>
                   
-                  <div className="flex items-center gap-3 pt-0.5">
+                  <div className="flex items-center gap-3">
                     {book.rating && (
                       <div className="flex gap-0.5">
                         {[...Array(5)].map((_, i) => (
@@ -57,7 +57,7 @@ export default function Reading() {
                       </div>
                     )}
                     {!book.rating && book.status === "Reading" && (
-                       <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400 px-2 py-0.5 rounded-full">
+                       <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400 px-2 py-0.5 rounded-full whitespace-nowrap">
                          Reading
                        </span>
                     )}

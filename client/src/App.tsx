@@ -4,18 +4,27 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Layout from "@/components/layout";
-import NotFound from "@/pages/not-found";
-import Home from "@/pages/home";
-import Writing from "@/pages/writing";
-import Article from "@/pages/article";
-import Projects from "@/pages/projects";
-import Reading from "@/pages/reading";
-import Work from "@/pages/work";
-import AdminDashboard from "@/pages/admin/dashboard";
-import AdminLogin from "@/pages/admin/login";
 import { ContentProvider } from "@/lib/content-context";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
+
+const NotFound = lazy(() => import("@/pages/not-found"));
+const Home = lazy(() => import("@/pages/home"));
+const Writing = lazy(() => import("@/pages/writing"));
+const Article = lazy(() => import("@/pages/article"));
+const Projects = lazy(() => import("@/pages/projects"));
+const Reading = lazy(() => import("@/pages/reading"));
+const Work = lazy(() => import("@/pages/work"));
+const AdminDashboard = lazy(() => import("@/pages/admin/dashboard"));
+const AdminLogin = lazy(() => import("@/pages/admin/login"));
+
+function LoadingFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-[50vh]">
+      <div className="text-muted-foreground">Loading...</div>
+    </div>
+  );
+}
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -36,7 +45,11 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   }
 
   if (!isAuthenticated) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-muted-foreground">Redirecting to login...</div>
+      </div>
+    );
   }
 
   // Check if user's email is authorized for admin access
@@ -71,11 +84,23 @@ function Router() {
   if (isAdmin) {
     return (
       <Switch>
-        <Route path="/admin/login" component={AdminLogin} />
-        <Route path="/admin">
-          {() => <ProtectedRoute component={AdminDashboard} />}
+        <Route path="/admin/login">
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminLogin />
+          </Suspense>
         </Route>
-        <Route component={NotFound} />
+        <Route path="/admin">
+          {() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <ProtectedRoute component={AdminDashboard} />
+            </Suspense>
+          )}
+        </Route>
+        <Route>
+          <Suspense fallback={<LoadingFallback />}>
+            <NotFound />
+          </Suspense>
+        </Route>
       </Switch>
     );
   }
@@ -83,13 +108,41 @@ function Router() {
   return (
     <Layout>
       <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/writing" component={Writing} />
-        <Route path="/article/:slug" component={Article} />
-        <Route path="/projects" component={Projects} />
-        <Route path="/reading" component={Reading} />
-        <Route path="/work" component={Work} />
-        <Route component={NotFound} />
+        <Route path="/">
+          <Suspense fallback={<LoadingFallback />}>
+            <Home />
+          </Suspense>
+        </Route>
+        <Route path="/writing">
+          <Suspense fallback={<LoadingFallback />}>
+            <Writing />
+          </Suspense>
+        </Route>
+        <Route path="/article/:slug">
+          <Suspense fallback={<LoadingFallback />}>
+            <Article />
+          </Suspense>
+        </Route>
+        <Route path="/projects">
+          <Suspense fallback={<LoadingFallback />}>
+            <Projects />
+          </Suspense>
+        </Route>
+        <Route path="/reading">
+          <Suspense fallback={<LoadingFallback />}>
+            <Reading />
+          </Suspense>
+        </Route>
+        <Route path="/work">
+          <Suspense fallback={<LoadingFallback />}>
+            <Work />
+          </Suspense>
+        </Route>
+        <Route>
+          <Suspense fallback={<LoadingFallback />}>
+            <NotFound />
+          </Suspense>
+        </Route>
       </Switch>
     </Layout>
   );

@@ -41,11 +41,11 @@ export default function Writing() {
               <div className="space-y-1">
                 {yearPosts.map((post) => (
                   <Link key={post.id} href={`/article/${post.slug || post.id}`} className="block group">
-                      <div className="flex items-baseline justify-between py-3 border-b border-border/40 group-hover:border-border transition-colors">
+                      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-0 py-3 border-b border-border/40 group-hover:border-border transition-colors">
                         <span className="text-base font-medium text-primary group-hover:text-blue-600 transition-colors">
                           {post.title || "Untitled"}
                         </span>
-                        <span className="text-sm text-muted-foreground tabular-nums ml-4 font-mono">
+                        <span className="text-sm text-muted-foreground tabular-nums sm:ml-4 font-mono flex-shrink-0">
                           {post.publishedAt ? format(new Date(post.publishedAt), "MMM dd") : ""}
                         </span>
                       </div>

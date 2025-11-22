@@ -1,6 +1,7 @@
 import { type Server } from "node:http";
 
 import express, { type Express, type Request, Response, NextFunction } from "express";
+import compression from "compression";
 import { registerRoutes } from "./routes";
 
 export function log(message: string, source = "express") {
@@ -16,13 +17,24 @@ export function log(message: string, source = "express") {
 
 export const app = express();
 
+app.use(compression({
+  level: 6,
+  threshold: 1024,
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  }
+}));
+
 declare module 'http' {
   interface IncomingMessage {
     rawBody: unknown
   }
 }
 app.use(express.json({
-  limit: '10mb', // Increased limit for article content
+  limit: '10mb',
   verify: (req, _res, buf) => {
     req.rawBody = buf;
   }

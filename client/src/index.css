@@ -127,16 +127,16 @@
   min-height: 500px;
 }
 .ProseMirror h1 {
-  @apply text-3xl font-bold mt-8 mb-4 leading-tight;
+  @apply text-2xl sm:text-3xl font-bold mt-8 mb-4 leading-tight;
 }
 .ProseMirror h2 {
-  @apply text-2xl font-semibold mt-8 mb-4 leading-tight;
+  @apply text-xl sm:text-2xl font-semibold mt-8 mb-4 leading-tight;
 }
 .ProseMirror h3 {
-  @apply text-xl font-semibold mt-6 mb-3 leading-tight;
+  @apply text-lg sm:text-xl font-semibold mt-6 mb-3 leading-tight;
 }
 .ProseMirror h4 {
-  @apply text-lg font-semibold mt-6 mb-3 leading-tight;
+  @apply text-base sm:text-lg font-semibold mt-6 mb-3 leading-tight;
 }
 .ProseMirror p {
   @apply mb-6 leading-relaxed;
@@ -174,16 +174,16 @@
   @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-primary;
 }
 .ProseMirror pre {
-  @apply bg-muted p-4 rounded-lg overflow-x-auto my-6 border;
+  @apply bg-muted p-3 sm:p-4 rounded-lg overflow-x-auto my-4 sm:my-6 border text-sm;
 }
 .ProseMirror pre code {
-  @apply bg-transparent p-0 text-sm;
+  @apply bg-transparent p-0 text-xs sm:text-sm;
 }
 .ProseMirror .code-block {
-  @apply bg-muted p-4 rounded-lg overflow-x-auto my-6 border font-mono text-sm;
+  @apply bg-muted p-3 sm:p-4 rounded-lg overflow-x-auto my-4 sm:my-6 border font-mono text-xs sm:text-sm;
 }
 .ProseMirror img {
-  @apply rounded-lg my-8 border max-w-full h-auto;
+  @apply rounded-lg my-6 sm:my-8 border max-w-full h-auto;
 }
 .ProseMirror hr {
   @apply my-8 border-t-2 border-border;

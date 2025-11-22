@@ -49,6 +49,12 @@ export default function Home() {
     <div className="space-y-12 animate-in fade-in-50 duration-500">
       <div className="flex flex-col-reverse md:flex-row md:items-center gap-8 md:gap-12">
         <div className="flex-1 space-y-8">
+          <div className="md:hidden flex justify-center">
+            <Avatar className="h-24 w-24 border-2 border-border/40">
+              <AvatarImage src={profileImage} alt={profile.name} loading="lazy" />
+              <AvatarFallback>{profile.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+            </Avatar>
+          </div>
           <div className="space-y-1.5">
             <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-primary">
               {profile.name}
@@ -93,6 +99,12 @@ export default function Home() {
               </Button>
             )}
           </div>
+        </div>
+        <div className="hidden md:block flex-shrink-0">
+          <Avatar className="h-32 w-32 border-2 border-border/40">
+            <AvatarImage src={profileImage} alt={profile.name} loading="lazy" />
+            <AvatarFallback>{profile.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+          </Avatar>
         </div>
       </div>
 
@@ -151,8 +163,8 @@ export default function Home() {
           <div className="space-y-2">
             {recentPosts.map((post) => (
               <Link key={post.id} href={`/article/${post.slug || post.id}`} className="block group">
-                <div className="flex items-baseline justify-between py-3 border-b border-border/50 group-hover:border-border transition-colors">
-                  <span className="text-base font-medium text-primary group-hover:text-blue-600 transition-colors truncate pr-4">
+                <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-0 py-3 border-b border-border/50 group-hover:border-border transition-colors">
+                  <span className="text-base font-medium text-primary group-hover:text-blue-600 transition-colors">
                     {post.title || "Untitled"}
                   </span>
                   <span className="text-sm text-muted-foreground tabular-nums font-mono flex-shrink-0">
