@@ -11,6 +11,10 @@ import HorizontalRule from '@tiptap/extension-horizontal-rule'
 import { TextStyle } from '@tiptap/extension-text-style'
 import { Color } from '@tiptap/extension-color'
 import { common, createLowlight } from 'lowlight'
+import { Extension } from '@tiptap/core'
+import Suggestion from '@tiptap/suggestion'
+import { ReactRenderer } from '@tiptap/react'
+import tippy from 'tippy.js'
 import { Button } from "@/components/ui/button"
 import { 
   Bold, Italic, Underline as UnderlineIcon, Strikethrough, Highlighter, Code, FileCode,
@@ -18,9 +22,194 @@ import {
   Heading1, Heading2, Heading3, Heading4, Minus, Undo, Redo 
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from "react"
 
 const lowlight = createLowlight(common)
+
+// Slash command items
+const slashCommandItems = [
+  {
+    title: 'Heading 1',
+    icon: Heading1,
+    command: (editor: any) => editor.chain().focus().toggleHeading({ level: 1 }).run(),
+  },
+  {
+    title: 'Heading 2',
+    icon: Heading2,
+    command: (editor: any) => editor.chain().focus().toggleHeading({ level: 2 }).run(),
+  },
+  {
+    title: 'Heading 3',
+    icon: Heading3,
+    command: (editor: any) => editor.chain().focus().toggleHeading({ level: 3 }).run(),
+  },
+  {
+    title: 'Bullet List',
+    icon: List,
+    command: (editor: any) => editor.chain().focus().toggleBulletList().run(),
+  },
+  {
+    title: 'Numbered List',
+    icon: ListOrdered,
+    command: (editor: any) => editor.chain().focus().toggleOrderedList().run(),
+  },
+  {
+    title: 'Quote',
+    icon: Quote,
+    command: (editor: any) => editor.chain().focus().toggleBlockquote().run(),
+  },
+  {
+    title: 'Code Block',
+    icon: FileCode,
+    command: (editor: any) => editor.chain().focus().toggleCodeBlock().run(),
+  },
+  {
+    title: 'Divider',
+    icon: Minus,
+    command: (editor: any) => editor.chain().focus().setHorizontalRule().run(),
+  },
+]
+
+// Slash command menu component
+const SlashCommandMenu = forwardRef((props: any, ref) => {
+  const [selectedIndex, setSelectedIndex] = useState(0)
+
+  // Reset selection when items change
+  useEffect(() => {
+    setSelectedIndex(0)
+  }, [props.items])
+
+  const selectItem = (index: number) => {
+    // Early exit if no items
+    if (props.items.length === 0) {
+      return
+    }
+    
+    // Clamp index to valid range
+    const clampedIndex = Math.max(0, Math.min(index, props.items.length - 1))
+    const item = props.items[clampedIndex]
+    if (item) {
+      props.command(item)
+    }
+  }
+
+  useImperativeHandle(ref, () => ({
+    onKeyDown: ({ event }: any) => {
+      // Guard against empty items array
+      if (props.items.length === 0) {
+        return false
+      }
+
+      if (event.key === 'ArrowUp') {
+        setSelectedIndex((prev) => (prev + props.items.length - 1) % props.items.length)
+        return true
+      }
+
+      if (event.key === 'ArrowDown') {
+        setSelectedIndex((prev) => (prev + 1) % props.items.length)
+        return true
+      }
+
+      if (event.key === 'Enter') {
+        selectItem(selectedIndex)
+        return true
+      }
+
+      return false
+    },
+  }))
+
+  return (
+    <div className="bg-background border rounded-lg shadow-lg p-2 min-w-[200px]">
+      {props.items.map((item: any, index: number) => {
+        const Icon = item.icon
+        return (
+          <button
+            key={index}
+            onClick={() => selectItem(index)}
+            className={cn(
+              "w-full flex items-center gap-2 px-3 py-2 text-sm rounded hover:bg-muted transition-colors",
+              index === selectedIndex && "bg-muted"
+            )}
+          >
+            <Icon className="h-4 w-4" />
+            <span>{item.title}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+})
+
+SlashCommandMenu.displayName = 'SlashCommandMenu'
+
+// Slash command extension
+const SlashCommand = Extension.create({
+  name: 'slashCommand',
+
+  addProseMirrorPlugins() {
+    return [
+      Suggestion({
+        editor: this.editor,
+        char: '/',
+        command: ({ editor, range, props }) => {
+          // props is the selected item from slashCommandItems
+          props.command(editor)
+          editor.chain().focus().deleteRange(range).run()
+        },
+        items: ({ query }) => {
+          return slashCommandItems
+            .filter(item => item.title.toLowerCase().includes(query.toLowerCase()))
+        },
+        render: () => {
+          let component: ReactRenderer
+          let popup: any
+
+          return {
+            onStart: (props: any) => {
+              component = new ReactRenderer(SlashCommandMenu, {
+                props,
+                editor: props.editor,
+              })
+
+              popup = tippy('body', {
+                getReferenceClientRect: props.clientRect,
+                appendTo: () => document.body,
+                content: component.element,
+                showOnCreate: true,
+                interactive: true,
+                trigger: 'manual',
+                placement: 'bottom-start',
+              })
+            },
+
+            onUpdate(props: any) {
+              component.updateProps(props)
+
+              popup[0].setProps({
+                getReferenceClientRect: props.clientRect,
+              })
+            },
+
+            onKeyDown(props: any) {
+              if (props.event.key === 'Escape') {
+                popup[0].hide()
+                return true
+              }
+
+              return component.ref?.onKeyDown(props)
+            },
+
+            onExit() {
+              popup[0].destroy()
+              component.destroy()
+            },
+          }
+        },
+      }),
+    ]
+  },
+})
 
 const MenuBar = ({ editor }: { editor: any }) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -280,6 +469,7 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
       Placeholder.configure({
         placeholder: 'Tell your story...',
       }),
+      SlashCommand,
     ],
     content: content || '',
     editorProps: {
