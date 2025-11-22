@@ -14,6 +14,24 @@ interface Profile {
   linkedin?: string;
   website?: string;
   avatarUrl?: string;
+  showTwitter?: boolean;
+  showLinkedin?: boolean;
+  showGithub?: boolean;
+  showEmail?: boolean;
+}
+
+export interface SeoSettings {
+  id?: number;
+  siteTitle: string;
+  siteDescription: string;
+  siteKeywords?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  twitterCard?: string;
+  twitterSite?: string;
+  twitterCreator?: string;
+  faviconUrl?: string;
 }
 
 export interface Article {
@@ -71,12 +89,14 @@ export interface ReadingListItem {
 
 interface ContentContextType {
   profile: Profile | undefined;
+  seoSettings: SeoSettings | undefined;
   articles: Article[];
   projects: Project[];
   workHistory: WorkExperience[];
   readingList: ReadingListItem[];
   isLoading: boolean;
   updateProfile: (data: Partial<Profile>) => Promise<void>;
+  updateSeoSettings: (data: Partial<SeoSettings>) => Promise<void>;
   addArticle: (article: Partial<Article>) => Promise<void>;
   updateArticle: (id: number, data: Partial<Article>) => Promise<void>;
   deleteArticle: (id: number) => Promise<void>;
@@ -100,6 +120,11 @@ export function ContentProvider({ children }: { children: ReactNode }) {
   // Fetch profile
   const { data: profile, isLoading: profileLoading } = useQuery<Profile>({
     queryKey: ["/api/profile"],
+  });
+
+  // Fetch SEO settings
+  const { data: seoSettings, isLoading: seoLoading } = useQuery<SeoSettings>({
+    queryKey: ["/api/seo-settings"],
   });
 
   // Fetch articles
@@ -157,6 +182,36 @@ export function ContentProvider({ children }: { children: ReactNode }) {
         toast({
           title: "Error",
           description: "Failed to update profile",
+          variant: "destructive",
+        });
+      }
+    },
+  });
+
+  // SEO Settings mutation
+  const updateSeoSettingsMutation = useMutation({
+    mutationFn: async (data: Partial<SeoSettings>) => {
+      const res = await fetch("/api/seo-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/seo-settings"] });
+      toast({
+        title: "Success",
+        description: "SEO settings updated",
+      });
+    },
+    onError: (error: Error) => {
+      if (!handleUnauthorized(error)) {
+        toast({
+          title: "Error",
+          description: "Failed to update SEO settings",
           variant: "destructive",
         });
       }
@@ -361,12 +416,14 @@ export function ContentProvider({ children }: { children: ReactNode }) {
 
   const value: ContentContextType = {
     profile,
+    seoSettings,
     articles,
     projects,
     workHistory,
     readingList,
-    isLoading: profileLoading || articlesLoading || projectsLoading || workLoading || readingLoading,
+    isLoading: profileLoading || seoLoading || articlesLoading || projectsLoading || workLoading || readingLoading,
     updateProfile: (data) => updateProfileMutation.mutateAsync(data),
+    updateSeoSettings: (data) => updateSeoSettingsMutation.mutateAsync(data),
     addArticle: (data) => addArticleMutation.mutateAsync(data),
     updateArticle: (id, data) => updateArticleMutation.mutateAsync({ id, data }),
     deleteArticle: (id) => deleteArticleMutation.mutateAsync(id),
