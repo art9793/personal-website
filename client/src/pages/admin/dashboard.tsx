@@ -43,6 +43,17 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
+const visitorData = [
+  { name: 'Mon', visits: 1240 },
+  { name: 'Tue', visits: 1450 },
+  { name: 'Wed', visits: 1800 },
+  { name: 'Thu', visits: 1600 },
+  { name: 'Fri', visits: 2100 },
+  { name: 'Sat', visits: 1900 },
+  { name: 'Sun', visits: 2300 },
+];
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
@@ -421,52 +432,110 @@ export default function AdminDashboard() {
       <main className="flex-1 overflow-y-auto bg-background">
         <div className="p-8 max-w-[1600px] mx-auto space-y-8">
           {activeTab === "overview" && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">Total Views</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">12,345</div>
-                    <p className="text-xs text-green-500 flex items-center mt-1">
-                      +12% from last month
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">Articles</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{articles.length}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {articles.filter(a => a.status === "Draft").length} drafts pending
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">Projects</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">8</div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      All active
-                    </p>
-                  </CardContent>
-                </Card>
+            <div className="space-y-8 animate-in fade-in-50 duration-500">
+              <div>
+                <h2 className="text-3xl font-bold tracking-tight">Welcome, {profile.name.split(' ')[0]}!</h2>
+                <p className="text-muted-foreground mt-1">Here's what's happening with your website today.</p>
               </div>
 
-              <Card>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <Card className="lg:col-span-2 shadow-sm border-border/50">
+                  <CardHeader>
+                    <CardTitle>Daily Visitors</CardTitle>
+                    <CardDescription>
+                      Traffic trends for the past 7 days
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pl-2">
+                    <div className="h-[300px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={visitorData}>
+                          <XAxis 
+                            dataKey="name" 
+                            stroke="#888888" 
+                            fontSize={12} 
+                            tickLine={false} 
+                            axisLine={false}
+                            dy={10}
+                          />
+                          <YAxis 
+                            stroke="#888888" 
+                            fontSize={12} 
+                            tickLine={false} 
+                            axisLine={false}
+                            tickFormatter={(value) => `${value}`}
+                            dx={-10}
+                          />
+                          <Tooltip 
+                            contentStyle={{ 
+                              borderRadius: 'var(--radius)', 
+                              border: '1px solid hsl(var(--border))', 
+                              boxShadow: 'var(--shadow-sm)',
+                              backgroundColor: 'hsl(var(--background))',
+                              color: 'hsl(var(--foreground))'
+                            }}
+                            cursor={{ stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1, strokeDasharray: '4 4' }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="visits" 
+                            stroke="hsl(var(--primary))" 
+                            strokeWidth={2}
+                            dot={false}
+                            activeDot={{ r: 4, strokeWidth: 0, fill: 'hsl(var(--primary))' }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="space-y-6">
+                  <Card className="shadow-sm border-border/50">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Total Views</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold tracking-tight">12,345</div>
+                      <p className="text-xs text-green-500 flex items-center mt-1 font-medium">
+                        +12% from last month
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card className="shadow-sm border-border/50">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Articles</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold tracking-tight">{articles.length}</div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {articles.filter(a => a.status === "Draft").length} drafts pending
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card className="shadow-sm border-border/50">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">Projects</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold tracking-tight">{projects.length}</div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        All active
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              <Card className="shadow-sm border-border/50">
                 <CardHeader>
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="flex gap-4">
-                   <Button onClick={() => { setActiveTab("writing"); handleNewPost(); }} className="gap-2">
+                   <Button onClick={() => { setActiveTab("writing"); handleNewPost(); }} className="gap-2 shadow-none">
                      <PenTool className="h-4 w-4" /> Write Article
                    </Button>
-                   <Button onClick={() => setActiveTab("projects")} variant="outline" className="gap-2">
+                   <Button onClick={() => setActiveTab("projects")} variant="outline" className="gap-2 shadow-none">
                      <FolderGit2 className="h-4 w-4" /> Add Project
                    </Button>
                 </CardContent>
