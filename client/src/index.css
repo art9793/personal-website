@@ -192,32 +192,47 @@
   content: "";
 }
 
-/* Task Lists */
+/* Task Lists - TipTap renders: <li><label><input/></label><div><p>text</p></div></li> */
 .ProseMirror ul[data-type="taskList"] {
-  @apply list-none pl-0;
+  list-style: none;
+  padding-left: 0;
 }
+
 .ProseMirror ul[data-type="taskList"] li {
-  @apply flex flex-row items-start gap-3 my-1;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
 }
+
 .ProseMirror ul[data-type="taskList"] li > label {
-  @apply flex items-center justify-center cursor-pointer mt-1;
-  flex: 0 0 auto;
+  display: flex;
+  cursor: pointer;
+  user-select: none;
+  margin-top: 0.125rem;
 }
-.ProseMirror ul[data-type="taskList"] li > label > input[type="checkbox"] {
-  @apply w-4 h-4 rounded border-2 border-input cursor-pointer;
-  @apply checked:bg-primary checked:border-primary;
-  @apply focus:ring-2 focus:ring-ring focus:ring-offset-2;
-  margin: 0 !important;
+
+.ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  margin: 0;
+  flex-shrink: 0;
 }
+
 .ProseMirror ul[data-type="taskList"] li > div {
-  flex: 1 1 auto;
-  min-width: 0;
+  flex: 1;
 }
+
 .ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div > p {
-  @apply line-through opacity-60;
+  text-decoration: line-through;
+  opacity: 0.6;
 }
+
 .ProseMirror ul[data-type="taskList"] ul[data-type="taskList"] {
-  @apply ml-6 mt-2;
+  margin-left: 1.5rem;
+  margin-top: 0.5rem;
 }
 
 /* Syntax highlighting for code blocks */
@@ -347,32 +362,47 @@
   content: "";
 }
 
-/* Task Lists */
+/* Task Lists - TipTap renders: <li><label><input/></label><div><p>text</p></div></li> */
 .prose ul[data-type="taskList"] {
-  @apply list-none pl-0;
+  list-style: none;
+  padding-left: 0;
 }
+
 .prose ul[data-type="taskList"] li {
-  @apply flex flex-row items-start gap-3 my-1;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
 }
+
 .prose ul[data-type="taskList"] li > label {
-  @apply flex items-center justify-center cursor-pointer mt-1;
-  flex: 0 0 auto;
+  display: flex;
+  cursor: pointer;
+  user-select: none;
+  margin-top: 0.125rem;
 }
-.prose ul[data-type="taskList"] li > label > input[type="checkbox"] {
-  @apply w-4 h-4 rounded border-2 border-input cursor-pointer;
-  @apply checked:bg-primary checked:border-primary;
-  @apply focus:ring-2 focus:ring-ring focus:ring-offset-2;
-  margin: 0 !important;
+
+.prose ul[data-type="taskList"] li > label input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  margin: 0;
+  flex-shrink: 0;
 }
+
 .prose ul[data-type="taskList"] li > div {
-  flex: 1 1 auto;
-  min-width: 0;
+  flex: 1;
 }
+
 .prose ul[data-type="taskList"] li[data-checked="true"] > div > p {
-  @apply line-through opacity-60;
+  text-decoration: line-through;
+  opacity: 0.6;
 }
+
 .prose ul[data-type="taskList"] ul[data-type="taskList"] {
-  @apply ml-6 mt-2;
+  margin-left: 1.5rem;
+  margin-top: 0.5rem;
 }
 
 /* Syntax highlighting for code blocks */
