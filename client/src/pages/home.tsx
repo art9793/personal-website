@@ -56,13 +56,13 @@ export default function Home() {
           </Link>
         </div>
         
-        <div className="grid gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           {[
             { title: "Campsite", desc: "The all-in-one communication platform for remote teams.", color: "bg-orange-500 text-orange-50" },
             { title: "Staff Design", desc: "Interviews with staff-level product designers.", color: "bg-purple-500 text-purple-50" }
           ].map((project, i) => (
             <Link key={i} href="/projects">
-              <a className="group flex items-center gap-4 p-3 -mx-3 rounded-lg hover:bg-muted/40 transition-colors">
+              <a className="group flex items-center gap-4 p-3 rounded-lg border hover:bg-muted/40 transition-colors">
                 <div className={`h-10 w-10 rounded-lg flex items-center justify-center shadow-sm ${project.color} flex-shrink-0`}>
                   <div className="font-bold text-base">{project.title[0]}</div>
                 </div>
