@@ -4,10 +4,17 @@ import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import Underline from '@tiptap/extension-underline'
+import Strike from '@tiptap/extension-strike'
+import Highlight from '@tiptap/extension-highlight'
+import CodeBlock from '@tiptap/extension-code-block'
+import HorizontalRule from '@tiptap/extension-horizontal-rule'
+import { TextStyle } from '@tiptap/extension-text-style'
+import { Color } from '@tiptap/extension-color'
 import { Button } from "@/components/ui/button"
 import { 
-  Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Image as ImageIcon, 
-  Link as LinkIcon, Quote, Heading1, Heading2, Undo, Redo 
+  Bold, Italic, Underline as UnderlineIcon, Strikethrough, Highlighter, Code,
+  List, ListOrdered, Image as ImageIcon, Link as LinkIcon, Quote, 
+  Heading1, Heading2, Heading3, Heading4, Minus, Undo, Redo 
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRef, useEffect } from "react"
@@ -62,6 +69,33 @@ const MenuBar = ({ editor }: { editor: any }) => {
       >
         <UnderlineIcon className="h-4 w-4" />
       </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().toggleStrike().run()}
+        className={cn(editor.isActive('strike') ? 'bg-muted' : '')}
+      >
+        <Strikethrough className="h-4 w-4" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().toggleCode().run()}
+        className={cn(editor.isActive('code') ? 'bg-muted' : '')}
+      >
+        <Code className="h-4 w-4" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().toggleHighlight().run()}
+        className={cn(editor.isActive('highlight') ? 'bg-muted' : '')}
+      >
+        <Highlighter className="h-4 w-4" />
+      </Button>
       <div className="w-px h-6 bg-border mx-1 self-center" />
       <Button
         type="button"
@@ -80,6 +114,24 @@ const MenuBar = ({ editor }: { editor: any }) => {
         className={cn(editor.isActive('heading', { level: 2 }) ? 'bg-muted' : '')}
       >
         <Heading2 className="h-4 w-4" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+        className={cn(editor.isActive('heading', { level: 3 }) ? 'bg-muted' : '')}
+      >
+        <Heading3 className="h-4 w-4" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
+        className={cn(editor.isActive('heading', { level: 4 }) ? 'bg-muted' : '')}
+      >
+        <Heading4 className="h-4 w-4" />
       </Button>
       <div className="w-px h-6 bg-border mx-1 self-center" />
       <Button
@@ -110,6 +162,26 @@ const MenuBar = ({ editor }: { editor: any }) => {
       >
         <Quote className="h-4 w-4" />
       </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+        className={cn(editor.isActive('codeBlock') ? 'bg-muted' : '')}
+        title="Code Block"
+      >
+        <Code className="h-4 w-4" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().setHorizontalRule().run()}
+        title="Horizontal Rule"
+      >
+        <Minus className="h-4 w-4" />
+      </Button>
+      <div className="w-px h-6 bg-border mx-1 self-center" />
       <Button
         type="button"
         variant="ghost"
@@ -181,8 +253,21 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
         hardBreak: {
           keepMarks: true,
         },
+        codeBlock: false,
       }),
       Underline,
+      Strike,
+      CodeBlock.configure({
+        HTMLAttributes: {
+          class: 'code-block',
+        },
+      }),
+      Highlight.configure({
+        multicolor: false,
+      }),
+      HorizontalRule,
+      TextStyle,
+      Color,
       Image,
       Link.configure({
         openOnClick: false,

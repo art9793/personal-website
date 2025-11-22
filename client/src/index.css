@@ -127,12 +127,15 @@
   min-height: 500px;
 }
 .ProseMirror h1 {
-  @apply text-2xl font-bold mt-8 mb-4 leading-tight;
+  @apply text-3xl font-bold mt-8 mb-4 leading-tight;
 }
 .ProseMirror h2 {
-  @apply text-xl font-semibold mt-8 mb-4 leading-tight;
+  @apply text-2xl font-semibold mt-8 mb-4 leading-tight;
 }
 .ProseMirror h3 {
+  @apply text-xl font-semibold mt-6 mb-3 leading-tight;
+}
+.ProseMirror h4 {
   @apply text-lg font-semibold mt-6 mb-3 leading-tight;
 }
 .ProseMirror p {
@@ -159,11 +162,30 @@
 .ProseMirror u {
   @apply underline underline-offset-2;
 }
+.ProseMirror s,
+.ProseMirror del {
+  @apply line-through opacity-70;
+}
+.ProseMirror mark {
+  @apply bg-yellow-200 dark:bg-yellow-800/50 px-1 rounded;
+}
+.ProseMirror code {
+  @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-primary;
+}
+.ProseMirror pre {
+  @apply bg-muted p-4 rounded-lg overflow-x-auto my-6 border;
+}
+.ProseMirror pre code {
+  @apply bg-transparent p-0 text-sm;
+}
+.ProseMirror .code-block {
+  @apply bg-muted p-4 rounded-lg overflow-x-auto my-6 border font-mono text-sm;
+}
 .ProseMirror img {
   @apply rounded-lg my-8 border max-w-full h-auto;
 }
 .ProseMirror hr {
-  @apply my-8 border-border;
+  @apply my-8 border-t-2 border-border;
 }
 .ProseMirror br {
   content: "";
@@ -178,6 +200,9 @@
 }
 .prose h3 {
   @apply text-xl font-semibold mt-6 mb-3 leading-tight;
+}
+.prose h4 {
+  @apply text-lg font-semibold mt-6 mb-3 leading-tight;
 }
 .prose p {
   @apply mb-6 leading-relaxed;
@@ -203,11 +228,18 @@
 .prose u {
   @apply underline underline-offset-2;
 }
+.prose s,
+.prose del {
+  @apply line-through opacity-70;
+}
+.prose mark {
+  @apply bg-yellow-200 dark:bg-yellow-800/50 px-1 rounded;
+}
 .prose img {
   @apply rounded-lg my-8 border max-w-full h-auto;
 }
 .prose hr {
-  @apply my-8 border-border;
+  @apply my-8 border-t-2 border-border;
 }
 .prose strong {
   @apply font-semibold text-foreground;
@@ -216,13 +248,16 @@
   @apply italic;
 }
 .prose code {
-  @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono;
+  @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-primary;
 }
 .prose pre {
-  @apply bg-muted p-4 rounded-lg overflow-x-auto my-6;
+  @apply bg-muted p-4 rounded-lg overflow-x-auto my-6 border;
 }
 .prose pre code {
-  @apply bg-transparent p-0;
+  @apply bg-transparent p-0 text-sm;
+}
+.prose .code-block {
+  @apply bg-muted p-4 rounded-lg overflow-x-auto my-6 border font-mono text-sm;
 }
 .prose br {
   content: "";
