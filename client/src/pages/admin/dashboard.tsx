@@ -42,6 +42,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
@@ -396,7 +397,11 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="p-4 border-t bg-background/50 backdrop-blur">
+        <div className="p-4 border-t bg-background/50 backdrop-blur space-y-2">
+          <div className={cn("flex items-center px-2", isSidebarExpanded ? "justify-between" : "justify-center")}>
+            {isSidebarExpanded && <span className="text-sm font-medium">Theme</span>}
+            <ThemeToggle />
+          </div>
           <Button 
             variant="ghost" 
             onClick={handleSignOut} 
@@ -996,28 +1001,6 @@ export default function AdminDashboard() {
           )}
 
           {/* Existing Tabs (Projects, Reading, Settings) - keeping them as is but ensuring they don't render when writing */}
-          {!isWriting && activeTab === "projects" && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
-                  <p className="text-muted-foreground mt-1">Showcase your work.</p>
-                </div>
-                <Button className="gap-2"><Plus className="h-4 w-4" /> Add Project</Button>
-              </div>
-              <Card className="border-dashed shadow-none">
-                <CardContent className="flex flex-col items-center justify-center h-[400px] text-center">
-                  <FolderGit2 className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
-                  <h3 className="text-lg font-medium">No projects yet</h3>
-                  <p className="text-muted-foreground max-w-sm mt-2 mb-6">
-                    Add your first project to showcase your work to the world.
-                  </p>
-                  <Button variant="outline">Create Project</Button>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
           {!isWriting && activeTab === "reading" && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
