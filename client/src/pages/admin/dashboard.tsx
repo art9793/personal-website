@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { 
   LayoutDashboard, PenTool, FolderGit2, BookOpen, Settings, 
   LogOut, Image as ImageIcon, Save, Plus, Search, Globe,
-  ChevronRight, Upload, Trash2, Edit2
+  ChevronRight, Upload, Trash2, Edit2, ArrowLeft, Eye, CheckCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -16,20 +16,97 @@ import { Editor } from "@/components/admin/editor";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { useContent, Article } from "@/lib/content-context";
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
+  const { profile, articles, updateProfile, addArticle, updateArticle, deleteArticle } = useContent();
   
+  const [formData, setFormData] = useState(profile);
+  const [editingArticle, setEditingArticle] = useState<Article | null>(null);
+  const [isWriting, setIsWriting] = useState(false);
+
+  // Reset writing state when changing tabs
+  useEffect(() => {
+    if (activeTab !== 'writing') {
+      setIsWriting(false);
+      setEditingArticle(null);
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    setFormData(profile);
+  }, [profile]);
+
   const handleSignOut = () => {
     setLocation("/");
   };
   
-  const handleSave = () => {
+  const handleSaveProfile = () => {
+    updateProfile(formData);
     toast({
-      title: "Changes Saved",
-      description: "Your content has been updated successfully.",
+      title: "Profile Updated",
+      description: "Your profile information has been saved.",
+    });
+  };
+
+  const handleNewPost = () => {
+    const newArticle: Article = {
+      id: Date.now().toString(),
+      title: "",
+      slug: "",
+      content: "",
+      date: new Date().toISOString().split('T')[0],
+      status: "Draft",
+      views: "0"
+    };
+    setEditingArticle(newArticle);
+    setIsWriting(true);
+  };
+
+  const handleEditPost = (article: Article) => {
+    setEditingArticle(article);
+    setIsWriting(true);
+  };
+
+  const handleSaveArticle = () => {
+    if (!editingArticle) return;
+
+    if (articles.some(a => a.id === editingArticle.id)) {
+      updateArticle(editingArticle.id, editingArticle);
+    } else {
+      addArticle(editingArticle);
+    }
+
+    toast({
+      title: "Article Saved",
+      description: `"${editingArticle.title || 'Untitled'}" has been saved successfully.`,
+    });
+    setIsWriting(false);
+    setEditingArticle(null);
+  };
+
+  const handleDeleteArticle = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("Are you sure you want to delete this article?")) {
+      deleteArticle(id);
+      toast({
+        title: "Article Deleted",
+        description: "The article has been permanently removed.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const toggleArticleStatus = (article: Article, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newStatus = article.status === "Published" ? "Draft" : "Published";
+    updateArticle(article.id, { status: newStatus });
+    toast({
+      title: `Article ${newStatus}`,
+      description: `"${article.title}" is now ${newStatus.toLowerCase()}.`,
     });
   };
 
@@ -55,10 +132,10 @@ export default function AdminDashboard() {
         <div className="p-6 border-b bg-background/50 backdrop-blur">
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold">
-              A
+              {profile.name.charAt(0)}
             </div>
             <div>
-              <div className="font-semibold text-sm">Arshad Teli</div>
+              <div className="font-semibold text-sm truncate max-w-[140px]">{profile.name}</div>
               <div className="text-xs text-muted-foreground">Admin Console</div>
             </div>
           </div>
@@ -68,6 +145,7 @@ export default function AdminDashboard() {
           <div className="space-y-1">
             <h4 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Content</h4>
             <SidebarItem icon={LayoutDashboard} label="Overview" id="overview" />
+            <SidebarItem icon={Settings} label="Home Page" id="settings" />
             <SidebarItem icon={PenTool} label="Writing" id="writing" />
             <SidebarItem icon={FolderGit2} label="Projects" id="projects" />
             <SidebarItem icon={BookOpen} label="Reading List" id="reading" />
@@ -77,7 +155,6 @@ export default function AdminDashboard() {
              <h4 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">System</h4>
              <SidebarItem icon={ImageIcon} label="Media Library" id="media" />
              <SidebarItem icon={Globe} label="SEO & Metadata" id="seo" />
-             <SidebarItem icon={Settings} label="Settings" id="settings" />
           </div>
         </div>
 
@@ -96,11 +173,18 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>Admin</span>
             <ChevronRight className="h-4 w-4" />
-            <span className="font-medium text-foreground capitalize">{activeTab}</span>
+            <span className="font-medium text-foreground capitalize">{activeTab === 'settings' ? 'Home Page' : activeTab}</span>
+            {isWriting && (
+              <>
+                <ChevronRight className="h-4 w-4" />
+                <span className="font-medium text-foreground">Editor</span>
+              </>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <Button variant="outline" size="sm" onClick={() => setLocation("/")}>View Site</Button>
-            <Button size="sm" onClick={handleSave}>Save Changes</Button>
+            {activeTab === "settings" && <Button size="sm" onClick={handleSaveProfile}>Save Changes</Button>}
+            {isWriting && <Button size="sm" onClick={handleSaveArticle}>Save Article</Button>}
           </div>
         </header>
 
@@ -124,9 +208,9 @@ export default function AdminDashboard() {
                     <CardTitle className="text-sm font-medium text-muted-foreground">Articles</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">24</div>
+                    <div className="text-2xl font-bold">{articles.length}</div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      3 drafts pending
+                      {articles.filter(a => a.status === "Draft").length} drafts pending
                     </p>
                   </CardContent>
                 </Card>
@@ -148,7 +232,7 @@ export default function AdminDashboard() {
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="flex gap-4">
-                   <Button onClick={() => setActiveTab("writing")} className="gap-2">
+                   <Button onClick={() => { setActiveTab("writing"); handleNewPost(); }} className="gap-2">
                      <PenTool className="h-4 w-4" /> Write Article
                    </Button>
                    <Button onClick={() => setActiveTab("projects")} variant="outline" className="gap-2">
@@ -159,57 +243,97 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {activeTab === "writing" && (
+          {activeTab === "writing" && !isWriting && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold tracking-tight">Writing</h2>
-                <Button className="gap-2"><Plus className="h-4 w-4" /> New Post</Button>
+                <div>
+                  <h2 className="text-2xl font-bold tracking-tight">Writing</h2>
+                  <p className="text-muted-foreground">Manage your blog posts and articles.</p>
+                </div>
+                <Button onClick={handleNewPost} className="gap-2"><Plus className="h-4 w-4" /> New Post</Button>
+              </div>
+
+              <Card>
+                 <CardContent className="p-0">
+                    <div className="divide-y">
+                       {articles.length === 0 ? (
+                         <div className="p-8 text-center text-muted-foreground">
+                           No articles found. Create your first post!
+                         </div>
+                       ) : (
+                         articles.map((article) => (
+                           <div 
+                             key={article.id} 
+                             onClick={() => handleEditPost(article)}
+                             className="flex items-center justify-between p-4 hover:bg-secondary/20 transition-colors cursor-pointer group"
+                           >
+                              <div className="space-y-1">
+                                 <div className="font-medium text-base group-hover:text-primary transition-colors">{article.title || "Untitled Draft"}</div>
+                                 <div className="text-xs text-muted-foreground flex items-center gap-3">
+                                    <span className={cn(
+                                      "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border",
+                                      article.status === "Published" 
+                                        ? "bg-green-500/10 text-green-600 border-green-200" 
+                                        : "bg-yellow-500/10 text-yellow-600 border-yellow-200"
+                                    )}>
+                                      <div className={cn(
+                                        "h-1.5 w-1.5 rounded-full",
+                                        article.status === "Published" ? "bg-green-500" : "bg-yellow-500"
+                                      )} />
+                                      {article.status}
+                                    </span>
+                                    <span>Published on {article.date}</span>
+                                    {article.views !== "0" && (
+                                      <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {article.views}</span>
+                                    )}
+                                 </div>
+                              </div>
+                              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                 <Button 
+                                   variant="ghost" 
+                                   size="sm" 
+                                   className={cn("gap-2", article.status === "Published" ? "text-yellow-600 hover:text-yellow-700" : "text-green-600 hover:text-green-700")}
+                                   onClick={(e) => toggleArticleStatus(article, e)}
+                                 >
+                                   {article.status === "Published" ? "Unpublish" : "Publish"}
+                                 </Button>
+                                 <Separator orientation="vertical" className="h-4" />
+                                 <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleEditPost(article); }}><Edit2 className="h-4 w-4" /></Button>
+                                 <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={(e) => handleDeleteArticle(article.id, e)}><Trash2 className="h-4 w-4" /></Button>
+                              </div>
+                           </div>
+                         ))
+                       )}
+                    </div>
+                 </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === "writing" && isWriting && editingArticle && (
+            <div className="space-y-6 animate-in fade-in-50 slide-in-from-right-2 duration-300">
+              <div className="flex items-center gap-4 mb-6">
+                <Button variant="ghost" size="sm" onClick={() => { setIsWriting(false); setEditingArticle(null); }} className="gap-2 pl-0 hover:pl-2 transition-all">
+                  <ArrowLeft className="h-4 w-4" /> Back to Articles
+                </Button>
               </div>
 
               <div className="grid grid-cols-12 gap-8">
                 <div className="col-span-8 space-y-6">
-                   <Card>
-                     <CardHeader>
-                       <CardTitle>Editor</CardTitle>
-                     </CardHeader>
-                     <CardContent className="space-y-4">
+                   <Card className="border-none shadow-sm">
+                     <CardContent className="p-0 space-y-6">
                        <div className="space-y-2">
-                         <Label>Title</Label>
-                         <Input className="text-xl font-semibold h-12" placeholder="Article Title" defaultValue="Designing for AI" />
+                         <Input 
+                           className="text-4xl font-bold h-auto border-none px-0 focus-visible:ring-0 placeholder:text-muted-foreground/50" 
+                           placeholder="Article Title..." 
+                           value={editingArticle.title}
+                           onChange={(e) => setEditingArticle({...editingArticle, title: e.target.value})}
+                         />
                        </div>
-                       <Editor content="<h2>Introduction</h2><p>Start writing your amazing content here...</p>" />
-                     </CardContent>
-                   </Card>
-
-                   <Card>
-                     <CardHeader>
-                       <CardTitle>Existing Articles</CardTitle>
-                     </CardHeader>
-                     <CardContent>
-                        <div className="space-y-4">
-                           {[
-                             { title: "Designing for AI", date: "Oct 24, 2024", status: "Published" },
-                             { title: "The craft of software", date: "Aug 12, 2024", status: "Published" },
-                             { title: "Building Campsite", date: "May 03, 2024", status: "Published" },
-                             { title: "Future of Interfaces", date: "Draft", status: "Draft" }
-                           ].map((article, i) => (
-                             <div key={i} className="flex items-center justify-between p-4 border rounded-lg hover:bg-secondary/20 transition-colors bg-card">
-                                <div className="space-y-1">
-                                   <div className="font-medium">{article.title}</div>
-                                   <div className="text-xs text-muted-foreground flex items-center gap-2">
-                                      <Badge variant={article.status === "Published" ? "default" : "secondary"} className="text-[10px] h-5 px-1.5">
-                                        {article.status}
-                                      </Badge>
-                                      <span>{article.date}</span>
-                                   </div>
-                                </div>
-                                <div className="flex gap-2">
-                                   <Button variant="ghost" size="icon" title="Edit"><Edit2 className="h-4 w-4" /></Button>
-                                   <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" title="Delete"><Trash2 className="h-4 w-4" /></Button>
-                                </div>
-                             </div>
-                           ))}
-                        </div>
+                       <Editor 
+                         content={editingArticle.content} 
+                         onChange={(html) => setEditingArticle({...editingArticle, content: html})}
+                       />
                      </CardContent>
                    </Card>
                 </div>
@@ -223,17 +347,30 @@ export default function AdminDashboard() {
                       <div className="space-y-2">
                         <Label className="text-xs">Status</Label>
                         <div className="flex items-center gap-2">
-                          <Badge variant="secondary">Draft</Badge>
-                          <Badge>Published</Badge>
+                          <Badge 
+                            variant={editingArticle.status === "Published" ? "default" : "secondary"}
+                            className="cursor-pointer"
+                            onClick={() => setEditingArticle({...editingArticle, status: editingArticle.status === "Published" ? "Draft" : "Published"})}
+                          >
+                            {editingArticle.status}
+                          </Badge>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <Label className="text-xs">Publish Date</Label>
-                        <Input type="date" />
+                        <Input 
+                          type="date" 
+                          value={editingArticle.date}
+                          onChange={(e) => setEditingArticle({...editingArticle, date: e.target.value})}
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-xs">Slug</Label>
-                        <Input placeholder="url-slug" />
+                        <Input 
+                          placeholder="url-slug" 
+                          value={editingArticle.slug}
+                          onChange={(e) => setEditingArticle({...editingArticle, slug: e.target.value})}
+                        />
                       </div>
                     </CardContent>
                   </Card>
@@ -265,7 +402,8 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {activeTab === "projects" && (
+          {/* Existing Tabs (Projects, Reading, Settings) - keeping them as is but ensuring they don't render when writing */}
+          {!isWriting && activeTab === "projects" && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
@@ -299,7 +437,7 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {activeTab === "reading" && (
+          {!isWriting && activeTab === "reading" && (
             <div className="space-y-6">
                <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold tracking-tight">Reading List</h2>
@@ -341,11 +479,11 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {activeTab === "settings" && (
+          {!isWriting && activeTab === "settings" && (
             <div className="space-y-6 max-w-2xl">
                <div className="space-y-2">
-                 <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
-                 <p className="text-muted-foreground">Manage global site settings and profile.</p>
+                 <h2 className="text-2xl font-bold tracking-tight">Home Page Content</h2>
+                 <p className="text-muted-foreground">Manage your profile information displayed on the home page.</p>
                </div>
                
                <Card>
@@ -366,22 +504,36 @@ export default function AdminDashboard() {
                      <div className="grid grid-cols-2 gap-4">
                        <div className="space-y-2">
                          <Label>Full Name</Label>
-                         <Input defaultValue="Arshad Teli" />
+                         <Input 
+                           value={formData.name} 
+                           onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                         />
                        </div>
                        <div className="space-y-2">
                          <Label>Job Title</Label>
-                         <Input defaultValue="Product Manager" />
+                         <Input 
+                           value={formData.jobTitle} 
+                           onChange={(e) => setFormData({...formData, jobTitle: e.target.value})} 
+                         />
                        </div>
                      </div>
                      
                      <div className="space-y-2">
                        <Label>Bio</Label>
-                       <Textarea className="h-24" defaultValue="Hey there! I’m a Product Manager & Designer currently working at a UK based fintech!" />
+                       <Textarea 
+                         className="h-32" 
+                         value={formData.bio} 
+                         onChange={(e) => setFormData({...formData, bio: e.target.value})} 
+                       />
+                       <p className="text-xs text-muted-foreground">Markdown supported</p>
                      </div>
 
                      <div className="space-y-2">
                        <Label>Email</Label>
-                       <Input defaultValue="art9793@gmail.com" />
+                       <Input 
+                         value={formData.email} 
+                         onChange={(e) => setFormData({...formData, email: e.target.value})} 
+                       />
                      </div>
                    </div>
                  </CardContent>
@@ -394,15 +546,25 @@ export default function AdminDashboard() {
                  <CardContent className="space-y-4">
                    <div className="space-y-2">
                      <Label>Twitter URL</Label>
-                     <Input defaultValue="https://x.com/art9793" />
+                     <Input 
+                       value={formData.twitter} 
+                       onChange={(e) => setFormData({...formData, twitter: e.target.value})} 
+                     />
                    </div>
                    <div className="space-y-2">
                      <Label>GitHub URL</Label>
-                     <Input defaultValue="https://github.com/art9793" />
+                     <Input 
+                       value={formData.github} 
+                       onChange={(e) => setFormData({...formData, github: e.target.value})} 
+                     />
                    </div>
                    <div className="space-y-2">
                      <Label>LinkedIn URL</Label>
-                     <Input placeholder="https://linkedin.com/in/..." />
+                     <Input 
+                       value={formData.linkedin} 
+                       onChange={(e) => setFormData({...formData, linkedin: e.target.value})}
+                       placeholder="https://linkedin.com/in/..." 
+                     />
                    </div>
                  </CardContent>
                </Card>
@@ -410,7 +572,7 @@ export default function AdminDashboard() {
           )}
           
           {/* Placeholder for other tabs */}
-          {(activeTab === "media" || activeTab === "seo") && (
+          {!isWriting && (activeTab === "media" || activeTab === "seo") && (
             <div className="flex flex-col items-center justify-center h-[50vh] text-muted-foreground border-2 border-dashed rounded-xl">
               <Settings className="h-10 w-10 mb-4 opacity-20" />
               <p>This section is under construction in this prototype.</p>
