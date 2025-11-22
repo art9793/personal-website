@@ -43,7 +43,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
 const visitorData = [
   { name: 'Mon', visits: 1240 },
@@ -466,7 +466,7 @@ export default function AdminDashboard() {
                             tickFormatter={(value) => `${value}`}
                             dx={-10}
                           />
-                          <Tooltip 
+                          <RechartsTooltip 
                             contentStyle={{ 
                               borderRadius: 'var(--radius)', 
                               border: '1px solid hsl(var(--border))', 
