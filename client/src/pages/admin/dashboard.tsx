@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { 
   LayoutDashboard, PenTool, FolderGit2, BookOpen, Settings, 
   LogOut, Image as ImageIcon, Save, Plus, Search, Globe,
+  PanelLeftClose, PanelLeftOpen,
   ChevronRight, Upload, Trash2, Edit2, ArrowLeft, Eye, CheckCircle,
   MoreHorizontal, Clock, Calendar as CalendarIcon, ArrowUpDown, Filter
 } from "lucide-react";
@@ -38,6 +39,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
@@ -48,6 +50,7 @@ export default function AdminDashboard() {
   const [formData, setFormData] = useState(profile);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [isWriting, setIsWriting] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   
   const [sortConfig, setSortConfig] = useState<{ key: keyof Article; direction: 'asc' | 'desc' } | null>(null);
   const [filterQuery, setFilterQuery] = useState("");
@@ -186,20 +189,44 @@ export default function AdminDashboard() {
 
   const filteredArticles = getSortedAndFilteredArticles();
 
-  const SidebarItem = ({ icon: Icon, label, id }: { icon: any, label: string, id: string }) => (
-    <button
-      onClick={() => setActiveTab(id)}
-      className={cn(
-        "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-        activeTab === id 
-          ? "bg-primary text-primary-foreground" 
-          : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-      )}
-    >
-      <Icon className="h-4 w-4" />
-      {label}
-    </button>
-  );
+  const SidebarItem = ({ icon: Icon, label, id }: { icon: any, label: string, id: string }) => {
+    if (!isSidebarExpanded) {
+      return (
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => setActiveTab(id)}
+              className={cn(
+                "w-full flex items-center justify-center p-2 rounded-md transition-colors",
+                activeTab === id 
+                  ? "bg-primary text-primary-foreground" 
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              )}
+            >
+              <Icon className="h-5 w-5" />
+              <span className="sr-only">{label}</span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="right">{label}</TooltipContent>
+        </Tooltip>
+      );
+    }
+    
+    return (
+      <button
+        onClick={() => setActiveTab(id)}
+        className={cn(
+          "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+          activeTab === id 
+            ? "bg-primary text-primary-foreground" 
+            : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+        )}
+      >
+        <Icon className="h-4 w-4" />
+        {label}
+      </button>
+    );
+  };
 
   const getReadingTime = (content: string) => {
     const wordsPerMinute = 200;
@@ -212,22 +239,64 @@ export default function AdminDashboard() {
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       {/* Admin Sidebar */}
-      <aside className="w-64 border-r bg-muted/30 flex flex-col">
-        <div className="p-6 border-b bg-background/50 backdrop-blur">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold">
+      <aside className={cn(
+        "border-r bg-muted/30 flex flex-col transition-all duration-300 ease-in-out",
+        isSidebarExpanded ? "w-64" : "w-[72px]"
+      )}>
+        <div className={cn(
+          "border-b bg-background/50 backdrop-blur flex items-center transition-all",
+          isSidebarExpanded ? "p-6 justify-between" : "p-4 justify-center"
+        )}>
+          {isSidebarExpanded && (
+            <div className="flex items-center gap-3 overflow-hidden">
+              <div className="h-8 w-8 rounded-lg bg-primary flex-shrink-0 flex items-center justify-center text-primary-foreground font-bold">
+                {profile.name.charAt(0)}
+              </div>
+              <div>
+                <div className="font-semibold text-sm truncate max-w-[100px]">{profile.name}</div>
+                <div className="text-xs text-muted-foreground truncate">Admin</div>
+              </div>
+            </div>
+          )}
+          {!isSidebarExpanded && (
+            <div className="h-8 w-8 rounded-lg bg-primary flex-shrink-0 flex items-center justify-center text-primary-foreground font-bold">
               {profile.name.charAt(0)}
             </div>
-            <div>
-              <div className="font-semibold text-sm truncate max-w-[140px]">{profile.name}</div>
-              <div className="text-xs text-muted-foreground">Admin Console</div>
-            </div>
-          </div>
+          )}
+          
+          {isSidebarExpanded && (
+             <Button 
+               variant="ghost" 
+               size="icon" 
+               className="h-6 w-6 -mr-2 text-muted-foreground" 
+               onClick={() => setIsSidebarExpanded(false)}
+             >
+               <PanelLeftClose className="h-4 w-4" />
+             </Button>
+          )}
         </div>
+        
+        {!isSidebarExpanded && (
+           <div className="flex justify-center py-2 border-b bg-background/50">
+             <Button 
+               variant="ghost" 
+               size="icon" 
+               className="h-6 w-6 text-muted-foreground" 
+               onClick={() => setIsSidebarExpanded(true)}
+             >
+               <PanelLeftOpen className="h-4 w-4" />
+             </Button>
+           </div>
+        )}
 
-        <div className="flex-1 overflow-y-auto py-6 px-3 space-y-6">
+        <div className={cn(
+          "flex-1 overflow-y-auto space-y-6",
+          isSidebarExpanded ? "py-6 px-3" : "py-6 px-2"
+        )}>
           <div className="space-y-1">
-            <h4 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Content</h4>
+            {isSidebarExpanded && (
+              <h4 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Content</h4>
+            )}
             <SidebarItem icon={LayoutDashboard} label="Overview" id="overview" />
             <SidebarItem icon={Settings} label="Home Page" id="settings" />
             <SidebarItem icon={PenTool} label="Writing" id="writing" />
@@ -236,16 +305,26 @@ export default function AdminDashboard() {
           </div>
 
           <div className="space-y-1">
-             <h4 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">System</h4>
+             {isSidebarExpanded && (
+               <h4 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">System</h4>
+             )}
              <SidebarItem icon={ImageIcon} label="Media Library" id="media" />
              <SidebarItem icon={Globe} label="SEO & Metadata" id="seo" />
           </div>
         </div>
 
         <div className="p-4 border-t bg-background/50 backdrop-blur">
-          <Button variant="ghost" onClick={handleSignOut} className="w-full justify-start gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+          <Button 
+            variant="ghost" 
+            onClick={handleSignOut} 
+            className={cn(
+              "w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10",
+              isSidebarExpanded ? "justify-start gap-2" : "justify-center px-0"
+            )}
+            title="Sign Out"
+          >
             <LogOut className="h-4 w-4" />
-            Sign Out
+            {isSidebarExpanded && "Sign Out"}
           </Button>
         </div>
       </aside>

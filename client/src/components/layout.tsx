@@ -2,15 +2,17 @@ import { Link, useLocation } from "wouter";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { Home, PenTool, FolderGit2, BookOpen, Briefcase, Menu, X, Lock } from "lucide-react";
+import { Home, PenTool, FolderGit2, BookOpen, Briefcase, Menu, X, Lock, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [isMobile, setIsMobile] = useState(false);
   const [open, setOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -27,10 +29,32 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { href: "/work", label: "Work", icon: Briefcase },
   ];
 
-  const NavContent = () => (
-    <nav className="flex flex-col gap-2">
+  const NavContent = ({ collapsed = false }: { collapsed?: boolean }) => (
+    <nav className={cn("flex flex-col gap-2", collapsed ? "items-center" : "")}>
       {navItems.map((item) => {
         const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
+        
+        if (collapsed) {
+          return (
+            <Tooltip key={item.href} delayDuration={0}>
+              <TooltipTrigger asChild>
+                <Link href={item.href}>
+                  <a
+                    className={cn(
+                      "group flex items-center justify-center rounded-md h-10 w-10 text-sm font-medium transition-all hover:bg-secondary/80",
+                      isActive ? "bg-secondary text-primary" : "text-muted-foreground hover:text-primary"
+                    )}
+                  >
+                    <item.icon className={cn("h-4 w-4 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
+                    <span className="sr-only">{item.label}</span>
+                  </a>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right">{item.label}</TooltipContent>
+            </Tooltip>
+          );
+        }
+
         return (
           <Link key={item.href} href={item.href}>
             <a
@@ -101,21 +125,33 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 fixed inset-y-0 left-0 border-r bg-card/30 backdrop-blur-sm p-6">
-        <div className="flex items-center justify-between mb-8 px-3 py-2">
-           <Link href="/">
-             <a className="font-semibold text-lg tracking-tight">Arshad Teli</a>
-           </Link>
+      <aside className={cn(
+        "hidden md:flex flex-col fixed inset-y-0 left-0 border-r bg-card/30 backdrop-blur-sm p-6 transition-all duration-300",
+        isExpanded ? "w-64" : "w-[80px] items-center px-2"
+      )}>
+        <div className={cn("flex items-center mb-8 py-2", isExpanded ? "justify-between px-3" : "justify-center flex-col gap-4")}>
+           {isExpanded ? (
+             <Link href="/">
+               <a className="font-semibold text-lg tracking-tight">Arshad Teli</a>
+             </Link>
+           ) : (
+             <Link href="/">
+               <a className="font-bold text-xl tracking-tight">AT</a>
+             </Link>
+           )}
+           <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground" onClick={() => setIsExpanded(!isExpanded)}>
+             {isExpanded ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
+           </Button>
         </div>
         
-        <div className="flex-1">
-          <NavContent />
+        <div className="flex-1 w-full">
+          <NavContent collapsed={!isExpanded} />
         </div>
 
-        <div className="pl-3 pt-4 border-t mt-auto">
-           <div className="flex items-center justify-between">
-             <span className="text-xs text-muted-foreground">© {new Date().getFullYear()}</span>
-             <div className="flex items-center gap-2">
+        <div className={cn("border-t mt-auto", isExpanded ? "pl-3 pt-4" : "pt-4 w-full flex flex-col items-center")}>
+           <div className={cn("flex items-center", isExpanded ? "justify-between" : "flex-col gap-4")}>
+             {isExpanded && <span className="text-xs text-muted-foreground">© {new Date().getFullYear()}</span>}
+             <div className={cn("flex items-center", isExpanded ? "gap-2" : "flex-col gap-4")}>
                 <Link href="/admin">
                   <a className="text-muted-foreground hover:text-primary transition-colors" aria-label="Admin Access">
                     <Lock className="h-3 w-3" />
@@ -128,7 +164,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 md:pl-64">
+      <main className={cn("flex-1 transition-all duration-300", isExpanded ? "md:pl-64" : "md:pl-[80px]")}>
         <div className="mx-auto max-w-3xl px-6 py-12 md:py-20">
           <motion.div
             key={location}
