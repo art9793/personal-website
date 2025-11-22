@@ -60,7 +60,7 @@ export default function Article() {
       )}
 
       <div 
-        className="prose prose-neutral dark:prose-invert max-w-none leading-relaxed text-primary/90"
+        className="prose max-w-none"
         dangerouslySetInnerHTML={{ __html: article.content }}
       />
     </article>

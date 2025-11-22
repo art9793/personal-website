@@ -159,3 +159,56 @@
 .ProseMirror hr {
   @apply my-8 border-border;
 }
+
+/* Article Content Styles */
+.prose h1 {
+  @apply text-3xl font-bold mt-8 mb-4 leading-tight;
+}
+.prose h2 {
+  @apply text-2xl font-semibold mt-8 mb-4 leading-tight;
+}
+.prose h3 {
+  @apply text-xl font-semibold mt-6 mb-3 leading-tight;
+}
+.prose p {
+  @apply mb-6 leading-relaxed;
+}
+.prose ul {
+  @apply list-disc pl-6 mb-6 space-y-2;
+}
+.prose ol {
+  @apply list-decimal pl-6 mb-6 space-y-2;
+}
+.prose li {
+  @apply leading-relaxed;
+}
+.prose li p {
+  @apply mb-2;
+}
+.prose blockquote {
+  @apply border-l-4 border-primary/30 pl-6 italic text-muted-foreground my-8 py-1;
+}
+.prose a {
+  @apply text-primary underline underline-offset-4 font-medium hover:text-primary/80 transition-colors;
+}
+.prose img {
+  @apply rounded-lg my-8 border max-w-full h-auto;
+}
+.prose hr {
+  @apply my-8 border-border;
+}
+.prose strong {
+  @apply font-semibold text-foreground;
+}
+.prose em {
+  @apply italic;
+}
+.prose code {
+  @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono;
+}
+.prose pre {
+  @apply bg-muted p-4 rounded-lg overflow-x-auto my-6;
+}
+.prose pre code {
+  @apply bg-transparent p-0;
+}
