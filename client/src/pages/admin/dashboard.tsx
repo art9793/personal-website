@@ -244,8 +244,8 @@ export default function AdminDashboard() {
         isSidebarExpanded ? "w-64" : "w-[72px]"
       )}>
         <div className={cn(
-          "border-b bg-background/50 backdrop-blur flex items-center transition-all",
-          isSidebarExpanded ? "p-6 justify-between" : "p-4 justify-center"
+          "bg-background/50 backdrop-blur flex items-center transition-all",
+          isSidebarExpanded ? "p-6 justify-between border-b" : "p-4 justify-center border-b-0"
         )}>
           {isSidebarExpanded && (
             <div className="flex items-center gap-3 overflow-hidden">
@@ -268,7 +268,7 @@ export default function AdminDashboard() {
              variant="ghost" 
              size="icon" 
              className={cn(
-               "h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200 absolute",
+               "h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 absolute hover:bg-secondary",
                isSidebarExpanded ? "right-2" : "right-0 top-16 left-0 mx-auto"
              )}
              onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
