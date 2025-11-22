@@ -25,13 +25,28 @@ export interface Article {
   author?: string;
 }
 
+export interface Project {
+  id: string;
+  title: string;
+  description: string;
+  link: string;
+  tags: string;
+  status: "Active" | "Archived";
+  featured: boolean;
+  date: string;
+}
+
 interface ContentContextType {
   profile: Profile;
   articles: Article[];
+  projects: Project[];
   updateProfile: (newProfile: Partial<Profile>) => void;
   addArticle: (article: Article) => void;
   updateArticle: (id: string, updatedArticle: Partial<Article>) => void;
   deleteArticle: (id: string) => void;
+  addProject: (project: Project) => void;
+  updateProject: (id: string, updatedProject: Partial<Project>) => void;
+  deleteProject: (id: string) => void;
 }
 
 const defaultProfile: Profile = {
@@ -99,6 +114,39 @@ const defaultArticles: Article[] = [
   }
 ];
 
+const defaultProjects: Project[] = [
+  {
+    id: "1",
+    title: "Campsite",
+    description: "A new way to share work in progress",
+    link: "https://campsite.design",
+    tags: "Product, Design",
+    status: "Active",
+    featured: true,
+    date: "2024-01-15"
+  },
+  {
+    id: "2",
+    title: "Replit Mobile",
+    description: "Coding on the go",
+    link: "https://replit.com/mobile",
+    tags: "Mobile, Engineering",
+    status: "Active",
+    featured: true,
+    date: "2023-08-20"
+  },
+  {
+    id: "3",
+    title: "Personal Site V1",
+    description: "Previous iteration of this website",
+    link: "#",
+    tags: "Web, Design",
+    status: "Archived",
+    featured: false,
+    date: "2022-05-10"
+  }
+];
+
 const ContentContext = createContext<ContentContextType | undefined>(undefined);
 
 export function ContentProvider({ children }: { children: React.ReactNode }) {
@@ -112,6 +160,11 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
     return saved ? JSON.parse(saved) : defaultArticles;
   });
 
+  const [projects, setProjects] = useState<Project[]>(() => {
+    const saved = localStorage.getItem("site-projects");
+    return saved ? JSON.parse(saved) : defaultProjects;
+  });
+
   useEffect(() => {
     localStorage.setItem("site-profile", JSON.stringify(profile));
   }, [profile]);
@@ -119,6 +172,10 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem("site-articles", JSON.stringify(articles));
   }, [articles]);
+
+  useEffect(() => {
+    localStorage.setItem("site-projects", JSON.stringify(projects));
+  }, [projects]);
 
   const updateProfile = (newProfile: Partial<Profile>) => {
     setProfile((prev) => ({ ...prev, ...newProfile }));
@@ -136,8 +193,24 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
     setArticles((prev) => prev.filter(a => a.id !== id));
   };
 
+  const addProject = (project: Project) => {
+    setProjects((prev) => [project, ...prev]);
+  };
+
+  const updateProject = (id: string, updatedProject: Partial<Project>) => {
+    setProjects((prev) => prev.map(p => p.id === id ? { ...p, ...updatedProject } : p));
+  };
+
+  const deleteProject = (id: string) => {
+    setProjects((prev) => prev.filter(p => p.id !== id));
+  };
+
   return (
-    <ContentContext.Provider value={{ profile, articles, updateProfile, addArticle, updateArticle, deleteArticle }}>
+    <ContentContext.Provider value={{ 
+      profile, articles, projects,
+      updateProfile, addArticle, updateArticle, deleteArticle,
+      addProject, updateProject, deleteProject
+    }}>
       {children}
     </ContentContext.Provider>
   );

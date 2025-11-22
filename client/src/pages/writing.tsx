@@ -1,24 +1,24 @@
 import { Link } from "wouter";
+import { useContent } from "@/lib/content-context";
+import { format } from "date-fns";
 
 export default function Writing() {
-  const posts = [
-    { year: "2024", title: "Designing for AI", date: "Oct 12", slug: "designing-for-ai" },
-    { year: "2024", title: "The craft of software", date: "Aug 24", slug: "craft-of-software" },
-    { year: "2024", title: "Building Campsite", date: "May 15", slug: "building-campsite" },
-    { year: "2023", title: "Staff Design: The Book", date: "Nov 02", slug: "staff-design-book" },
-    { year: "2023", title: "Why I write", date: "Jun 18", slug: "why-i-write" },
-    { year: "2022", title: "On consistency", date: "Dec 10", slug: "on-consistency" },
-    { year: "2022", title: "Designing Github Mobile", date: "Mar 04", slug: "designing-github-mobile" },
-  ];
+  const { articles } = useContent();
+  
+  // Filter for Published status only and sort by date descending
+  const publishedPosts = articles
+    .filter(a => a.status === "Published")
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const postsByYear = posts.reduce((acc, post) => {
-    if (!acc[post.year]) acc[post.year] = [];
-    acc[post.year].push(post);
+  const postsByYear = publishedPosts.reduce((acc, post) => {
+    const year = new Date(post.date).getFullYear().toString();
+    if (!acc[year]) acc[year] = [];
+    acc[year].push(post);
     return acc;
-  }, {} as Record<string, typeof posts>);
+  }, {} as Record<string, typeof articles>);
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 animate-in fade-in-50 duration-500">
       <div className="space-y-4">
         <h1 className="text-3xl font-bold tracking-tight">Writing</h1>
         <p className="text-muted-foreground text-lg">
@@ -27,25 +27,29 @@ export default function Writing() {
       </div>
 
       <div className="space-y-10">
-        {Object.entries(postsByYear).sort((a, b) => Number(b[0]) - Number(a[0])).map(([year, yearPosts]) => (
-          <div key={year} className="space-y-4">
-            <h2 className="text-sm font-semibold text-muted-foreground tracking-wider uppercase pl-1">{year}</h2>
-            <div className="space-y-1">
-              {yearPosts.map((post) => (
-                <Link key={post.slug} href="/article/sample" className="block group">
-                    <div className="flex items-baseline justify-between py-3 border-b border-border/40 group-hover:border-border transition-colors">
-                      <span className="text-base font-medium text-primary group-hover:text-blue-600 transition-colors">
-                        {post.title}
-                      </span>
-                      <span className="text-sm text-muted-foreground tabular-nums ml-4 font-mono">
-                        {post.date}
-                      </span>
-                    </div>
-                </Link>
-              ))}
+        {Object.keys(postsByYear).length === 0 ? (
+          <div className="text-muted-foreground italic">No articles published yet.</div>
+        ) : (
+          Object.entries(postsByYear).sort((a, b) => Number(b[0]) - Number(a[0])).map(([year, yearPosts]) => (
+            <div key={year} className="space-y-4">
+              <h2 className="text-sm font-semibold text-muted-foreground tracking-wider uppercase pl-1">{year}</h2>
+              <div className="space-y-1">
+                {yearPosts.map((post) => (
+                  <Link key={post.id} href={`/article/${post.slug || post.id}`} className="block group">
+                      <div className="flex items-baseline justify-between py-3 border-b border-border/40 group-hover:border-border transition-colors">
+                        <span className="text-base font-medium text-primary group-hover:text-blue-600 transition-colors">
+                          {post.title || "Untitled"}
+                        </span>
+                        <span className="text-sm text-muted-foreground tabular-nums ml-4 font-mono">
+                          {format(new Date(post.date), "MMM dd")}
+                        </span>
+                      </div>
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
