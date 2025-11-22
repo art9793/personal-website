@@ -1054,27 +1054,27 @@ export default function AdminDashboard() {
                                             <Label htmlFor="logo">Company Logo</Label>
                                             <div className="flex items-center gap-3">
                                               {editingWork.logo ? (
-                                                <div className="relative h-9 w-9 group/logo">
+                                                <div className="relative h-16 w-16 group/logo">
                                                   <img 
                                                     src={editingWork.logo} 
                                                     alt="Logo" 
-                                                    className="h-full w-full object-cover rounded-md border"
+                                                    className="h-full w-full object-cover rounded-md border shadow-sm"
                                                   />
                                                   <button
                                                     onClick={() => setEditingWork({...editingWork, logo: ""})}
-                                                    className="absolute -top-1 -right-1 h-4 w-4 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity"
+                                                    className="absolute -top-2 -right-2 h-6 w-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-md hover:bg-destructive/90 transition-colors"
                                                   >
                                                     <span className="sr-only">Remove</span>
-                                                    <span className="text-[10px]">×</span>
+                                                    <span className="text-xs font-bold">×</span>
                                                   </button>
                                                 </div>
                                               ) : (
-                                                <div className="relative flex-1">
+                                                <div className="flex items-center gap-3 w-full">
                                                   <Input 
-                                                      id="logo" 
+                                                      id="logo-upload" 
                                                       type="file" 
                                                       accept="image/*"
-                                                      className="cursor-pointer text-xs file:mr-4 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                                                      className="hidden"
                                                       onChange={(e) => {
                                                         const file = e.target.files?.[0];
                                                         if (file) {
@@ -1086,6 +1086,15 @@ export default function AdminDashboard() {
                                                         }
                                                       }}
                                                   />
+                                                  <Label 
+                                                    htmlFor="logo-upload" 
+                                                    className="cursor-pointer inline-flex h-9 items-center justify-center whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+                                                  >
+                                                    Choose File
+                                                  </Label>
+                                                  <span className="text-sm text-muted-foreground">
+                                                    No file selected
+                                                  </span>
                                                 </div>
                                               )}
                                             </div>
@@ -1105,24 +1114,58 @@ export default function AdminDashboard() {
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="startDate">Start Date</Label>
-                                            <Input 
-                                                id="startDate" 
-                                                type="date"
-                                                value={editingWork.startDate} 
-                                                onChange={(e) => setEditingWork({...editingWork, startDate: e.target.value})}
-                                            />
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant={"outline"}
+                                                        className={cn(
+                                                            "w-full justify-start text-left font-normal",
+                                                            !editingWork.startDate && "text-muted-foreground"
+                                                        )}
+                                                    >
+                                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                                        {editingWork.startDate ? format(new Date(editingWork.startDate), "PPP") : <span>Pick a date</span>}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-auto p-0" align="start">
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={editingWork.startDate ? new Date(editingWork.startDate) : undefined}
+                                                        onSelect={(date) => setEditingWork({...editingWork, startDate: date ? format(date, "yyyy-MM-dd") : ""})}
+                                                        initialFocus
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="endDate">End Date</Label>
-                                            <div className="flex gap-2">
-                                              <Input 
-                                                  id="endDate" 
-                                                  type="date"
-                                                  value={editingWork.endDate === "Present" ? "" : editingWork.endDate} 
-                                                  onChange={(e) => setEditingWork({...editingWork, endDate: e.target.value})}
-                                                  disabled={editingWork.endDate === "Present"}
-                                              />
-                                              <div className="flex items-center space-x-2">
+                                            <div className="flex gap-2 flex-col">
+                                              <div className="flex-1">
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <Button
+                                                            variant={"outline"}
+                                                            className={cn(
+                                                                "w-full justify-start text-left font-normal",
+                                                                (!editingWork.endDate || editingWork.endDate === "Present") && "text-muted-foreground"
+                                                            )}
+                                                            disabled={editingWork.endDate === "Present"}
+                                                        >
+                                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                                            {editingWork.endDate && editingWork.endDate !== "Present" ? format(new Date(editingWork.endDate), "PPP") : <span>Pick a date</span>}
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-auto p-0" align="start">
+                                                        <Calendar
+                                                            mode="single"
+                                                            selected={editingWork.endDate && editingWork.endDate !== "Present" ? new Date(editingWork.endDate) : undefined}
+                                                            onSelect={(date) => setEditingWork({...editingWork, endDate: date ? format(date, "yyyy-MM-dd") : ""})}
+                                                            initialFocus
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
+                                              </div>
+                                              <div className="flex items-center space-x-2 mt-1">
                                                 <Checkbox 
                                                   id="present" 
                                                   checked={editingWork.endDate === "Present"}
@@ -1132,7 +1175,7 @@ export default function AdminDashboard() {
                                                   htmlFor="present"
                                                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                                 >
-                                                  Present
+                                                  Present (Currently working here)
                                                 </label>
                                               </div>
                                             </div>
@@ -1198,13 +1241,9 @@ export default function AdminDashboard() {
                     {filteredWork.map((work) => (
                       <TableRow key={work.id} className="group cursor-pointer hover:bg-muted/50" onClick={() => handleEditWork(work)}>
                         <TableCell>
-                          {work.logo ? (
-                            <img src={work.logo} alt={work.company} className="h-8 w-8 rounded object-cover border border-border/50" />
-                          ) : (
-                            <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center text-primary font-bold text-xs border border-primary/20">
-                               {work.company.substring(0, 2).toUpperCase()}
-                            </div>
-                          )}
+                          <div className="h-8 w-8 rounded bg-muted flex items-center justify-center text-muted-foreground border border-border/50">
+                             <Briefcase className="h-4 w-4" />
+                          </div>
                         </TableCell>
                         <TableCell className="font-medium">{work.company}</TableCell>
                         <TableCell>{work.role}</TableCell>
