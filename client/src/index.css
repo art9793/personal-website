@@ -167,7 +167,8 @@
   @apply line-through opacity-70;
 }
 .ProseMirror mark {
-  @apply bg-yellow-200 dark:bg-yellow-500/30 px-1 rounded;
+  @apply bg-yellow-200 dark:bg-yellow-300/40 px-1 rounded;
+  color: inherit !important;
 }
 .ProseMirror code {
   @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-primary;
@@ -196,18 +197,21 @@
   @apply list-none pl-0;
 }
 .ProseMirror ul[data-type="taskList"] li {
-  @apply flex items-center gap-2 my-2;
+  @apply flex flex-row items-start gap-3 my-1;
 }
 .ProseMirror ul[data-type="taskList"] li > label {
-  @apply flex items-center cursor-pointer flex-shrink-0;
+  @apply flex items-center justify-center cursor-pointer mt-1;
+  flex: 0 0 auto;
 }
 .ProseMirror ul[data-type="taskList"] li > label > input[type="checkbox"] {
-  @apply w-4 h-4 rounded border-2 border-input cursor-pointer mt-0;
+  @apply w-4 h-4 rounded border-2 border-input cursor-pointer;
   @apply checked:bg-primary checked:border-primary;
   @apply focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  margin: 0 !important;
 }
 .ProseMirror ul[data-type="taskList"] li > div {
-  @apply flex-1;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div > p {
   @apply line-through opacity-60;
@@ -312,7 +316,8 @@
   @apply line-through opacity-70;
 }
 .prose mark {
-  @apply bg-yellow-200 dark:bg-yellow-500/30 px-1 rounded;
+  @apply bg-yellow-200 dark:bg-yellow-300/40 px-1 rounded;
+  color: inherit !important;
 }
 .prose img {
   @apply rounded-lg my-8 border max-w-full h-auto;
@@ -347,18 +352,21 @@
   @apply list-none pl-0;
 }
 .prose ul[data-type="taskList"] li {
-  @apply flex items-center gap-2 my-2;
+  @apply flex flex-row items-start gap-3 my-1;
 }
 .prose ul[data-type="taskList"] li > label {
-  @apply flex items-center cursor-pointer flex-shrink-0;
+  @apply flex items-center justify-center cursor-pointer mt-1;
+  flex: 0 0 auto;
 }
 .prose ul[data-type="taskList"] li > label > input[type="checkbox"] {
-  @apply w-4 h-4 rounded border-2 border-input cursor-pointer mt-0;
+  @apply w-4 h-4 rounded border-2 border-input cursor-pointer;
   @apply checked:bg-primary checked:border-primary;
   @apply focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  margin: 0 !important;
 }
 .prose ul[data-type="taskList"] li > div {
-  @apply flex-1;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .prose ul[data-type="taskList"] li[data-checked="true"] > div > p {
   @apply line-through opacity-60;
