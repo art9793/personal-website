@@ -3,9 +3,10 @@ import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
+import Underline from '@tiptap/extension-underline'
 import { Button } from "@/components/ui/button"
 import { 
-  Bold, Italic, List, ListOrdered, Image as ImageIcon, 
+  Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Image as ImageIcon, 
   Link as LinkIcon, Quote, Heading1, Heading2, Undo, Redo 
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -51,6 +52,15 @@ const MenuBar = ({ editor }: { editor: any }) => {
         className={cn(editor.isActive('italic') ? 'bg-muted' : '')}
       >
         <Italic className="h-4 w-4" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().toggleUnderline().run()}
+        className={cn(editor.isActive('underline') ? 'bg-muted' : '')}
+      >
+        <UnderlineIcon className="h-4 w-4" />
       </Button>
       <div className="w-px h-6 bg-border mx-1 self-center" />
       <Button
@@ -167,7 +177,12 @@ const MenuBar = ({ editor }: { editor: any }) => {
 export function Editor({ content, onChange }: { content?: string, onChange?: (html: string) => void }) {
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        hardBreak: {
+          keepMarks: true,
+        },
+      }),
+      Underline,
       Image,
       Link.configure({
         openOnClick: false,
