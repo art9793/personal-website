@@ -8,17 +8,17 @@ export default function Home() {
   return (
     <div className="space-y-12">
       <div className="flex flex-col-reverse md:flex-row md:items-center gap-8 md:gap-12">
-        <div className="flex-1 space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-primary">
+        <div className="flex-1 space-y-8">
+          <div className="space-y-1.5">
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-primary">
               Arshad Teli
             </h1>
-            <p className="text-xl md:text-2xl font-medium text-muted-foreground">
+            <p className="text-xl text-muted-foreground font-medium">
               Product Manager
             </p>
           </div>
-          <div className="space-y-4">
-            <p className="text-lg text-primary leading-relaxed font-medium">
+          <div className="space-y-6 max-w-xl">
+            <p className="text-2xl md:text-3xl font-semibold leading-tight text-primary">
               Hey there! I’m a Product Manager & Designer currently working at a UK based fintech!
             </p>
             <p className="text-lg text-muted-foreground leading-relaxed">
@@ -26,7 +26,7 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="flex items-center gap-4 pt-4">
+          <div className="flex items-center gap-4 pt-2">
             <Button variant="outline" size="icon" asChild>
               <a href="https://x.com/art9793" target="_blank" rel="noopener noreferrer">
                 <Twitter className="h-4 w-4" />
