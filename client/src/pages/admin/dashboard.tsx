@@ -180,12 +180,15 @@ export default function AdminDashboard() {
     
     try {
       setSaveStatus("saving");
-      if (article.id && articles.some(a => a.id === article.id)) {
+      if (article.id) {
+        // Update existing article (trust the ID presence, don't rely on cache)
         await updateArticle(article.id, article);
       } else {
-        const newArticle = await addArticle(article);
-        if (newArticle && newArticle.id) {
-          setEditingArticle(prev => prev ? { ...prev, id: newArticle.id } : null);
+        // For new articles, create and capture the ID
+        const createdArticle = await addArticle(article);
+        if (createdArticle && createdArticle.id) {
+          // Update editing state with the newly created article's ID
+          setEditingArticle(prev => prev ? { ...prev, id: createdArticle.id } : null);
         }
       }
       setSaveStatus("saved");
@@ -199,7 +202,7 @@ export default function AdminDashboard() {
         variant: "destructive"
       });
     }
-  }, [articles, updateArticle, addArticle, toast]);
+  }, [updateArticle, addArticle, toast]);
 
   // Auto-save effect with debouncing
   useEffect(() => {
@@ -227,7 +230,7 @@ export default function AdminDashboard() {
 
     try {
       setSaveStatus("saving");
-      if (editingArticle.id && articles.some(a => a.id === editingArticle.id)) {
+      if (editingArticle.id) {
         await updateArticle(editingArticle.id, editingArticle);
       } else {
         await addArticle(editingArticle);

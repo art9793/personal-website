@@ -97,7 +97,7 @@ interface ContentContextType {
   isLoading: boolean;
   updateProfile: (data: Partial<Profile>) => Promise<void>;
   updateSeoSettings: (data: Partial<SeoSettings>) => Promise<void>;
-  addArticle: (article: Partial<Article>) => Promise<void>;
+  addArticle: (article: Partial<Article>) => Promise<Article>;
   updateArticle: (id: number, data: Partial<Article>) => Promise<void>;
   deleteArticle: (id: number) => Promise<void>;
   addProject: (project: Partial<Project>) => Promise<void>;

@@ -194,7 +194,7 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
       const currentContent = editor.getHTML()
       // Only update if content is different to avoid cursor jumping
       if (currentContent !== content) {
-        editor.commands.setContent(content, false)
+        editor.commands.setContent(content, { emitUpdate: false })
       }
     }
   }, [editor, content])
