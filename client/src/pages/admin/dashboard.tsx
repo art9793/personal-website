@@ -78,6 +78,16 @@ export default function AdminDashboard() {
   const [sortConfig, setSortConfig] = useState<{ key: keyof Article | keyof Project | keyof WorkExperience; direction: 'asc' | 'desc' } | null>(null);
   const [filterQuery, setFilterQuery] = useState("");
 
+  // Check if profile form has changes
+  const hasProfileChanges = formData && profile && (
+    formData.name !== profile.name ||
+    formData.title !== profile.title ||
+    formData.bio !== profile.bio ||
+    formData.email !== profile.email ||
+    formData.twitter !== profile.twitter ||
+    formData.github !== profile.github
+  );
+
   // Reset states when changing tabs
   useEffect(() => {
     if (activeTab !== 'writing') {
@@ -1570,7 +1580,7 @@ export default function AdminDashboard() {
                        </div>
                     </div>
                   </div>
-                  <Button onClick={handleSaveProfile}>Save Changes</Button>
+                  <Button onClick={handleSaveProfile} disabled={!hasProfileChanges}>Save Changes</Button>
                 </CardContent>
               </Card>
             </div>

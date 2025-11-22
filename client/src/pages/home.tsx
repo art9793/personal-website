@@ -93,10 +93,8 @@ export default function Home() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-primary tracking-tight">Selected Projects</h2>
-            <Link href="/projects">
-              <a className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors px-2 py-1 -mr-2 rounded-md hover:bg-secondary/50">
-                View all <ArrowRight className="h-3 w-3" />
-              </a>
+            <Link href="/projects" className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors px-2 py-1 -mr-2 rounded-md hover:bg-secondary/50">
+              View all <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
           

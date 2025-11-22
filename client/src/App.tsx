@@ -12,6 +12,7 @@ import Projects from "@/pages/projects";
 import Reading from "@/pages/reading";
 import Work from "@/pages/work";
 import AdminDashboard from "@/pages/admin/dashboard";
+import AdminLogin from "@/pages/admin/login";
 import { ContentProvider } from "@/lib/content-context";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
@@ -22,9 +23,9 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      window.location.href = "/api/login";
+      setLocation("/admin/login");
     }
-  }, [isAuthenticated, isLoading]);
+  }, [isAuthenticated, isLoading, setLocation]);
 
   if (isLoading) {
     return (
@@ -70,6 +71,7 @@ function Router() {
   if (isAdmin) {
     return (
       <Switch>
+        <Route path="/admin/login" component={AdminLogin} />
         <Route path="/admin">
           {() => <ProtectedRoute component={AdminDashboard} />}
         </Route>

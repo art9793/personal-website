@@ -81,7 +81,9 @@ export const articles = pgTable("articles", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const insertArticleSchema = createInsertSchema(articles).omit({
+export const insertArticleSchema = createInsertSchema(articles, {
+  publishedAt: z.union([z.date(), z.string().datetime().transform(val => new Date(val)), z.string().transform(val => new Date(val))]).optional(),
+}).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
