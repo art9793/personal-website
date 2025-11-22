@@ -198,7 +198,6 @@ export default function AdminDashboard() {
             )}
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" onClick={() => setLocation("/")}>View Site</Button>
             {activeTab === "settings" && <Button size="sm" onClick={handleSaveProfile}>Save Changes</Button>}
             {isWriting && <Button size="sm" onClick={handleSaveArticle}>Save Article</Button>}
           </div>
@@ -534,7 +533,7 @@ export default function AdminDashboard() {
 
               <div className="space-y-8">
                   <Input 
-                    className="text-5xl font-bold h-auto border-none px-0 focus-visible:ring-0 placeholder:text-muted-foreground/30 bg-transparent tracking-tight" 
+                    className="text-5xl font-bold h-auto border-none px-0 focus-visible:ring-0 placeholder:text-muted-foreground/30 bg-transparent tracking-tight shadow-none rounded-none p-0" 
                     placeholder="Untitled" 
                     value={editingArticle.title}
                     onChange={(e) => setEditingArticle({...editingArticle, title: e.target.value})}
@@ -546,33 +545,36 @@ export default function AdminDashboard() {
                   />
               </div>
 
-              {/* Settings Drawer/Panel - Moved to bottom or side to be less intrusive */}
-              <div className="mt-20 border-t pt-8 grid grid-cols-1 md:grid-cols-3 gap-12 opacity-50 hover:opacity-100 transition-opacity">
-                  <div className="space-y-4">
-                     <h4 className="text-sm font-medium">Publishing</h4>
-                     <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <Label className="text-xs text-muted-foreground">Status</Label>
+              {/* Settings Drawer/Panel */}
+              <div className="mt-32 border-t pt-12 grid grid-cols-1 md:grid-cols-3 gap-16 opacity-40 hover:opacity-100 transition-all duration-500 ease-in-out group">
+                  <div className="space-y-6">
+                     <div className="flex items-center gap-2 text-sm font-medium text-foreground/70">
+                        <Settings className="h-4 w-4" />
+                        Publishing
+                     </div>
+                     <div className="space-y-5">
+                        <div className="flex items-center justify-between group/item p-2 -mx-2 rounded-md hover:bg-secondary/40 transition-colors">
+                          <Label className="text-xs text-muted-foreground font-normal">Status</Label>
                           <div className="flex items-center gap-2 cursor-pointer" onClick={() => setEditingArticle({...editingArticle, status: editingArticle.status === "Published" ? "Draft" : "Published"})}>
-                            <Badge variant={editingArticle.status === "Published" ? "default" : "outline"}>
+                            <Badge variant={editingArticle.status === "Published" ? "default" : "outline"} className="font-normal">
                               {editingArticle.status}
                             </Badge>
                           </div>
                         </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs text-muted-foreground">Date</Label>
+                        <div className="space-y-2 group/item p-2 -mx-2 rounded-md hover:bg-secondary/40 transition-colors">
+                          <Label className="text-xs text-muted-foreground font-normal">Publish Date</Label>
                           <Input 
                             type="date" 
-                            className="h-8 text-xs"
+                            className="h-8 text-xs border-none bg-transparent shadow-none p-0 focus-visible:ring-0 text-foreground placeholder:text-muted-foreground/50"
                             value={editingArticle.date}
                             onChange={(e) => setEditingArticle({...editingArticle, date: e.target.value})}
                           />
                         </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs text-muted-foreground">Slug</Label>
+                        <div className="space-y-2 group/item p-2 -mx-2 rounded-md hover:bg-secondary/40 transition-colors">
+                          <Label className="text-xs text-muted-foreground font-normal">URL Slug</Label>
                           <Input 
                             placeholder="url-slug" 
-                            className="h-8 text-xs"
+                            className="h-8 text-xs border-none bg-transparent shadow-none p-0 focus-visible:ring-0 text-foreground placeholder:text-muted-foreground/50"
                             value={editingArticle.slug}
                             onChange={(e) => setEditingArticle({...editingArticle, slug: e.target.value})}
                           />
@@ -580,24 +582,33 @@ export default function AdminDashboard() {
                      </div>
                   </div>
 
-                  <div className="space-y-4 md:col-span-2">
-                     <h4 className="text-sm font-medium">SEO & Metadata</h4>
-                     <div className="grid grid-cols-2 gap-6">
-                       <div className="space-y-4">
-                         <div className="space-y-1.5">
-                           <Label className="text-xs text-muted-foreground">Description</Label>
-                           <Textarea className="h-20 text-xs resize-none" placeholder="Meta description..." />
+                  <div className="space-y-6 md:col-span-2">
+                     <div className="flex items-center gap-2 text-sm font-medium text-foreground/70">
+                        <Globe className="h-4 w-4" />
+                        SEO & Metadata
+                     </div>
+                     <div className="grid grid-cols-2 gap-12">
+                       <div className="space-y-5">
+                         <div className="space-y-2 group/item p-2 -mx-2 rounded-md hover:bg-secondary/40 transition-colors">
+                           <Label className="text-xs text-muted-foreground font-normal">Description</Label>
+                           <Textarea 
+                             className="min-h-[100px] text-xs resize-none border-none bg-transparent shadow-none p-0 focus-visible:ring-0 text-foreground placeholder:text-muted-foreground/50 leading-relaxed" 
+                             placeholder="Enter a short description for search engines and social previews..." 
+                           />
                          </div>
-                         <div className="space-y-1.5">
-                           <Label className="text-xs text-muted-foreground">Tags</Label>
-                           <Input placeholder="Design, AI..." className="h-8 text-xs" />
+                         <div className="space-y-2 group/item p-2 -mx-2 rounded-md hover:bg-secondary/40 transition-colors">
+                           <Label className="text-xs text-muted-foreground font-normal">Tags</Label>
+                           <Input 
+                             placeholder="Design, AI, Future..." 
+                             className="h-8 text-xs border-none bg-transparent shadow-none p-0 focus-visible:ring-0 text-foreground placeholder:text-muted-foreground/50" 
+                           />
                          </div>
                        </div>
-                       <div className="space-y-1.5">
-                         <Label className="text-xs text-muted-foreground">Cover Image</Label>
-                         <div className="h-32 border-2 border-dashed rounded-md flex flex-col items-center justify-center text-muted-foreground hover:bg-secondary/50 transition-colors cursor-pointer">
+                       <div className="space-y-2">
+                         <Label className="text-xs text-muted-foreground font-normal px-2">Cover Image</Label>
+                         <div className="aspect-video border border-dashed border-border/50 rounded-lg flex flex-col items-center justify-center text-muted-foreground/50 hover:text-foreground hover:border-border hover:bg-secondary/20 transition-all cursor-pointer">
                             <Upload className="h-4 w-4 mb-2" />
-                            <span className="text-[10px]">Upload</span>
+                            <span className="text-[10px]">Upload Cover</span>
                          </div>
                        </div>
                      </div>
