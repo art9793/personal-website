@@ -466,11 +466,22 @@ export default function AdminDashboard() {
               </div>
 
               <div className="space-y-8">
-                  <Input 
-                    className="text-7xl font-bold h-auto border-none px-0 focus-visible:ring-0 placeholder:text-muted-foreground/30 bg-transparent tracking-tight shadow-none rounded-none p-0 leading-tight" 
+                  <Textarea 
+                    className="text-5xl md:text-6xl lg:text-7xl font-bold h-auto min-h-[3em] border-none px-0 focus-visible:ring-0 placeholder:text-muted-foreground/30 bg-transparent tracking-tight shadow-none rounded-none p-0 leading-[1.1] resize-none overflow-hidden" 
                     placeholder="Untitled" 
                     value={editingArticle.title}
-                    onChange={(e) => setEditingArticle({...editingArticle, title: e.target.value})}
+                    onChange={(e) => {
+                      setEditingArticle({...editingArticle, title: e.target.value});
+                      // Auto-resize height
+                      e.target.style.height = 'auto';
+                      e.target.style.height = e.target.scrollHeight + 'px';
+                    }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement;
+                      target.style.height = 'auto';
+                      target.style.height = target.scrollHeight + 'px';
+                    }}
+                    rows={1}
                   />
                   
                   <Editor 

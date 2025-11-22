@@ -102,3 +102,42 @@
     @apply tracking-tight font-medium;
   }
 }
+
+/* Editor Styles */
+.ProseMirror {
+  outline: none;
+  min-height: 500px;
+}
+.ProseMirror h1 {
+  @apply text-4xl font-bold mt-8 mb-4 leading-tight;
+}
+.ProseMirror h2 {
+  @apply text-3xl font-semibold mt-8 mb-4 leading-tight;
+}
+.ProseMirror h3 {
+  @apply text-2xl font-semibold mt-6 mb-3 leading-tight;
+}
+.ProseMirror p {
+  @apply mb-4 leading-relaxed text-lg;
+}
+.ProseMirror ul {
+  @apply list-disc pl-6 mb-4 space-y-1;
+}
+.ProseMirror ol {
+  @apply list-decimal pl-6 mb-4 space-y-1;
+}
+.ProseMirror li {
+  @apply leading-relaxed;
+}
+.ProseMirror blockquote {
+  @apply border-l-4 border-primary/20 pl-4 italic text-muted-foreground my-6;
+}
+.ProseMirror a {
+  @apply text-primary underline underline-offset-4 font-medium;
+}
+.ProseMirror img {
+  @apply rounded-lg my-8 border max-w-full h-auto;
+}
+.ProseMirror hr {
+  @apply my-8 border-border;
+}
