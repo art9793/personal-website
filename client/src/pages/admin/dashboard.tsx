@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { 
   LayoutDashboard, PenTool, FolderGit2, BookOpen, Settings, 
   LogOut, Image as ImageIcon, Save, Plus, Search, Globe,
-  ChevronRight, Upload
+  ChevronRight, Upload, Trash2, Edit2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -17,8 +18,13 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 
 export default function AdminDashboard() {
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
+  
+  const handleSignOut = () => {
+    setLocation("/");
+  };
   
   const handleSave = () => {
     toast({
@@ -76,7 +82,7 @@ export default function AdminDashboard() {
         </div>
 
         <div className="p-4 border-t bg-background/50 backdrop-blur">
-          <Button variant="ghost" className="w-full justify-start gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+          <Button variant="ghost" onClick={handleSignOut} className="w-full justify-start gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10">
             <LogOut className="h-4 w-4" />
             Sign Out
           </Button>
@@ -93,7 +99,7 @@ export default function AdminDashboard() {
             <span className="font-medium text-foreground capitalize">{activeTab}</span>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm">View Site</Button>
+            <Button variant="outline" size="sm" onClick={() => setLocation("/")}>View Site</Button>
             <Button size="sm" onClick={handleSave}>Save Changes</Button>
           </div>
         </header>
@@ -174,6 +180,38 @@ export default function AdminDashboard() {
                        <Editor content="<h2>Introduction</h2><p>Start writing your amazing content here...</p>" />
                      </CardContent>
                    </Card>
+
+                   <Card>
+                     <CardHeader>
+                       <CardTitle>Existing Articles</CardTitle>
+                     </CardHeader>
+                     <CardContent>
+                        <div className="space-y-4">
+                           {[
+                             { title: "Designing for AI", date: "Oct 24, 2024", status: "Published" },
+                             { title: "The craft of software", date: "Aug 12, 2024", status: "Published" },
+                             { title: "Building Campsite", date: "May 03, 2024", status: "Published" },
+                             { title: "Future of Interfaces", date: "Draft", status: "Draft" }
+                           ].map((article, i) => (
+                             <div key={i} className="flex items-center justify-between p-4 border rounded-lg hover:bg-secondary/20 transition-colors bg-card">
+                                <div className="space-y-1">
+                                   <div className="font-medium">{article.title}</div>
+                                   <div className="text-xs text-muted-foreground flex items-center gap-2">
+                                      <Badge variant={article.status === "Published" ? "default" : "secondary"} className="text-[10px] h-5 px-1.5">
+                                        {article.status}
+                                      </Badge>
+                                      <span>{article.date}</span>
+                                   </div>
+                                </div>
+                                <div className="flex gap-2">
+                                   <Button variant="ghost" size="icon" title="Edit"><Edit2 className="h-4 w-4" /></Button>
+                                   <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" title="Delete"><Trash2 className="h-4 w-4" /></Button>
+                                </div>
+                             </div>
+                           ))}
+                        </div>
+                     </CardContent>
+                   </Card>
                 </div>
 
                 <div className="col-span-4 space-y-6">
@@ -224,6 +262,82 @@ export default function AdminDashboard() {
                   </Card>
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === "projects" && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
+                <Button className="gap-2"><Plus className="h-4 w-4" /> Add Project</Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 {[
+                    { title: "Campsite", desc: "Communication platform for teams", tags: ["React", "Node"] },
+                    { title: "Staff Design", desc: "Interviews with designers", tags: ["Content"] },
+                    { title: "Details", desc: "Design details collection", tags: ["Design"] },
+                    { title: "Spectrum", desc: "Community platform", tags: ["Open Source"] }
+                 ].map((project, i) => (
+                   <Card key={i} className="group relative overflow-hidden">
+                     <CardHeader>
+                       <CardTitle>{project.title}</CardTitle>
+                       <CardDescription>{project.desc}</CardDescription>
+                     </CardHeader>
+                     <CardContent>
+                       <div className="flex gap-2">
+                         {project.tags.map(tag => <Badge key={tag} variant="secondary">{tag}</Badge>)}
+                       </div>
+                     </CardContent>
+                     <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 bg-background/80 backdrop-blur-sm p-1 rounded-md shadow-sm">
+                        <Button variant="ghost" size="icon" className="h-8 w-8"><Edit2 className="h-3.5 w-3.5" /></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button>
+                     </div>
+                   </Card>
+                 ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "reading" && (
+            <div className="space-y-6">
+               <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold tracking-tight">Reading List</h2>
+                <Button className="gap-2"><Plus className="h-4 w-4" /> Add Book</Button>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Bookshelf</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1">
+                    {[
+                      { title: "The Design of Everyday Things", author: "Don Norman", year: "2024", rating: "5/5" },
+                      { title: "Shape Up", author: "Ryan Singer", year: "2024", rating: "4/5" },
+                      { title: "Build", author: "Tony Fadell", year: "2023", rating: "5/5" },
+                    ].map((book, i) => (
+                      <div key={i} className="flex items-center justify-between p-3 hover:bg-secondary/20 rounded-lg transition-colors group">
+                        <div className="flex items-center gap-4">
+                          <div className="h-12 w-8 bg-neutral-200 rounded shadow-sm flex-shrink-0" />
+                          <div>
+                            <div className="font-medium">{book.title}</div>
+                            <div className="text-sm text-muted-foreground">{book.author}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-6">
+                           <div className="text-sm text-muted-foreground">{book.year}</div>
+                           <Badge variant="outline">{book.rating}</Badge>
+                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button variant="ghost" size="icon" className="h-8 w-8"><Edit2 className="h-3.5 w-3.5" /></Button>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button>
+                           </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
 
@@ -296,7 +410,7 @@ export default function AdminDashboard() {
           )}
           
           {/* Placeholder for other tabs */}
-          {(activeTab === "projects" || activeTab === "reading" || activeTab === "media" || activeTab === "seo") && (
+          {(activeTab === "media" || activeTab === "seo") && (
             <div className="flex flex-col items-center justify-center h-[50vh] text-muted-foreground border-2 border-dashed rounded-xl">
               <Settings className="h-10 w-10 mb-4 opacity-20" />
               <p>This section is under construction in this prototype.</p>
