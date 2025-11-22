@@ -225,17 +225,52 @@ const MenuBar = ({ editor }: { editor: any }) => {
     return null
   }
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const result = e.target?.result as string
-        if (result) {
-          editor.chain().focus().setImage({ src: result }).run()
-        }
+    if (!file) return
+
+    try {
+      // Step 1: Get presigned upload URL from server
+      const uploadResponse = await fetch('/api/objects/upload', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to get upload URL')
       }
-      reader.readAsDataURL(file)
+      const { uploadURL } = await uploadResponse.json()
+
+      // Step 2: Upload file to object storage
+      const uploadResult = await fetch(uploadURL, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
+      })
+      if (!uploadResult.ok) {
+        throw new Error('Failed to upload image')
+      }
+
+      // Step 3: Set ACL policy and get normalized path
+      const aclResponse = await fetch('/api/article-images', {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ imageURL: uploadURL }),
+      })
+      if (!aclResponse.ok) {
+        throw new Error('Failed to set image permissions')
+      }
+      const { objectPath } = await aclResponse.json()
+
+      // Step 4: Insert image into editor with normalized path
+      editor.chain().focus().setImage({ src: objectPath }).run()
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      alert('Failed to upload image. Please try again.')
     }
   }
 
