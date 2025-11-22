@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { Home, PenTool, FolderGit2, BookOpen, Briefcase, Menu, X } from "lucide-react";
+import { Home, PenTool, FolderGit2, BookOpen, Briefcase, Menu, X, Lock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -115,7 +115,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="pl-3 pt-4 border-t mt-auto">
            <div className="flex items-center justify-between">
              <span className="text-xs text-muted-foreground">© {new Date().getFullYear()}</span>
-             <ThemeToggle />
+             <div className="flex items-center gap-2">
+                <Link href="/admin">
+                  <a className="text-muted-foreground hover:text-primary transition-colors" aria-label="Admin Access">
+                    <Lock className="h-3 w-3" />
+                  </a>
+                </Link>
+                <ThemeToggle />
+             </div>
            </div>
         </div>
       </aside>

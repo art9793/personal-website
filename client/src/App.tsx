@@ -11,6 +11,8 @@ import Article from "@/pages/article";
 import Projects from "@/pages/projects";
 import Reading from "@/pages/reading";
 import Work from "@/pages/work";
+import AdminLogin from "@/pages/admin/login";
+import AdminDashboard from "@/pages/admin/dashboard";
 
 function Router() {
   return (
@@ -22,6 +24,8 @@ function Router() {
         <Route path="/projects" component={Projects} />
         <Route path="/reading" component={Reading} />
         <Route path="/work" component={Work} />
+        <Route path="/admin" component={AdminLogin} />
+        <Route path="/admin/dashboard" component={AdminDashboard} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
