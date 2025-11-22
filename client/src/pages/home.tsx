@@ -3,45 +3,51 @@ import { ArrowRight, Github, Twitter, Mail, ExternalLink } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import profileImage from "@assets/logo.jpg";
+import { useContent } from "@/lib/content-context";
 
 export default function Home() {
+  const { profile } = useContent();
+
   return (
     <div className="space-y-12">
       <div className="flex flex-col-reverse md:flex-row md:items-center gap-8 md:gap-12">
         <div className="flex-1 space-y-8">
           <div className="space-y-1.5">
             <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-primary">
-              Arshad Teli
+              {profile.name}
             </h1>
             <p className="text-xl text-muted-foreground font-medium">
-              Product Manager
+              {profile.jobTitle}
             </p>
           </div>
           <div className="space-y-6 max-w-xl">
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              Hey there! I’m a Product Manager & Designer currently working at a UK based fintech!
-            </p>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              Outside of work, I like to read, write and build!
+            <p className="text-lg text-muted-foreground leading-relaxed whitespace-pre-line">
+              {profile.bio}
             </p>
           </div>
           
           <div className="flex items-center gap-4 pt-2">
-            <Button variant="outline" size="icon" asChild>
-              <a href="https://x.com/art9793" target="_blank" rel="noopener noreferrer">
-                <Twitter className="h-4 w-4" />
-              </a>
-            </Button>
-            <Button variant="outline" size="icon" asChild>
-              <a href="https://github.com/art9793" target="_blank" rel="noopener noreferrer">
-                <Github className="h-4 w-4" />
-              </a>
-            </Button>
-            <Button variant="outline" size="icon" asChild>
-              <a href="mailto:art9793@gmail.com">
-                <Mail className="h-4 w-4" />
-              </a>
-            </Button>
+            {profile.twitter && (
+              <Button variant="outline" size="icon" asChild>
+                <a href={profile.twitter} target="_blank" rel="noopener noreferrer">
+                  <Twitter className="h-4 w-4" />
+                </a>
+              </Button>
+            )}
+            {profile.github && (
+              <Button variant="outline" size="icon" asChild>
+                <a href={profile.github} target="_blank" rel="noopener noreferrer">
+                  <Github className="h-4 w-4" />
+                </a>
+              </Button>
+            )}
+            {profile.email && (
+              <Button variant="outline" size="icon" asChild>
+                <a href={`mailto:${profile.email}`}>
+                  <Mail className="h-4 w-4" />
+                </a>
+              </Button>
+            )}
           </div>
         </div>
       </div>

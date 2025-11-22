@@ -13,6 +13,7 @@ import Reading from "@/pages/reading";
 import Work from "@/pages/work";
 import AdminLogin from "@/pages/admin/login";
 import AdminDashboard from "@/pages/admin/dashboard";
+import { ContentProvider } from "@/lib/content-context";
 
 function Router() {
   const [location] = useLocation();
@@ -46,10 +47,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <ContentProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </ContentProvider>
     </QueryClientProvider>
   );
 }
