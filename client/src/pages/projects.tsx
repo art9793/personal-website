@@ -1,21 +1,13 @@
-import { ExternalLink, Search, FolderGit2 } from "lucide-react";
+import { ExternalLink, FolderGit2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useContent } from "@/lib/content-context";
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 export default function Projects() {
   const { projects } = useContent();
-  const [searchQuery, setSearchQuery] = useState("");
 
   const activeProjects = projects
     .filter(p => p.status === "Active")
-    .filter(p => 
-      p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.tags.toLowerCase().includes(searchQuery.toLowerCase())
-    )
     .sort((a, b) => {
       if (a.featured && !b.featured) return -1;
       if (!a.featured && b.featured) return 1;
@@ -45,16 +37,6 @@ export default function Projects() {
             Products I've built, communities I've founded, and open source work.
           </p>
         </div>
-        
-        <div className="relative">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search projects..." 
-            className="pl-10 h-10 bg-secondary/30 border-transparent focus:bg-background focus:border-input transition-all"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
       </div>
 
       {activeProjects.length === 0 ? (
@@ -63,9 +45,6 @@ export default function Projects() {
             <FolderGit2 className="h-6 w-6 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-medium">No projects found</h3>
-          <p className="text-muted-foreground mt-1">
-            Try adjusting your search query.
-          </p>
         </div>
       ) : (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">

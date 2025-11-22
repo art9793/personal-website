@@ -398,9 +398,11 @@ export default function AdminDashboard() {
         </div>
 
         <div className="p-4 border-t bg-background/50 backdrop-blur space-y-2">
-          <div className={cn("flex items-center px-2", isSidebarExpanded ? "justify-between" : "justify-center")}>
-            {isSidebarExpanded && <span className="text-sm font-medium">Theme</span>}
-            <ThemeToggle />
+          <div className={cn("flex items-center", isSidebarExpanded ? "justify-between px-2" : "justify-center")}>
+            {isSidebarExpanded && <span className="text-sm font-medium"></span>}
+            <div className={cn(isSidebarExpanded ? "ml-auto" : "")}>
+              <ThemeToggle />
+            </div>
           </div>
           <Button 
             variant="ghost" 
