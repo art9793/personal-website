@@ -268,8 +268,8 @@ export default function AdminDashboard() {
              variant="ghost" 
              size="icon" 
              className={cn(
-               "h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 absolute hover:bg-secondary",
-               isSidebarExpanded ? "right-2" : "right-0 top-16 left-0 mx-auto"
+               "h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-secondary",
+               isSidebarExpanded ? "absolute right-2" : ""
              )}
              onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
            >

@@ -143,8 +143,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
              variant="ghost" 
              size="icon" 
              className={cn(
-               "h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 absolute hover:bg-secondary",
-               isExpanded ? "-right-4" : "-right-0 top-12"
+               "h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-secondary",
+               isExpanded ? "absolute -right-4" : ""
              )} 
              onClick={() => setIsExpanded(!isExpanded)}
            >
