@@ -10,7 +10,7 @@ export default function Home() {
       <div className="flex flex-col-reverse md:flex-row md:items-center gap-8 md:gap-12">
         <div className="flex-1 space-y-8">
           <div className="space-y-1.5">
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-primary">
+            <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-primary">
               Arshad Teli
             </h1>
             <p className="text-xl text-muted-foreground font-medium">
