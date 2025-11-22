@@ -50,10 +50,10 @@ export default function Projects() {
         </p>
       </div>
 
-      <div className="grid gap-8 sm:grid-cols-2">
+      <div className="space-y-8">
         {projects.map((project, i) => (
-          <div key={i} className="group relative flex flex-col rounded-xl border bg-card overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1">
-            <div className="h-48 overflow-hidden bg-muted">
+          <div key={i} className="group relative flex flex-col md:flex-row gap-6 md:gap-8 items-start p-4 -mx-4 rounded-2xl transition-colors hover:bg-muted/30">
+            <div className="w-full md:w-64 flex-shrink-0 overflow-hidden rounded-xl border bg-muted aspect-video md:aspect-[4/3]">
               {project.image ? (
                 <img 
                   src={project.image} 
@@ -64,28 +64,30 @@ export default function Projects() {
                  <div className={`w-full h-full ${project.color} opacity-20`} />
               )}
             </div>
-            <div className="p-6 flex flex-col flex-1 justify-between space-y-4">
+            
+            <div className="flex-1 space-y-4 py-1">
               <div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
                    <h3 className="font-semibold text-xl group-hover:text-primary transition-colors">
                     {project.title}
                   </h3>
-                  <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                 </div>
                 
-                <p className="mt-2 text-muted-foreground leading-relaxed">
+                <p className="mt-3 text-muted-foreground leading-relaxed max-w-lg">
                   {project.description}
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-2 mt-auto">
+              <div className="flex flex-wrap gap-2">
                 {project.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="font-normal bg-secondary/50">
+                  <Badge key={tag} variant="secondary" className="font-normal bg-secondary/50 hover:bg-secondary/80 transition-colors">
                     {tag}
                   </Badge>
                 ))}
               </div>
             </div>
+            
             <a href={project.link} className="absolute inset-0" target="_blank" rel="noopener noreferrer">
               <span className="sr-only">View {project.title}</span>
             </a>
