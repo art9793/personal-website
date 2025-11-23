@@ -1,10 +1,8 @@
 import { Link } from "wouter";
-import { ArrowRight, Github, Twitter, Linkedin, Mail, ExternalLink } from "lucide-react";
+import { ArrowRight, Github, Linkedin, Mail, ExternalLink } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { useContent } from "@/lib/content-context";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 
 export default function Home() {
   const { profile, projects, articles, isLoading } = useContent();
@@ -30,19 +28,6 @@ export default function Home() {
     })
     .slice(0, 3);
 
-  const getProjectColor = (title: string) => {
-    const colors = [
-      "bg-orange-500 text-orange-50",
-      "bg-purple-500 text-purple-50",
-      "bg-blue-500 text-blue-50",
-      "bg-indigo-500 text-indigo-50",
-      "bg-pink-500 text-pink-50",
-      "bg-green-500 text-green-50",
-      "bg-teal-500 text-teal-50",
-    ];
-    const index = title.length % colors.length;
-    return colors[index];
-  };
 
   return (
     <div className="space-y-12 animate-in fade-in-50 duration-500">
@@ -136,33 +121,25 @@ export default function Home() {
             </Link>
           </div>
           
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+          <div className="space-y-2">
             {featuredProjects.map((project) => (
               <a 
                 key={project.id} 
                 href={project.link} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="block min-w-0 group"
+                className="block group"
               >
-                <div className="flex items-center gap-4 p-4 rounded-xl border bg-card hover:bg-secondary/40 hover:border-secondary-foreground/10 transition-all active:scale-[0.98] cursor-pointer min-w-0 h-full">
-                  <div className={cn(
-                    "h-12 w-12 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0",
-                    getProjectColor(project.title)
-                  )}>
-                    <div className="font-bold text-lg">{project.title[0]}</div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-0.5">
-                      <h3 className="font-semibold text-primary group-hover:text-primary transition-colors truncate pr-2">
-                        {project.title}
-                      </h3>
-                      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                    </div>
-                    <p className="text-sm text-muted-foreground truncate leading-relaxed">
+                <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-0 py-3 border-b border-border/50 group-hover:border-border transition-colors">
+                  <div className="flex-1">
+                    <h3 className="text-base font-medium text-primary group-hover:text-blue-600 transition-colors">
+                      {project.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">
                       {project.description}
                     </p>
                   </div>
+                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors flex-shrink-0 mt-0.5 hidden sm:block" />
                 </div>
               </a>
             ))}
