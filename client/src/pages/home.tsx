@@ -2,7 +2,6 @@ import { Link } from "wouter";
 import { ArrowRight, Github, Twitter, Linkedin, Mail, ExternalLink } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import profileImage from "@assets/logo.jpg";
 import { useContent } from "@/lib/content-context";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -49,12 +48,14 @@ export default function Home() {
     <div className="space-y-12 animate-in fade-in-50 duration-500">
       <div className="flex flex-col-reverse md:flex-row md:items-center gap-8 md:gap-12">
         <div className="flex-1 space-y-8">
-          <div className="md:hidden flex justify-center">
-            <Avatar className="h-24 w-24 border-2 border-border/40">
-              <AvatarImage src={profileImage} alt={profile.name} loading="lazy" />
-              <AvatarFallback>{profile.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
-            </Avatar>
-          </div>
+          {profile.avatarUrl && (
+            <div className="md:hidden flex justify-center">
+              <Avatar className="h-24 w-24 border-2 border-border/40">
+                <AvatarImage src={profile.avatarUrl} alt={profile.name} loading="lazy" />
+                <AvatarFallback>{profile.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+              </Avatar>
+            </div>
+          )}
           <div className="space-y-1.5">
             <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-primary">
               {profile.name}
@@ -69,43 +70,59 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="flex items-center gap-4 pt-2">
+          <div className="flex items-center gap-3 pt-2">
             {profile.twitter && (profile.showTwitter ?? true) && (
-              <Button variant="outline" size="icon" asChild data-testid="link-twitter">
-                <a href={profile.twitter} target="_blank" rel="noopener noreferrer">
-                  <Twitter className="h-4 w-4" />
-                </a>
-              </Button>
+              <a 
+                href={profile.twitter} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="group flex items-center justify-center h-11 w-11 rounded-lg border border-border bg-background hover:bg-[#1DA1F2] hover:border-[#1DA1F2] transition-all duration-200 hover:scale-105 hover:shadow-md"
+                data-testid="link-twitter"
+              >
+                <Twitter className="h-5 w-5 text-foreground group-hover:text-white transition-colors" />
+              </a>
             )}
             {profile.linkedin && (profile.showLinkedin ?? true) && (
-              <Button variant="outline" size="icon" asChild data-testid="link-linkedin">
-                <a href={profile.linkedin} target="_blank" rel="noopener noreferrer">
-                  <Linkedin className="h-4 w-4" />
-                </a>
-              </Button>
+              <a 
+                href={profile.linkedin} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="group flex items-center justify-center h-11 w-11 rounded-lg border border-border bg-background hover:bg-[#0A66C2] hover:border-[#0A66C2] transition-all duration-200 hover:scale-105 hover:shadow-md"
+                data-testid="link-linkedin"
+              >
+                <Linkedin className="h-5 w-5 text-foreground group-hover:text-white transition-colors" />
+              </a>
             )}
             {profile.github && (profile.showGithub ?? true) && (
-              <Button variant="outline" size="icon" asChild data-testid="link-github">
-                <a href={profile.github} target="_blank" rel="noopener noreferrer">
-                  <Github className="h-4 w-4" />
-                </a>
-              </Button>
+              <a 
+                href={profile.github} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="group flex items-center justify-center h-11 w-11 rounded-lg border border-border bg-background hover:bg-[#24292e] dark:hover:bg-white hover:border-[#24292e] dark:hover:border-white transition-all duration-200 hover:scale-105 hover:shadow-md"
+                data-testid="link-github"
+              >
+                <Github className="h-5 w-5 text-foreground group-hover:text-white dark:group-hover:text-[#24292e] transition-colors" />
+              </a>
             )}
             {profile.email && (profile.showEmail ?? true) && (
-              <Button variant="outline" size="icon" asChild data-testid="link-email">
-                <a href={`mailto:${profile.email}`}>
-                  <Mail className="h-4 w-4" />
-                </a>
-              </Button>
+              <a 
+                href={`mailto:${profile.email}`}
+                className="group flex items-center justify-center h-11 w-11 rounded-lg border border-border bg-background hover:bg-primary hover:border-primary transition-all duration-200 hover:scale-105 hover:shadow-md"
+                data-testid="link-email"
+              >
+                <Mail className="h-5 w-5 text-foreground group-hover:text-primary-foreground transition-colors" />
+              </a>
             )}
           </div>
         </div>
-        <div className="hidden md:block flex-shrink-0">
-          <Avatar className="h-32 w-32 border-2 border-border/40">
-            <AvatarImage src={profileImage} alt={profile.name} loading="lazy" />
-            <AvatarFallback>{profile.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
-          </Avatar>
-        </div>
+        {profile.avatarUrl && (
+          <div className="hidden md:block flex-shrink-0">
+            <Avatar className="h-32 w-32 border-2 border-border/40">
+              <AvatarImage src={profile.avatarUrl} alt={profile.name} loading="lazy" />
+              <AvatarFallback>{profile.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+            </Avatar>
+          </div>
+        )}
       </div>
 
       {featuredProjects.length > 0 && (

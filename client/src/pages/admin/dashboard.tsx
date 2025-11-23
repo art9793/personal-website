@@ -20,6 +20,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useContent, Article, Project, WorkExperience } from "@/lib/content-context";
+import { ObjectUploader } from "@/components/ObjectUploader";
+import type { UploadResult } from "@uppy/core";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -157,6 +159,100 @@ export default function AdminDashboard() {
       title: "Profile Updated",
       description: "Your profile information has been saved.",
     });
+  };
+
+  const [uploadedObjectPath, setUploadedObjectPath] = useState<string | null>(null);
+
+  const handleAvatarUpload = async () => {
+    try {
+      const response = await fetch("/api/objects/upload", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to get upload URL");
+      const { uploadURL, objectPath } = await response.json();
+      
+      // Store the object path for later use in onComplete
+      setUploadedObjectPath(objectPath);
+      
+      return {
+        method: "PUT" as const,
+        url: uploadURL,
+      };
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      toast({
+        title: "Upload Error",
+        description: "Failed to prepare image upload",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const handleAvatarUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+    try {
+      if (!result.successful || result.successful.length === 0) return;
+      
+      if (!uploadedObjectPath) {
+        throw new Error("Object path not available - upload may have failed");
+      }
+      
+      const response = await fetch("/api/profile/avatar", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ objectPath: uploadedObjectPath }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to save avatar");
+      }
+      
+      const { avatarUrl } = await response.json();
+      
+      setFormData(prev => prev ? { ...prev, avatarUrl } : undefined);
+      setUploadedObjectPath(null); // Clear for next upload
+      
+      toast({
+        title: "Avatar Updated",
+        description: "Your profile picture has been updated successfully.",
+      });
+    } catch (error) {
+      console.error("Error saving avatar:", error);
+      setUploadedObjectPath(null);
+      toast({
+        title: "Save Error",
+        description: error instanceof Error ? error.message : "Failed to save your profile picture",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteAvatar = async () => {
+    try {
+      const response = await fetch("/api/profile/avatar", {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!response.ok) throw new Error("Failed to delete avatar");
+      
+      setFormData(prev => prev ? { ...prev, avatarUrl: undefined } : undefined);
+      
+      toast({
+        title: "Avatar Removed",
+        description: "Your profile picture has been removed.",
+      });
+    } catch (error) {
+      console.error("Error deleting avatar:", error);
+      toast({
+        title: "Delete Error",
+        description: "Failed to remove your profile picture",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSaveSeoSettings = async () => {
@@ -1755,12 +1851,42 @@ export default function AdminDashboard() {
                   <CardDescription>This will be displayed on your home page.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex items-center gap-6">
-                    <Avatar className="h-20 w-20">
-                      <AvatarImage src="https://github.com/shadcn.png" />
-                      <AvatarFallback>AT</AvatarFallback>
+                  <div className="flex items-start gap-6">
+                    <Avatar className="h-24 w-24 border-2 border-border/40">
+                      {formData?.avatarUrl ? (
+                        <AvatarImage src={formData.avatarUrl} alt={formData.name || 'Profile'} />
+                      ) : null}
+                      <AvatarFallback className="text-lg">{formData?.name?.substring(0, 2).toUpperCase() || 'AT'}</AvatarFallback>
                     </Avatar>
-                    <Button variant="outline">Change Photo</Button>
+                    <div className="flex-1 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <ObjectUploader
+                          maxNumberOfFiles={1}
+                          maxFileSize={5242880}
+                          onGetUploadParameters={handleAvatarUpload}
+                          onComplete={handleAvatarUploadComplete}
+                          buttonClassName="gap-2"
+                        >
+                          <Upload className="h-4 w-4" />
+                          {formData?.avatarUrl ? 'Change Photo' : 'Upload Photo'}
+                        </ObjectUploader>
+                        {formData?.avatarUrl && (
+                          <Button 
+                            variant="outline" 
+                            size="default"
+                            onClick={handleDeleteAvatar}
+                            className="gap-2"
+                            data-testid="button-delete-avatar"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Upload a profile picture (JPG, PNG, or GIF, max 5MB). This will be displayed on your homepage.
+                      </p>
+                    </div>
                   </div>
                   
                   <div className="grid grid-cols-1 gap-4">

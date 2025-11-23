@@ -132,7 +132,7 @@ export class ObjectStorageService {
   }
 
   // Gets the upload URL for an object entity.
-  async getObjectEntityUploadURL(): Promise<string> {
+  async getObjectEntityUploadURL(): Promise<{ uploadURL: string; objectPath: string }> {
     const privateObjectDir = this.getPrivateObjectDir();
     if (!privateObjectDir) {
       throw new Error(
@@ -147,12 +147,17 @@ export class ObjectStorageService {
     const { bucketName, objectName } = parseObjectPath(fullPath);
 
     // Sign URL for PUT method with TTL
-    return signObjectURL({
+    const uploadURL = await signObjectURL({
       bucketName,
       objectName,
       method: "PUT",
       ttlSec: 900,
     });
+    
+    // Return both the upload URL and the normalized object path
+    const objectPath = `/objects/uploads/${objectId}`;
+    
+    return { uploadURL, objectPath };
   }
 
   // Gets the object entity file from the object path.
@@ -191,7 +196,15 @@ export class ObjectStorageService {
   
     // Extract the path from the URL by removing query parameters and domain
     const url = new URL(rawPath);
-    const rawObjectPath = url.pathname;
+    let rawObjectPath = url.pathname;
+    
+    // Remove leading slash and bucket name from pathname
+    // pathname format: /{bucketName}/{objectPath}
+    const parts = rawObjectPath.split('/').filter(Boolean);
+    if (parts.length >= 2) {
+      // Remove bucket name (first part) and reconstruct path
+      rawObjectPath = '/' + parts.slice(1).join('/');
+    }
   
     let objectEntityDir = this.getPrivateObjectDir();
     if (!objectEntityDir.endsWith("/")) {

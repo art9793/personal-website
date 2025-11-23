@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
-import { ObjectPermission } from "./objectAcl";
+import { ObjectPermission, setObjectAclPolicy } from "./objectAcl";
 import { 
   insertProfileSchema,
   insertArticleSchema,
@@ -34,8 +34,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/objects/upload', isAdmin, async (req, res) => {
     try {
       const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-      res.json({ uploadURL });
+      const { uploadURL, objectPath } = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL, objectPath });
     } catch (error) {
       console.error("Error getting upload URL:", error);
       res.status(500).json({ message: "Failed to get upload URL" });
@@ -72,13 +72,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Endpoint for serving uploaded objects (public read for article images)
+  // Endpoint for serving uploaded objects (public read for objects with public ACL)
   app.get('/objects/:objectPath(*)', async (req, res) => {
     const objectStorageService = new ObjectStorageService();
     try {
       const objectFile = await objectStorageService.getObjectEntityFile(
         req.path,
       );
+      
+      // Check if object has ACL policy
+      const aclPolicy = await import('./objectAcl').then(m => m.getObjectAclPolicy(objectFile));
+      
+      // If object is public, serve it without authentication
+      if (aclPolicy?.visibility === 'public') {
+        objectStorageService.downloadObject(objectFile, res);
+        return;
+      }
+      
+      // For private objects, require authentication and check access
       const canAccess = await objectStorageService.canAccessObjectEntity({
         objectFile,
         requestedPermission: ObjectPermission.READ,
@@ -115,6 +126,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating profile:", error);
       res.status(400).json({ message: "Failed to update profile" });
+    }
+  });
+
+  app.put('/api/profile/avatar', isAdmin, async (req: any, res) => {
+    try {
+      if (!req.body.objectPath) {
+        return res.status(400).json({ error: "objectPath is required" });
+      }
+
+      const objectPath = req.body.objectPath;
+      
+      if (!objectPath.startsWith('/objects/')) {
+        return res.status(400).json({ error: "Invalid object path format" });
+      }
+
+      const objectStorageService = new ObjectStorageService();
+      
+      // Get the object file and verify it exists
+      const objectFile = await objectStorageService.getObjectEntityFile(objectPath);
+      
+      // Set ACL policy to make it publicly readable
+      const userId = req.user?.claims?.sub || "admin";
+      await setObjectAclPolicy(objectFile, {
+        owner: userId,
+        visibility: "public",
+      });
+
+      // Update profile with the object path
+      const profile = await storage.updateProfile({ avatarUrl: objectPath });
+      res.json({ avatarUrl: profile.avatarUrl });
+    } catch (error) {
+      console.error("Error setting avatar:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.status(404).json({ error: "Uploaded file not found" });
+      }
+      res.status(500).json({ error: "Failed to update avatar" });
+    }
+  });
+
+  app.delete('/api/profile/avatar', isAdmin, async (req, res) => {
+    try {
+      const profile = await storage.updateProfile({ avatarUrl: null });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting avatar:", error);
+      res.status(500).json({ error: "Failed to delete avatar" });
     }
   });
 
