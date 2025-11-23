@@ -83,7 +83,8 @@ export function MonthYearPicker({ value, onChange, label }: MonthYearPickerProps
     if (selectedMonth && selectedYear) {
       onChange(`${selectedYear}-${selectedMonth}-01`);
     }
-  }, [selectedMonth, selectedYear, onChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMonth, selectedYear]);
 
   const handleClear = () => {
     setSelectedMonth("");
