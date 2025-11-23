@@ -40,16 +40,19 @@ export default function Work() {
           </p>
         ) : (
           sortedWorkHistory.map((item) => (
-            <div key={item.id} className="grid sm:grid-cols-[180px_minmax(0,1fr)] gap-4 sm:gap-x-10" data-testid={`work-${item.id}`}>
+            <div key={item.id} className="grid sm:grid-cols-[180px_minmax(0,1fr)] gap-4 sm:gap-x-8 items-start sm:items-baseline" data-testid={`work-${item.id}`}>
               <div className="text-sm text-muted-foreground/70 font-mono uppercase tracking-wider whitespace-nowrap">
                 {formatYearRange(item.startDate, item.endDate)}
               </div>
-              <div className="space-y-3">
-                <h3 className="text-lg md:text-xl font-medium text-primary tracking-tight">
-                  {item.company}
-                </h3>
-                <div className="text-sm font-medium text-muted-foreground">
-                  {item.role}
+              <div className="flex flex-col gap-3 sm:self-baseline">
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <h3 className="text-lg md:text-xl font-medium text-primary tracking-tight">
+                    {item.company}
+                  </h3>
+                  <span className="text-muted-foreground/40">·</span>
+                  <div className="text-sm text-muted-foreground">
+                    {item.role}
+                  </div>
                 </div>
                 <p className="text-muted-foreground leading-7 text-[15px] whitespace-pre-line">
                   {item.description}
