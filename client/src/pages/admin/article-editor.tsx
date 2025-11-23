@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRoute, useLocation } from "wouter";
-import { ArrowLeft, Eye, CheckCircle, AlertCircle, FileText, Tag } from "lucide-react";
+import { ArrowLeft, Eye, CheckCircle, AlertCircle, FileText, Tag, Globe, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -201,10 +201,10 @@ export default function ArticleEditor() {
   const handleBack = () => {
     if (saveStatus === "unsaved") {
       if (confirm("You have unsaved changes. Do you want to leave without saving?")) {
-        setLocation("/admin");
+        setLocation("/admin?tab=writing");
       }
     } else {
-      setLocation("/admin");
+      setLocation("/admin?tab=writing");
     }
   };
 
@@ -301,8 +301,34 @@ export default function ArticleEditor() {
   const wordCount = textContent.split(/\s+/).filter(Boolean).length;
   const readingTime = Math.ceil(wordCount / 200); // Assuming 200 words per minute
   
-  // Check if publish requirements are met (must have actual text content, not just HTML tags)
-  const canPublish = !!(title.trim() && slug.trim() && textContent);
+  // Check for slug conflicts
+  const slugConflict = useMemo(() => {
+    if (!slug.trim()) return null;
+    const conflictingArticle = articles.find(
+      a => a.slug === slug.trim() && a.id !== articleId
+    );
+    return conflictingArticle || null;
+  }, [slug, articles, articleId]);
+  
+  // Check if publish requirements are met (must have actual text content, not just HTML tags, and no slug conflicts)
+  const canPublish = !!(title.trim() && slug.trim() && textContent && !slugConflict);
+  
+  // Generate public URL preview
+  const publicUrl = useMemo(() => {
+    if (!slug.trim()) return null;
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/article/${slug.trim()}`;
+  }, [slug]);
+  
+  // Character counts with recommendations
+  const titleCharCount = title.length;
+  const excerptCharCount = excerpt.length;
+  const titleRecommendation = titleCharCount === 0 ? "Add a title" : 
+    titleCharCount < 30 ? "Consider a longer title (30-60 chars)" :
+    titleCharCount > 60 ? "Consider shortening (30-60 chars optimal)" : "Good length";
+  const excerptRecommendation = excerptCharCount === 0 ? "Optional but recommended for SEO" :
+    excerptCharCount < 120 ? "Add more detail (120-160 chars recommended)" :
+    excerptCharCount > 160 ? "Consider shortening (120-160 chars optimal)" : "Perfect length for SEO";
 
   return (
     <div className="min-h-screen bg-background">
@@ -426,72 +452,117 @@ export default function ArticleEditor() {
               )}
             </div>
 
+            {/* URL Preview */}
+            {publicUrl && (
+              <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Globe className="h-4 w-4" />
+                  <span>Public URL</span>
+                </div>
+                <a 
+                  href={publicUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-xs text-primary hover:underline break-all"
+                >
+                  {publicUrl}
+                  <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                </a>
+              </div>
+            )}
+
             {/* Metadata Fields */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="slug" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  URL Slug
-                </Label>
+            <div className="space-y-6">
+              {/* URL Slug Section */}
+              <div className="space-y-3 pb-6 border-b">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="slug" className="flex items-center gap-2 text-base">
+                    <FileText className="h-4 w-4" />
+                    URL Slug
+                  </Label>
+                  {slugConflict && (
+                    <span className="text-xs text-destructive font-medium">Already in use!</span>
+                  )}
+                </div>
                 <Input
                   id="slug"
                   value={slug}
                   onChange={(e) => handleSlugChange(e.target.value)}
                   placeholder="my-article-url"
-                  className="font-mono text-sm"
+                  className={`font-mono text-sm ${slugConflict ? 'border-destructive' : ''}`}
                   data-testid="input-article-slug"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Auto-generated from title. Edit to customize.
-                </p>
+                {slugConflict ? (
+                  <p className="text-xs text-destructive">
+                    This slug is already used by "{slugConflict.title}". Choose a different one.
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Auto-generated from title. This creates your article's unique web address.
+                  </p>
+                )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="excerpt">
-                  Excerpt <span className="text-muted-foreground font-normal">(Optional)</span>
-                </Label>
+              {/* Excerpt Section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="excerpt" className="text-base">
+                    Excerpt <span className="text-muted-foreground font-normal text-sm">(Recommended)</span>
+                  </Label>
+                  <span className={`text-xs ${excerptCharCount >= 120 && excerptCharCount <= 160 ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    {excerptCharCount} chars
+                  </span>
+                </div>
                 <Textarea
                   id="excerpt"
                   value={excerpt}
                   onChange={(e) => setExcerpt(e.target.value)}
-                  placeholder="Brief summary of your article..."
+                  placeholder="Brief summary that appears in search results and previews..."
                   rows={3}
                   className="resize-none text-sm"
                   data-testid="input-article-excerpt"
                 />
+                <p className="text-xs text-muted-foreground">
+                  {excerptRecommendation}
+                </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="tags">
-                  Tags <span className="text-muted-foreground font-normal">(Optional)</span>
+              {/* Tags Section */}
+              <div className="space-y-3">
+                <Label htmlFor="tags" className="text-base">
+                  Tags <span className="text-muted-foreground font-normal text-sm">(Optional)</span>
                 </Label>
                 <Input
                   id="tags"
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
-                  placeholder="react, typescript, web"
+                  placeholder="react, typescript, web development"
                   className="text-sm"
                   data-testid="input-article-tags"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Comma-separated tags
+                  Comma-separated tags help readers find related content
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="seoKeywords" className="flex items-center gap-2">
+              {/* SEO Keywords Section */}
+              <div className="space-y-3">
+                <Label htmlFor="seoKeywords" className="flex items-center gap-2 text-base">
                   <Tag className="h-4 w-4" />
-                  SEO Keywords <span className="text-muted-foreground font-normal">(Optional)</span>
+                  SEO Keywords <span className="text-muted-foreground font-normal text-sm">(Optional)</span>
                 </Label>
                 <Textarea
                   id="seoKeywords"
                   value={seoKeywords}
                   onChange={(e) => setSeoKeywords(e.target.value)}
-                  placeholder="web development, react tutorials, programming..."
+                  placeholder="web development, react tutorials, programming tips..."
                   rows={2}
                   className="resize-none text-sm"
                   data-testid="input-article-keywords"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Keywords improve search engine discoverability
+                </p>
               </div>
             </div>
 

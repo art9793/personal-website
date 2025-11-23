@@ -232,8 +232,15 @@ export function ContentProvider({ children }: { children: ReactNode }) {
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (newArticle) => {
+      // Invalidate article list cache
       queryClient.invalidateQueries({ queryKey: ["/api/articles"] });
+      // Invalidate individual article cache if slug exists
+      if (newArticle?.slug) {
+        queryClient.invalidateQueries({ queryKey: ["article", newArticle.slug] });
+      }
+      // Invalidate all article queries
+      queryClient.invalidateQueries({ queryKey: ["article"] });
     },
     onError: (error: Error) => handleUnauthorized(error),
   });
@@ -249,8 +256,15 @@ export function ContentProvider({ children }: { children: ReactNode }) {
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedArticle) => {
+      // Invalidate article list cache
       queryClient.invalidateQueries({ queryKey: ["/api/articles"] });
+      // Invalidate individual article cache by slug
+      if (updatedArticle?.slug) {
+        queryClient.invalidateQueries({ queryKey: ["article", updatedArticle.slug] });
+      }
+      // Invalidate all article queries to catch any slug changes
+      queryClient.invalidateQueries({ queryKey: ["article"] });
     },
     onError: (error: Error) => handleUnauthorized(error),
   });

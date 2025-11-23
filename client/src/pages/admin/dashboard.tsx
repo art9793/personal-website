@@ -59,7 +59,17 @@ const visitorData = [
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("overview");
+  
+  // Read initial tab from URL search params
+  const initialTab = (() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab");
+    return tab && ["overview", "writing", "projects", "work", "profile", "seo"].includes(tab) 
+      ? tab 
+      : "overview";
+  })();
+  
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [articleStatusFilter, setArticleStatusFilter] = useState<"all" | "draft" | "published">("all");
   const { 
     profile, seoSettings, articles, projects, workHistory,
