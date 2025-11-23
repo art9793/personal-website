@@ -33,14 +33,14 @@ export default function Work() {
         </p>
       </div>
 
-      <div className="space-y-14 md:space-y-20">
+      <div className="space-y-8 md:space-y-12">
         {sortedWorkHistory.length === 0 ? (
           <p className="text-muted-foreground text-center py-12">
             No work experience added yet.
           </p>
         ) : (
           sortedWorkHistory.map((item) => (
-            <div key={item.id} className="grid sm:grid-cols-[180px_minmax(0,1fr)] gap-4 sm:gap-x-8 items-start sm:items-baseline" data-testid={`work-${item.id}`}>
+            <div key={item.id} className="grid sm:grid-cols-[180px_minmax(0,1fr)] gap-4 sm:gap-x-4 items-start sm:items-baseline" data-testid={`work-${item.id}`}>
               <div className="text-sm text-muted-foreground/70 font-mono uppercase tracking-wider whitespace-nowrap">
                 {formatYearRange(item.startDate, item.endDate)}
               </div>
