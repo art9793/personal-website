@@ -40,7 +40,7 @@ export default function Work() {
           </p>
         ) : (
           sortedWorkHistory.map((item) => (
-            <div key={item.id} className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6 group p-2 -mx-2 rounded-lg hover:bg-secondary/40 transition-colors" data-testid={`work-${item.id}`}>
+            <div key={item.id} className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-3" data-testid={`work-${item.id}`}>
               <div className="w-48 flex-shrink-0 text-xs text-muted-foreground font-mono whitespace-nowrap">
                 {formatDateRange(item.startDate, item.endDate)}
               </div>
