@@ -33,25 +33,25 @@ export default function Work() {
         </p>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-14 md:space-y-20">
         {sortedWorkHistory.length === 0 ? (
           <p className="text-muted-foreground text-center py-12">
             No work experience added yet.
           </p>
         ) : (
           sortedWorkHistory.map((item) => (
-            <div key={item.id} className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-1 p-2" data-testid={`work-${item.id}`}>
-              <div className="w-48 flex-shrink-0 text-xs text-muted-foreground font-mono whitespace-nowrap">
+            <div key={item.id} className="grid sm:grid-cols-[180px_minmax(0,1fr)] gap-4 sm:gap-x-10" data-testid={`work-${item.id}`}>
+              <div className="text-sm text-muted-foreground/70 font-mono uppercase tracking-wider whitespace-nowrap">
                 {formatDateRange(item.startDate, item.endDate)}
               </div>
-              <div className="flex-1 space-y-1.5">
-                <h3 className="text-lg font-semibold text-primary transition-colors">
+              <div className="space-y-3">
+                <h3 className="text-xl md:text-2xl font-semibold text-primary tracking-tight">
                   {item.company}
                 </h3>
-                <div className="text-sm font-medium text-primary/80 mb-1">
+                <div className="text-sm font-medium text-muted-foreground">
                   {item.role}
                 </div>
-                <p className="text-muted-foreground leading-relaxed text-base whitespace-pre-line">
+                <p className="text-muted-foreground leading-7 text-[15px] whitespace-pre-line">
                   {item.description}
                 </p>
               </div>
