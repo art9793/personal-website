@@ -32,10 +32,11 @@ export function formatMonthYear(dateString: string): string {
  */
 export function formatDateRange(startDate: string, endDate: string): string {
   const start = formatMonthYear(startDate);
-  const end = formatMonthYear(endDate) || 'Present';
+  const end = formatMonthYear(endDate);
   
   if (!start && !end) return '';
-  if (!start) return end;
+  if (!start) return end || '';
+  if (!end) return start;
   if (start === end) return start;
   
   return `${start} - ${end}`;

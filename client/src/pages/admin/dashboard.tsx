@@ -1289,8 +1289,9 @@ export default function AdminDashboard() {
                                 </SheetDescription>
                             </SheetHeader>
                             {editingWork && (
-                                <div className="space-y-6">
-                                    <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-8">
+                                    {/* Company Information */}
+                                    <div className="space-y-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="company">Company Name</Label>
                                             <Input 
@@ -1298,101 +1299,118 @@ export default function AdminDashboard() {
                                                 value={editingWork.company} 
                                                 onChange={(e) => setEditingWork({...editingWork, company: e.target.value})}
                                                 placeholder="e.g. Acme Corp"
+                                                className="text-base"
                                             />
                                         </div>
+
                                         <div className="space-y-2">
-                                            <Label htmlFor="logo">Company Logo</Label>
-                                            <div className="flex items-center gap-3">
-                                              {editingWork.logo ? (
-                                                <div className="relative h-16 w-16 group/logo">
-                                                  <img 
-                                                    src={editingWork.logo} 
-                                                    alt="Logo" 
-                                                    className="h-full w-full object-cover rounded-md border shadow-sm"
-                                                  />
-                                                  <button
-                                                    onClick={() => setEditingWork({...editingWork, logo: ""})}
-                                                    className="absolute -top-2 -right-2 h-6 w-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-md hover:bg-destructive/90 transition-colors"
-                                                  >
-                                                    <span className="sr-only">Remove</span>
-                                                    <span className="text-xs font-bold">×</span>
-                                                  </button>
-                                                </div>
-                                              ) : (
-                                                <div className="flex items-center gap-3 w-full">
-                                                  <Input 
-                                                      id="logo-upload" 
-                                                      type="file" 
-                                                      accept="image/*"
-                                                      className="hidden"
-                                                      onChange={(e) => {
-                                                        const file = e.target.files?.[0];
-                                                        if (file) {
-                                                          const reader = new FileReader();
-                                                          reader.onloadend = () => {
-                                                            setEditingWork({...editingWork, logo: reader.result as string});
-                                                          };
-                                                          reader.readAsDataURL(file);
-                                                        }
-                                                      }}
-                                                  />
-                                                  <Label 
-                                                    htmlFor="logo-upload" 
-                                                    className="cursor-pointer inline-flex h-9 items-center justify-center whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
-                                                  >
-                                                    Choose File
-                                                  </Label>
-                                                  <span className="text-sm text-muted-foreground">
-                                                    No file selected
-                                                  </span>
-                                                </div>
-                                              )}
-                                            </div>
+                                            <Label htmlFor="role">Role Title</Label>
+                                            <Input 
+                                                id="role" 
+                                                value={editingWork.role} 
+                                                onChange={(e) => setEditingWork({...editingWork, role: e.target.value})}
+                                                placeholder="e.g. Senior Product Manager"
+                                                className="text-base"
+                                            />
                                         </div>
-                                    </div>
-                                    
-                                    <div className="space-y-2">
-                                        <Label htmlFor="role">Role Title</Label>
-                                        <Input 
-                                            id="role" 
-                                            value={editingWork.role} 
-                                            onChange={(e) => setEditingWork({...editingWork, role: e.target.value})}
-                                            placeholder="e.g. Senior Product Manager"
-                                        />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <MonthYearPicker
-                                            label="Start Date"
-                                            value={editingWork.startDate}
-                                            onChange={(date) => setEditingWork({...editingWork, startDate: date})}
-                                            placeholder="Select start date"
-                                        />
-                                        <div className="space-y-2">
-                                            <div className="flex items-center space-x-2 mb-2">
+                                    {/* Company Logo */}
+                                    <div className="space-y-3">
+                                        <div>
+                                            <h3 className="text-sm font-medium mb-1">Company Logo</h3>
+                                            <p className="text-xs text-muted-foreground">Optional - appears in your work history</p>
+                                        </div>
+                                        <div className="flex items-center gap-4 p-4 bg-muted/30 border border-border/50 rounded-lg">
+                                            <div className="h-16 w-16 rounded-md border-2 border-dashed border-border flex items-center justify-center bg-background overflow-hidden flex-shrink-0">
+                                                {editingWork.logo ? (
+                                                    <img 
+                                                        src={editingWork.logo} 
+                                                        alt="Company logo" 
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <Briefcase className="h-6 w-6 text-muted-foreground" />
+                                                )}
+                                            </div>
+                                            <div className="flex-1 flex items-center gap-3">
+                                                <Input 
+                                                    id="logo-upload" 
+                                                    type="file" 
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) {
+                                                            const reader = new FileReader();
+                                                            reader.onloadend = () => {
+                                                                setEditingWork({...editingWork, logo: reader.result as string});
+                                                            };
+                                                            reader.readAsDataURL(file);
+                                                        }
+                                                    }}
+                                                />
+                                                <Label 
+                                                    htmlFor="logo-upload" 
+                                                    className="cursor-pointer inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+                                                >
+                                                    <Upload className="h-4 w-4" />
+                                                    {editingWork.logo ? 'Change' : 'Upload'}
+                                                </Label>
+                                                {editingWork.logo && (
+                                                    <Button 
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="default"
+                                                        onClick={() => setEditingWork({...editingWork, logo: ""})}
+                                                        className="gap-2 text-muted-foreground hover:text-destructive"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                        Remove
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Employment Period */}
+                                    <div className="space-y-4">
+                                        <div>
+                                            <h3 className="text-sm font-medium mb-1">Employment Period</h3>
+                                            <p className="text-xs text-muted-foreground">When did you work here?</p>
+                                        </div>
+                                        <div className="space-y-4 p-4 bg-muted/30 border border-border/50 rounded-lg">
+                                            <MonthYearPicker
+                                                label="Start Date"
+                                                value={editingWork.startDate}
+                                                onChange={(date) => setEditingWork({...editingWork, startDate: date})}
+                                            />
+                                            
+                                            {editingWork.endDate !== "Present" && (
+                                                <MonthYearPicker
+                                                    label="End Date"
+                                                    value={editingWork.endDate === "Present" ? "" : editingWork.endDate}
+                                                    onChange={(date) => setEditingWork({...editingWork, endDate: date})}
+                                                />
+                                            )}
+
+                                            <div className="flex items-center space-x-2 pt-2">
                                                 <Checkbox 
-                                                  id="present" 
-                                                  checked={editingWork.endDate === "Present"}
-                                                  onCheckedChange={(checked) => setEditingWork({...editingWork, endDate: checked ? "Present" : ""})}
+                                                    id="present" 
+                                                    checked={editingWork.endDate === "Present"}
+                                                    onCheckedChange={(checked) => setEditingWork({...editingWork, endDate: checked ? "Present" : ""})}
                                                 />
                                                 <label
-                                                  htmlFor="present"
-                                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                    htmlFor="present"
+                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                                                 >
-                                                  Currently working here
+                                                    I currently work here
                                                 </label>
                                             </div>
-                                            {editingWork.endDate !== "Present" && (
-                                              <MonthYearPicker
-                                                  label="End Date"
-                                                  value={editingWork.endDate === "Present" ? "" : editingWork.endDate}
-                                                  onChange={(date) => setEditingWork({...editingWork, endDate: date})}
-                                                  placeholder="Select end date"
-                                              />
-                                            )}
                                         </div>
                                     </div>
                                     
+                                    {/* Description */}
                                     <div className="space-y-2">
                                         <Label htmlFor="description">Description</Label>
                                         <Textarea 
@@ -1400,11 +1418,12 @@ export default function AdminDashboard() {
                                             value={editingWork.description} 
                                             onChange={(e) => setEditingWork({...editingWork, description: e.target.value})}
                                             placeholder="Brief description of your responsibilities and achievements..."
-                                            className="min-h-[120px]"
+                                            className="min-h-[140px] text-base"
                                         />
                                     </div>
 
-                                    <div className="pt-4 flex justify-end gap-2 border-t mt-6">
+                                    {/* Actions */}
+                                    <div className="pt-4 flex justify-end gap-2 border-t">
                                         <Button variant="outline" onClick={() => setIsWorkSheetOpen(false)}>Cancel</Button>
                                         <Button onClick={handleSaveWork}>Save Experience</Button>
                                     </div>
@@ -1459,10 +1478,12 @@ export default function AdminDashboard() {
                         <TableCell className="font-medium">{work.company}</TableCell>
                         <TableCell>{work.role}</TableCell>
                         <TableCell className="text-muted-foreground text-sm">
-                          {formatMonthYear(work.startDate)}
+                          {formatMonthYear(work.startDate) || '—'}
                         </TableCell>
                         <TableCell className="text-muted-foreground text-sm">
-                          {work.endDate === "Present" ? <Badge variant="secondary" className="font-normal text-xs">Present</Badge> : formatMonthYear(work.endDate)}
+                          {work.endDate === "Present" 
+                            ? <Badge variant="secondary" className="font-normal text-xs">Present</Badge> 
+                            : formatMonthYear(work.endDate) || '—'}
                         </TableCell>
                         <TableCell className="max-w-[300px] truncate text-muted-foreground text-sm">
                           {work.description}
