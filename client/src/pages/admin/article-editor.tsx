@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRoute, useLocation } from "wouter";
-import { ArrowLeft, Eye, ChevronRight, Settings, FileText, Tag, PanelRightClose, PanelRightOpen } from "lucide-react";
+import { ArrowLeft, Eye, CheckCircle, AlertCircle, FileText, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,18 +8,15 @@ import { Label } from "@/components/ui/label";
 import { useContent } from "@/lib/content-context";
 import { useToast } from "@/hooks/use-toast";
 import { Editor } from "@/components/admin/editor";
-import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from "@/components/ui/sheet";
 
 export default function ArticleEditor() {
   const [, params] = useRoute("/admin/article/:id");
@@ -38,6 +35,8 @@ export default function ArticleEditor() {
   const [seoKeywords, setSeoKeywords] = useState(existingArticle?.seoKeywords || "");
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved");
   const [lastSaved, setLastSaved] = useState<Date | null>(existingArticle?.updatedAt || null);
+  const [isPublishSheetOpen, setIsPublishSheetOpen] = useState(false);
+  const [hasManuallyEditedSlug, setHasManuallyEditedSlug] = useState(false);
   const [initialContent, setInitialContent] = useState({ 
     title: existingArticle?.title || "", 
     content: existingArticle?.content || "", 
@@ -46,23 +45,26 @@ export default function ArticleEditor() {
     tags: existingArticle?.tags || "",
     seoKeywords: existingArticle?.seoKeywords || ""
   });
-  const [metadataOpen, setMetadataOpen] = useState(true);
-  const [seoOpen, setSeoOpen] = useState(true);
-  const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
-  
-  // Auto-generate slug from title
+
+  // Auto-generate slug from title only if not manually edited
   useEffect(() => {
-    // Only auto-generate slug if it's empty or hasn't been manually edited
-    if (title && !slug) {
+    if (title && !hasManuallyEditedSlug) {
       const autoSlug = title
         .toLowerCase()
         .trim()
         .replace(/[^\w\s-]/g, '') // Remove special characters
         .replace(/\s+/g, '-')      // Replace spaces with hyphens
-        .replace(/-+/g, '-');      // Replace multiple hyphens with single hyphen
+        .replace(/-+/g, '-')       // Replace multiple hyphens with single hyphen
+        .replace(/^-+|-+$/g, '');  // Remove leading/trailing hyphens
       setSlug(autoSlug);
     }
-  }, [title, slug]);
+  }, [title, hasManuallyEditedSlug]);
+
+  // Track manual slug edits
+  const handleSlugChange = (value: string) => {
+    setSlug(value);
+    setHasManuallyEditedSlug(true);
+  };
 
   // Update local state when article data changes
   useEffect(() => {
@@ -74,6 +76,7 @@ export default function ArticleEditor() {
       setTags(existingArticle.tags || "");
       setSeoKeywords(existingArticle.seoKeywords || "");
       setLastSaved(existingArticle.updatedAt || null);
+      setHasManuallyEditedSlug(!!existingArticle.slug);
       setInitialContent({ 
         title: existingArticle.title, 
         content: existingArticle.content,
@@ -112,37 +115,50 @@ export default function ArticleEditor() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [saveStatus]);
 
-  const handleSave = useCallback(async () => {
+  const handleSaveDraft = useCallback(async () => {
     setSaveStatus("saving");
     
     try {
-      const articleData = {
-        title,
-        content,
-        slug: slug || undefined,
-        excerpt: excerpt || undefined,
-        tags: tags || undefined,
-        seoKeywords: seoKeywords || undefined,
-      };
-
       if (articleId && existingArticle) {
-        // Update existing article
+        // Update existing article - preserve existing status and published timestamps
+        const articleData = {
+          title: title || "Untitled",
+          content,
+          slug: slug || undefined,
+          excerpt: excerpt || undefined,
+          tags: tags || undefined,
+          seoKeywords: seoKeywords || undefined,
+          // Preserve existing status and published timestamps
+          status: existingArticle.status,
+          publishedAt: existingArticle.publishedAt,
+          firstPublishedAt: existingArticle.firstPublishedAt,
+          lastPublishedAt: existingArticle.lastPublishedAt,
+        };
+        
         await updateArticle(articleId, articleData);
         const now = new Date();
         setLastSaved(now);
         setInitialContent({ title, content, slug, excerpt, tags, seoKeywords });
         setSaveStatus("saved");
         toast({
-          title: "Draft saved",
+          title: existingArticle.status === "Published" ? "Changes saved" : "Draft saved",
           description: "Your changes have been saved successfully.",
         });
       } else {
-        // Create new article
+        // Create new article as draft
+        const articleData = {
+          title: title || "Untitled",
+          content,
+          slug: slug || undefined,
+          excerpt: excerpt || undefined,
+          tags: tags || undefined,
+          seoKeywords: seoKeywords || undefined,
+          status: "Draft",
+        };
+        
         const newArticle = await addArticle({
           ...articleData,
-          title: title || "Untitled",
           author: "Admin",
-          status: "Draft",
         });
         const now = new Date();
         setLastSaved(now);
@@ -176,11 +192,11 @@ export default function ArticleEditor() {
   useEffect(() => {
     if (saveStatus === "unsaved") {
       const timer = setTimeout(() => {
-        handleSave();
+        handleSaveDraft();
       }, 30000);
       return () => clearTimeout(timer);
     }
-  }, [saveStatus, handleSave]);
+  }, [saveStatus, handleSaveDraft]);
 
   const handleBack = () => {
     if (saveStatus === "unsaved") {
@@ -247,6 +263,7 @@ export default function ArticleEditor() {
         setLastSaved(now);
         setInitialContent({ title, content, slug, excerpt, tags, seoKeywords });
         setSaveStatus("saved");
+        setIsPublishSheetOpen(false);
         toast({
           title: "Article published",
           description: existingArticle.status === "Published" 
@@ -262,6 +279,7 @@ export default function ArticleEditor() {
         setLastSaved(now);
         setInitialContent({ title, content, slug, excerpt, tags, seoKeywords });
         setSaveStatus("saved");
+        setIsPublishSheetOpen(false);
         toast({
           title: "Article published",
           description: "Your article is now live!",
@@ -281,7 +299,6 @@ export default function ArticleEditor() {
 
   const textContent = content.replace(/<[^>]*>/g, '').trim();
   const wordCount = textContent.split(/\s+/).filter(Boolean).length;
-  const charCount = textContent.length;
   const readingTime = Math.ceil(wordCount / 200); // Assuming 200 words per minute
   
   // Check if publish requirements are met (must have actual text content, not just HTML tags)
@@ -322,19 +339,8 @@ export default function ArticleEditor() {
               </div>
 
               <Button
-                variant="ghost"
                 size="sm"
-                onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
-                data-testid="button-toggle-panel"
-                title={isPanelCollapsed ? "Show settings panel" : "Hide settings panel"}
-              >
-                {isPanelCollapsed ? <PanelRightOpen className="h-4 w-4" /> : <PanelRightClose className="h-4 w-4" />}
-              </Button>
-
-              <Button
-                size="sm"
-                onClick={handlePublish}
-                disabled={!canPublish || saveStatus === "saving"}
+                onClick={() => setIsPublishSheetOpen(true)}
                 data-testid="button-publish"
               >
                 <Eye className="h-4 w-4 mr-2" />
@@ -345,198 +351,202 @@ export default function ArticleEditor() {
         </div>
       </div>
 
-      {/* Editor Content - Two Column Layout */}
-      <ResizablePanelGroup direction="horizontal" className="min-h-[calc(100vh-4rem)]">
-        {/* Main Editor Panel */}
-        <ResizablePanel defaultSize={isPanelCollapsed ? 100 : 65} minSize={50}>
-          <div className="h-full overflow-y-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="max-w-3xl mx-auto space-y-8">
-              {/* Title Input */}
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Article title..."
-                className="text-4xl font-bold border-none px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
-                data-testid="input-article-title"
-              />
+      {/* Editor Content - Full Width */}
+      <div className="h-[calc(100vh-4rem)] overflow-y-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Title Input */}
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Article title..."
+            className="text-5xl font-bold border-none px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
+            data-testid="input-article-title"
+          />
 
-              {/* Rich Text Editor */}
-              <div className="min-h-[600px]">
-                <Editor
-                  content={content}
-                  onChange={setContent}
+          {/* Rich Text Editor */}
+          <div className="min-h-[600px]">
+            <Editor
+              content={content}
+              onChange={setContent}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Publish Settings Sheet */}
+      <Sheet open={isPublishSheetOpen} onOpenChange={setIsPublishSheetOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Publish Settings</SheetTitle>
+            <SheetDescription>
+              Review your article metadata before publishing
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="py-6 space-y-6">
+            {/* Validation Checklist */}
+            <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+              <h3 className="text-sm font-medium">Publishing Requirements</h3>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  {title.trim() ? (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-amber-500" />
+                  )}
+                  <span className={title.trim() ? "text-foreground" : "text-muted-foreground"}>
+                    Title added
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  {slug.trim() ? (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-amber-500" />
+                  )}
+                  <span className={slug.trim() ? "text-foreground" : "text-muted-foreground"}>
+                    URL slug set
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  {textContent ? (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-amber-500" />
+                  )}
+                  <span className={textContent ? "text-foreground" : "text-muted-foreground"}>
+                    Content written
+                  </span>
+                </div>
+              </div>
+              {!canPublish && (
+                <p className="text-xs text-muted-foreground pt-2 border-t">
+                  Complete all requirements above to publish
+                </p>
+              )}
+            </div>
+
+            {/* Metadata Fields */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="slug" className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  URL Slug
+                </Label>
+                <Input
+                  id="slug"
+                  value={slug}
+                  onChange={(e) => handleSlugChange(e.target.value)}
+                  placeholder="my-article-url"
+                  className="font-mono text-sm"
+                  data-testid="input-article-slug"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Auto-generated from title. Edit to customize.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="excerpt">
+                  Excerpt <span className="text-muted-foreground font-normal">(Optional)</span>
+                </Label>
+                <Textarea
+                  id="excerpt"
+                  value={excerpt}
+                  onChange={(e) => setExcerpt(e.target.value)}
+                  placeholder="Brief summary of your article..."
+                  rows={3}
+                  className="resize-none text-sm"
+                  data-testid="input-article-excerpt"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tags">
+                  Tags <span className="text-muted-foreground font-normal">(Optional)</span>
+                </Label>
+                <Input
+                  id="tags"
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  placeholder="react, typescript, web"
+                  className="text-sm"
+                  data-testid="input-article-tags"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Comma-separated tags
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="seoKeywords" className="flex items-center gap-2">
+                  <Tag className="h-4 w-4" />
+                  SEO Keywords <span className="text-muted-foreground font-normal">(Optional)</span>
+                </Label>
+                <Textarea
+                  id="seoKeywords"
+                  value={seoKeywords}
+                  onChange={(e) => setSeoKeywords(e.target.value)}
+                  placeholder="web development, react tutorials, programming..."
+                  rows={2}
+                  className="resize-none text-sm"
+                  data-testid="input-article-keywords"
                 />
               </div>
             </div>
-          </div>
-        </ResizablePanel>
 
-        {!isPanelCollapsed && (
-          <>
-            <ResizableHandle withHandle />
-
-            {/* Metadata & SEO Panel */}
-            <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
-          <div className="h-full overflow-y-auto border-l bg-muted/20">
-            <div className="p-6 space-y-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Settings className="h-5 w-5 text-muted-foreground" />
-                <h2 className="text-lg font-semibold">Article Settings</h2>
-              </div>
-
-              {/* Metadata Section */}
-              <Collapsible open={metadataOpen} onOpenChange={setMetadataOpen}>
-                <CollapsibleTrigger 
-                  className="flex items-center justify-between w-full group"
-                  data-testid="button-toggle-metadata"
-                >
-                  <div className="flex items-center gap-2 text-sm font-medium">
-                    <FileText className="h-4 w-4" />
-                    <span>Metadata</span>
-                  </div>
-                  <ChevronRight className={cn(
-                    "h-4 w-4 transition-transform",
-                    metadataOpen && "rotate-90"
-                  )} />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-4 space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="slug" className="text-xs text-muted-foreground">
-                      URL Slug
-                    </Label>
-                    <Input
-                      id="slug"
-                      value={slug}
-                      onChange={(e) => setSlug(e.target.value)}
-                      placeholder="my-article-url"
-                      className="font-mono text-sm"
-                      data-testid="input-article-slug"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Leave empty for drafts. Set before publishing.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="excerpt" className="text-xs text-muted-foreground">
-                      Excerpt
-                    </Label>
-                    <Textarea
-                      id="excerpt"
-                      value={excerpt}
-                      onChange={(e) => setExcerpt(e.target.value)}
-                      placeholder="Brief summary of your article..."
-                      rows={3}
-                      className="resize-none text-sm"
-                      data-testid="input-article-excerpt"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="tags" className="text-xs text-muted-foreground">
-                      Tags
-                    </Label>
-                    <Input
-                      id="tags"
-                      value={tags}
-                      onChange={(e) => setTags(e.target.value)}
-                      placeholder="react, typescript, web"
-                      className="text-sm"
-                      data-testid="input-article-tags"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Comma-separated tags
-                    </p>
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-
-              {/* SEO Section */}
-              <Collapsible open={seoOpen} onOpenChange={setSeoOpen}>
-                <CollapsibleTrigger 
-                  className="flex items-center justify-between w-full group"
-                  data-testid="button-toggle-seo"
-                >
-                  <div className="flex items-center gap-2 text-sm font-medium">
-                    <Tag className="h-4 w-4" />
-                    <span>SEO</span>
-                  </div>
-                  <ChevronRight className={cn(
-                    "h-4 w-4 transition-transform",
-                    seoOpen && "rotate-90"
-                  )} />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-4 space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="seoKeywords" className="text-xs text-muted-foreground">
-                      SEO Keywords
-                    </Label>
-                    <Textarea
-                      id="seoKeywords"
-                      value={seoKeywords}
-                      onChange={(e) => setSeoKeywords(e.target.value)}
-                      placeholder="web development, react tutorials, programming..."
-                      rows={2}
-                      className="resize-none text-sm"
-                      data-testid="input-article-keywords"
-                    />
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-
-              {/* Publishing Section */}
-              <div className="pt-4 border-t space-y-4">
-                <div className="flex items-center gap-2 text-sm font-medium mb-2">
-                  <Eye className="h-4 w-4" />
-                  <span>Publishing</span>
+            {/* Publishing Info */}
+            {existingArticle && (
+              <div className="pt-4 border-t space-y-2 text-xs text-muted-foreground">
+                <div className="flex justify-between">
+                  <span>Status:</span>
+                  <span className="font-medium" data-testid="text-article-status">{existingArticle.status}</span>
                 </div>
-                
-                <div className="space-y-2 text-xs text-muted-foreground">
+                {existingArticle.createdAt && (
                   <div className="flex justify-between">
-                    <span>Status:</span>
-                    <span className="font-medium" data-testid="text-article-status">{existingArticle?.status || "Draft"}</span>
+                    <span>Created:</span>
+                    <span data-testid="text-created-date">{format(new Date(existingArticle.createdAt), "MMM d, yyyy")}</span>
                   </div>
-                  {existingArticle?.createdAt && (
-                    <div className="flex justify-between">
-                      <span>Created:</span>
-                      <span data-testid="text-created-date">{format(new Date(existingArticle.createdAt), "MMM d, yyyy")}</span>
-                    </div>
-                  )}
-                  {existingArticle?.firstPublishedAt && (
-                    <div className="flex justify-between">
-                      <span>First published:</span>
-                      <span data-testid="text-first-published-date">{format(new Date(existingArticle.firstPublishedAt), "MMM d, yyyy")}</span>
-                    </div>
-                  )}
-                  {existingArticle?.lastPublishedAt && (
-                    <div className="flex justify-between">
-                      <span>Last published:</span>
-                      <span data-testid="text-last-published-date">{format(new Date(existingArticle.lastPublishedAt), "MMM d, yyyy")}</span>
-                    </div>
-                  )}
-                </div>
-
-                <Button 
-                  className="w-full" 
-                  size="sm"
-                  onClick={handlePublish}
-                  disabled={!canPublish || saveStatus === "saving"}
-                  data-testid="button-publish-article"
-                >
-                  {existingArticle?.status === "Published" ? "Update Published Article" : "Publish Article"}
-                </Button>
-                {!canPublish && (
-                  <p className="text-xs text-muted-foreground text-center">
-                    Requires: title, slug, and content
-                  </p>
+                )}
+                {existingArticle.firstPublishedAt && (
+                  <div className="flex justify-between">
+                    <span>First published:</span>
+                    <span data-testid="text-first-published-date">{format(new Date(existingArticle.firstPublishedAt), "MMM d, yyyy")}</span>
+                  </div>
+                )}
+                {existingArticle.lastPublishedAt && (
+                  <div className="flex justify-between">
+                    <span>Last published:</span>
+                    <span data-testid="text-last-published-date">{format(new Date(existingArticle.lastPublishedAt), "MMM d, yyyy")}</span>
+                  </div>
                 )}
               </div>
-            </div>
+            )}
           </div>
-        </ResizablePanel>
-        </>
-        )}
-      </ResizablePanelGroup>
+
+          <SheetFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={async () => {
+                await handleSaveDraft();
+                setIsPublishSheetOpen(false);
+              }}
+              disabled={saveStatus === "saving"}
+              data-testid="button-save-draft"
+            >
+              Save as Draft
+            </Button>
+            <Button
+              onClick={handlePublish}
+              disabled={!canPublish || saveStatus === "saving"}
+              data-testid="button-publish-article"
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              {existingArticle?.status === "Published" ? "Update Published" : "Publish Article"}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
