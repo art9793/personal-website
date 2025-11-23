@@ -125,3 +125,32 @@ Preferred communication style: Simple, everyday language.
 - TypeScript with strict mode enabled
 - Path aliases: @/ (client), @shared/ (shared schema), @assets/ (attached assets)
 - Module resolution: bundler mode for maximum compatibility
+
+**Object Storage**
+- Replit Object Storage integration for file uploads
+- @google-cloud/storage for GCS bucket access
+- ObjectUploader component using Uppy Dashboard for file management
+- ACL-based access control for public/private objects
+- Profile avatars stored with public visibility for homepage display
+
+## Recent Changes
+
+### November 23, 2025: Profile Avatar Upload Feature
+- Removed hardcoded placeholder profile image (logo.jpg)
+- Implemented avatar upload functionality through admin dashboard
+- Built ObjectUploader component using Uppy Dashboard with image-only restrictions
+- Integrated with Replit Object Storage for secure cloud hosting
+- Avatars stored with public ACL, accessible to unauthenticated homepage visitors
+- Upload flow: presigned URL generation → Uppy upload → ACL configuration → database persistence
+- Homepage conditionally renders avatar only when profile.avatarUrl exists
+- Enhanced social icons with brand-specific colors (Twitter blue, LinkedIn blue, GitHub dark) and hover effects
+
+### November 22-23, 2025: Article Editor Redesign & Publishing Workflow
+- Redesigned article editor into world-class publishing experience
+- Split editing into two distinct modes: Write Mode (clean distraction-free editor) and Publish Mode (comprehensive metadata and publishing controls)
+- Publish Mode uses Sheet overlay with validation checklist (title, slug, description, cover image, featured image, excerpt, SEO)
+- Removed inline publish button from editor for cleaner UX
+- Added auto-save functionality for drafts
+- Improved cache invalidation after article updates
+- Fixed back button routing from article detail to proper list view
+- Enhanced routing with consistent /admin/articles/* pattern
