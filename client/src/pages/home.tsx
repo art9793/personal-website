@@ -76,10 +76,10 @@ export default function Home() {
                 href={profile.twitter} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="group flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-background hover:bg-black hover:border-black transition-all duration-200 hover:scale-105 hover:shadow-md"
+                className="group flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-background hover:bg-black dark:hover:bg-white hover:border-black dark:hover:border-white transition-all duration-200 hover:scale-105 hover:shadow-md"
                 data-testid="link-twitter"
               >
-                <svg className="h-3.5 w-3.5 text-foreground group-hover:text-white transition-colors" viewBox="0 0 24 24" fill="currentColor">
+                <svg className="h-3.5 w-3.5 text-foreground group-hover:text-white dark:group-hover:text-black transition-colors" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                 </svg>
               </a>
