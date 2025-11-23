@@ -33,6 +33,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
+import { MonthYearPicker } from "@/components/ui/month-year-picker";
 import {
   Table,
   TableBody,
@@ -1361,60 +1362,14 @@ export default function AdminDashboard() {
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
+                                        <MonthYearPicker
+                                            label="Start Date"
+                                            value={editingWork.startDate}
+                                            onChange={(date) => setEditingWork({...editingWork, startDate: date})}
+                                            placeholder="Select start date"
+                                        />
                                         <div className="space-y-2">
-                                            <Label htmlFor="startDate">Start Date</Label>
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button
-                                                        variant={"outline"}
-                                                        className={cn(
-                                                            "w-full justify-start text-left font-normal",
-                                                            !editingWork.startDate && "text-muted-foreground"
-                                                        )}
-                                                    >
-                                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                                        {editingWork.startDate ? format(new Date(editingWork.startDate), "PPP") : <span>Pick a date</span>}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-auto p-0" align="start">
-                                                    <Calendar
-                                                        mode="single"
-                                                        selected={editingWork.startDate ? new Date(editingWork.startDate) : undefined}
-                                                        onSelect={(date) => setEditingWork({...editingWork, startDate: date ? format(date, "yyyy-MM-dd") : ""})}
-                                                        initialFocus
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="endDate">End Date</Label>
-                                            <div className="flex gap-2 flex-col">
-                                              <div className="flex-1">
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button
-                                                            variant={"outline"}
-                                                            className={cn(
-                                                                "w-full justify-start text-left font-normal",
-                                                                (!editingWork.endDate || editingWork.endDate === "Present") && "text-muted-foreground"
-                                                            )}
-                                                            disabled={editingWork.endDate === "Present"}
-                                                        >
-                                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                                            {editingWork.endDate && editingWork.endDate !== "Present" ? format(new Date(editingWork.endDate), "PPP") : <span>Pick a date</span>}
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-auto p-0" align="start">
-                                                        <Calendar
-                                                            mode="single"
-                                                            selected={editingWork.endDate && editingWork.endDate !== "Present" ? new Date(editingWork.endDate) : undefined}
-                                                            onSelect={(date) => setEditingWork({...editingWork, endDate: date ? format(date, "yyyy-MM-dd") : ""})}
-                                                            initialFocus
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
-                                              </div>
-                                              <div className="flex items-center space-x-2 mt-1">
+                                            <div className="flex items-center space-x-2 mb-2">
                                                 <Checkbox 
                                                   id="present" 
                                                   checked={editingWork.endDate === "Present"}
@@ -1424,10 +1379,17 @@ export default function AdminDashboard() {
                                                   htmlFor="present"
                                                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                                 >
-                                                  Present (Currently working here)
+                                                  Currently working here
                                                 </label>
-                                              </div>
                                             </div>
+                                            {editingWork.endDate !== "Present" && (
+                                              <MonthYearPicker
+                                                  label="End Date"
+                                                  value={editingWork.endDate}
+                                                  onChange={(date) => setEditingWork({...editingWork, endDate: date})}
+                                                  placeholder="Select end date"
+                                              />
+                                            )}
                                         </div>
                                     </div>
                                     
