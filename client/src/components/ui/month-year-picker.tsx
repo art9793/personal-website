@@ -116,7 +116,7 @@ export function MonthYearPicker({ value, onChange, label }: MonthYearPickerProps
           <SelectTrigger className={cn("w-[120px] flex-shrink-0", !selectedYear && "text-muted-foreground")}>
             <SelectValue placeholder="Year" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper" className="max-h-[300px] overflow-y-auto">
             {YEARS.map((year) => (
               <SelectItem key={year} value={year}>
                 {year}
