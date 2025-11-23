@@ -480,6 +480,44 @@ export default function AdminDashboard() {
   const handleSaveWork = async () => {
     if (!editingWork) return;
 
+    // Validation
+    if (!editingWork.company?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a company name.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!editingWork.role?.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a role title.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!editingWork.startDate) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a start date.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Require either "Present" or an actual end date - no ambiguous empty state
+    if (!editingWork.endDate || (editingWork.endDate !== "Present" && !editingWork.endDate.trim())) {
+      toast({
+        title: "Validation Error",
+        description: "Please either check 'I currently work here' or select an end date.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (editingWork.id && workHistory.some(w => w.id === editingWork.id)) {
       await updateWork(editingWork.id, editingWork);
     } else {
