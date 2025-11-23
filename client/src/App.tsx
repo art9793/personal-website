@@ -17,6 +17,7 @@ const Reading = lazy(() => import("@/pages/reading"));
 const Work = lazy(() => import("@/pages/work"));
 const AdminDashboard = lazy(() => import("@/pages/admin/dashboard"));
 const AdminLogin = lazy(() => import("@/pages/admin/login"));
+const ArticleEditor = lazy(() => import("@/pages/admin/article-editor"));
 
 function LoadingFallback() {
   return (
@@ -88,6 +89,13 @@ function Router() {
           <Suspense fallback={<LoadingFallback />}>
             <AdminLogin />
           </Suspense>
+        </Route>
+        <Route path="/admin/article/:id">
+          {() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <ProtectedRoute component={ArticleEditor} />
+            </Suspense>
+          )}
         </Route>
         <Route path="/admin">
           {() => (

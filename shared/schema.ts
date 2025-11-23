@@ -98,7 +98,7 @@ export type SeoSettings = typeof seoSettings.$inferSelect;
 export const articles = pgTable("articles", {
   id: serial("id").primaryKey(),
   title: varchar("title", { length: 500 }).notNull(),
-  slug: varchar("slug", { length: 500 }).notNull().unique(),
+  slug: varchar("slug", { length: 500 }),
   content: text("content").notNull(),
   excerpt: text("excerpt"),
   tags: text("tags"),
@@ -114,9 +114,10 @@ export const articles = pgTable("articles", {
 });
 
 export const insertArticleSchema = createInsertSchema(articles, {
-  publishedAt: z.union([z.date(), z.string().datetime().transform(val => new Date(val)), z.string().transform(val => new Date(val))]).optional(),
-  firstPublishedAt: z.union([z.date(), z.string().datetime().transform(val => new Date(val)), z.string().transform(val => new Date(val))]).optional(),
-  lastPublishedAt: z.union([z.date(), z.string().datetime().transform(val => new Date(val)), z.string().transform(val => new Date(val))]).optional(),
+  slug: z.string().nullable().optional(),
+  publishedAt: z.union([z.date(), z.string().datetime().transform(val => new Date(val)), z.string().transform(val => new Date(val))]).nullable().optional(),
+  firstPublishedAt: z.union([z.date(), z.string().datetime().transform(val => new Date(val)), z.string().transform(val => new Date(val))]).nullable().optional(),
+  lastPublishedAt: z.union([z.date(), z.string().datetime().transform(val => new Date(val)), z.string().transform(val => new Date(val))]).nullable().optional(),
 }).omit({
   id: true,
   createdAt: true,
