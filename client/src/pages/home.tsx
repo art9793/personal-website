@@ -70,16 +70,18 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="flex items-center gap-3 pt-2">
+          <div className="flex items-center gap-2.5 pt-2">
             {profile.twitter && (profile.showTwitter ?? true) && (
               <a 
                 href={profile.twitter} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="group flex items-center justify-center h-11 w-11 rounded-lg border border-border bg-background hover:bg-[#1DA1F2] hover:border-[#1DA1F2] transition-all duration-200 hover:scale-105 hover:shadow-md"
+                className="group flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-background hover:bg-black hover:border-black transition-all duration-200 hover:scale-105 hover:shadow-md"
                 data-testid="link-twitter"
               >
-                <Twitter className="h-5 w-5 text-foreground group-hover:text-white transition-colors" />
+                <svg className="h-3.5 w-3.5 text-foreground group-hover:text-white transition-colors" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
               </a>
             )}
             {profile.linkedin && (profile.showLinkedin ?? true) && (
@@ -87,10 +89,10 @@ export default function Home() {
                 href={profile.linkedin} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="group flex items-center justify-center h-11 w-11 rounded-lg border border-border bg-background hover:bg-[#0A66C2] hover:border-[#0A66C2] transition-all duration-200 hover:scale-105 hover:shadow-md"
+                className="group flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-background hover:bg-[#0A66C2] hover:border-[#0A66C2] transition-all duration-200 hover:scale-105 hover:shadow-md"
                 data-testid="link-linkedin"
               >
-                <Linkedin className="h-5 w-5 text-foreground group-hover:text-white transition-colors" />
+                <Linkedin className="h-4 w-4 text-foreground group-hover:text-white transition-colors" />
               </a>
             )}
             {profile.github && (profile.showGithub ?? true) && (
@@ -98,19 +100,19 @@ export default function Home() {
                 href={profile.github} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="group flex items-center justify-center h-11 w-11 rounded-lg border border-border bg-background hover:bg-[#24292e] dark:hover:bg-white hover:border-[#24292e] dark:hover:border-white transition-all duration-200 hover:scale-105 hover:shadow-md"
+                className="group flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-background hover:bg-[#24292e] dark:hover:bg-white hover:border-[#24292e] dark:hover:border-white transition-all duration-200 hover:scale-105 hover:shadow-md"
                 data-testid="link-github"
               >
-                <Github className="h-5 w-5 text-foreground group-hover:text-white dark:group-hover:text-[#24292e] transition-colors" />
+                <Github className="h-4 w-4 text-foreground group-hover:text-white dark:group-hover:text-[#24292e] transition-colors" />
               </a>
             )}
             {profile.email && (profile.showEmail ?? true) && (
               <a 
                 href={`mailto:${profile.email}`}
-                className="group flex items-center justify-center h-11 w-11 rounded-lg border border-border bg-background hover:bg-primary hover:border-primary transition-all duration-200 hover:scale-105 hover:shadow-md"
+                className="group flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-background hover:bg-primary hover:border-primary transition-all duration-200 hover:scale-105 hover:shadow-md"
                 data-testid="link-email"
               >
-                <Mail className="h-5 w-5 text-foreground group-hover:text-primary-foreground transition-colors" />
+                <Mail className="h-4 w-4 text-foreground group-hover:text-primary-foreground transition-colors" />
               </a>
             )}
           </div>

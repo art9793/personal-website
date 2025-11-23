@@ -12,8 +12,38 @@ export default function Work() {
   }
 
   const formatDateRange = (startDate: string, endDate: string) => {
-    return `${startDate} — ${endDate}`;
+    // Parse start date
+    const startYear = !startDate ? 'Unknown' : (() => {
+      const startDateObj = new Date(startDate);
+      return isNaN(startDateObj.getTime()) ? startDate : startDateObj.getFullYear();
+    })();
+    
+    // Parse end date
+    const endYear = !endDate ? (startYear === 'Unknown' ? 'Unknown' : 'Present') : (() => {
+      const endDateLower = endDate.toLowerCase();
+      if (endDateLower === 'present') return 'Present';
+      const endDateObj = new Date(endDate);
+      return isNaN(endDateObj.getTime()) ? endDate : endDateObj.getFullYear();
+    })();
+    
+    // Format range
+    if (startYear === 'Unknown' && endYear === 'Unknown') return 'Unknown';
+    if (startYear === 'Unknown') return `Unknown — ${endYear}`;
+    if (endYear === startYear) return String(startYear);
+    return `${startYear} — ${endYear}`;
   };
+
+  const sortedWorkHistory = [...workHistory].sort((a, b) => {
+    const getEndDateForSort = (endDate: string) => {
+      if (!endDate || endDate.toLowerCase() === 'present') return new Date();
+      const date = new Date(endDate);
+      return isNaN(date.getTime()) ? new Date(0) : date;
+    };
+    
+    const endDateA = getEndDateForSort(a.endDate);
+    const endDateB = getEndDateForSort(b.endDate);
+    return endDateB.getTime() - endDateA.getTime();
+  });
 
   return (
     <div className="space-y-12">
@@ -25,12 +55,12 @@ export default function Work() {
       </div>
 
       <div className="space-y-8">
-        {workHistory.length === 0 ? (
+        {sortedWorkHistory.length === 0 ? (
           <p className="text-muted-foreground text-center py-12">
             No work experience added yet.
           </p>
         ) : (
-          workHistory.map((item) => (
+          sortedWorkHistory.map((item) => (
             <div key={item.id} className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-8 group p-2 -mx-2 rounded-lg hover:bg-secondary/40 transition-colors" data-testid={`work-${item.id}`}>
               <div className="w-32 flex-shrink-0 text-sm text-muted-foreground font-mono">
                 {formatDateRange(item.startDate, item.endDate)}

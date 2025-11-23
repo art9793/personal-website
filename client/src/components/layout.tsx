@@ -25,7 +25,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { href: "/", label: "Home", icon: Home },
     { href: "/writing", label: "Writing", icon: PenTool },
     { href: "/projects", label: "Projects", icon: FolderGit2 },
-    { href: "/reading", label: "Reading", icon: BookOpen },
     { href: "/work", label: "Work", icon: Briefcase },
   ];
 

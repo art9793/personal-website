@@ -40,56 +40,95 @@ export default function Projects() {
       </div>
 
       {activeProjects.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
-            <FolderGit2 className="h-6 w-6 text-muted-foreground" />
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
+            <FolderGit2 className="h-8 w-8 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-medium">No projects found</h3>
+          <p className="text-sm text-muted-foreground mt-1">Check back later for updates</p>
         </div>
       ) : (
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
-          {activeProjects.map((project) => (
-            <a 
-              key={project.id} 
-              href={project.link} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="group flex items-center gap-4 p-4 rounded-xl border bg-card hover:bg-secondary/40 hover:border-secondary-foreground/10 transition-all active:scale-[0.98] min-w-0"
-            >
-              <div className={cn(
-                "h-12 w-12 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0",
-                getProjectColor(project.title)
-              )}>
-                 <div className="font-bold text-lg">{project.title[0]}</div>
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1">
-                  <h3 className="font-semibold text-base truncate text-primary group-hover:text-primary transition-colors">
-                    {project.title}
-                  </h3>
-                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+          {activeProjects.map((project) => {
+            const baseClassName = cn(
+              "group relative block rounded-2xl border bg-card hover:shadow-lg transition-all duration-300 overflow-hidden",
+              project.featured && "ring-2 ring-primary/10",
+              project.link && "cursor-pointer"
+            );
+            
+            const content = (
+              <>
+              <div className="p-6 space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className={cn(
+                    "h-14 w-14 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0 transition-transform group-hover:scale-105",
+                    getProjectColor(project.title)
+                  )}>
+                    <div className="font-bold text-xl">{project.title[0]}</div>
+                  </div>
+                  
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-semibold text-lg leading-tight text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {project.title}
+                      </h3>
+                      {project.link && (
+                        <ExternalLink className="h-4 w-4 text-muted-foreground opacity-60 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-0.5" />
+                      )}
+                    </div>
+                    {project.featured && (
+                      <Badge variant="secondary" className="text-[10px] h-5 font-medium px-2 bg-primary/10 text-primary border-0">
+                        Featured
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground truncate leading-relaxed">
+                
+                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
                   {project.description}
                 </p>
+                
                 {project.tags && (
-                  <div className="flex gap-1.5 mt-2 overflow-hidden">
-                    {project.tags.split(',').slice(0, 2).map((tag, i) => (
-                      <Badge key={i} variant="secondary" className="text-[10px] h-5 font-normal px-1.5 text-muted-foreground bg-secondary/50">
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {project.tags.split(',').slice(0, 3).map((tag, i) => (
+                      <Badge key={i} variant="secondary" className="text-xs h-6 font-normal px-2.5 text-muted-foreground bg-secondary/60 hover:bg-secondary transition-colors">
                         {tag.trim()}
                       </Badge>
                     ))}
-                    {project.tags.split(',').length > 2 && (
-                      <Badge variant="secondary" className="text-[10px] h-5 font-normal px-1.5 text-muted-foreground bg-secondary/50">
-                        +{project.tags.split(',').length - 2}
+                    {project.tags.split(',').length > 3 && (
+                      <Badge variant="secondary" className="text-xs h-6 font-normal px-2.5 text-muted-foreground bg-secondary/60">
+                        +{project.tags.split(',').length - 3}
                       </Badge>
                     )}
                   </div>
                 )}
               </div>
-            </a>
-          ))}
+              
+              <div className="absolute inset-0 border-2 border-transparent group-hover:border-primary/20 rounded-2xl transition-colors pointer-events-none" />
+              </>
+            );
+            
+            return project.link ? (
+              <a
+                key={project.id}
+                href={project.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={baseClassName}
+                data-testid={`project-${project.id}`}
+              >
+                {content}
+              </a>
+            ) : (
+              <div
+                key={project.id}
+                className={baseClassName}
+                data-testid={`project-${project.id}`}
+              >
+                {content}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

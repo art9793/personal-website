@@ -251,6 +251,72 @@
   padding-left: 0 !important;
 }
 
+/* Notion-style nested bullet lists: • → ○ → ■ → • ... (cycles through levels) */
+.ProseMirror ul:not([data-type="taskList"]) {
+  list-style-type: disc;
+}
+.ProseMirror ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) {
+  list-style-type: circle;
+  margin-left: 1.5rem !important;
+}
+.ProseMirror ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) {
+  list-style-type: square;
+  margin-left: 1.5rem !important;
+}
+.ProseMirror ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) {
+  list-style-type: disc;
+  margin-left: 1.5rem !important;
+}
+.ProseMirror ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) {
+  list-style-type: circle;
+  margin-left: 1.5rem !important;
+}
+.ProseMirror ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) {
+  list-style-type: square;
+  margin-left: 1.5rem !important;
+}
+.ProseMirror ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) {
+  list-style-type: disc;
+  margin-left: 1.5rem !important;
+}
+.ProseMirror ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) {
+  list-style-type: circle;
+  margin-left: 1.5rem !important;
+}
+
+/* Notion-style nested numbered lists: 1,2,3 → a,b,c → i,ii,iii → 1,2,3 ... (cycles through levels) */
+.ProseMirror ol {
+  list-style-type: decimal;
+}
+.ProseMirror ol ol {
+  list-style-type: lower-alpha;
+  margin-left: 1.5rem !important;
+}
+.ProseMirror ol ol ol {
+  list-style-type: lower-roman;
+  margin-left: 1.5rem !important;
+}
+.ProseMirror ol ol ol ol {
+  list-style-type: decimal;
+  margin-left: 1.5rem !important;
+}
+.ProseMirror ol ol ol ol ol {
+  list-style-type: lower-alpha;
+  margin-left: 1.5rem !important;
+}
+.ProseMirror ol ol ol ol ol ol {
+  list-style-type: lower-roman;
+  margin-left: 1.5rem !important;
+}
+.ProseMirror ol ol ol ol ol ol ol {
+  list-style-type: decimal;
+  margin-left: 1.5rem !important;
+}
+.ProseMirror ol ol ol ol ol ol ol ol {
+  list-style-type: lower-alpha;
+  margin-left: 1.5rem !important;
+}
+
 /* Syntax highlighting for code blocks */
 .ProseMirror .hljs-comment,
 .ProseMirror .hljs-quote {
@@ -435,6 +501,72 @@
   margin-top: 0.25rem !important;
   margin-bottom: 0 !important;
   padding-left: 0 !important;
+}
+
+/* Notion-style nested bullet lists: • → ○ → ■ → • ... (cycles through levels) */
+.prose ul:not([data-type="taskList"]) {
+  list-style-type: disc;
+}
+.prose ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) {
+  list-style-type: circle;
+  margin-left: 1.5rem !important;
+}
+.prose ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) {
+  list-style-type: square;
+  margin-left: 1.5rem !important;
+}
+.prose ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) {
+  list-style-type: disc;
+  margin-left: 1.5rem !important;
+}
+.prose ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) {
+  list-style-type: circle;
+  margin-left: 1.5rem !important;
+}
+.prose ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) {
+  list-style-type: square;
+  margin-left: 1.5rem !important;
+}
+.prose ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) {
+  list-style-type: disc;
+  margin-left: 1.5rem !important;
+}
+.prose ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) {
+  list-style-type: circle;
+  margin-left: 1.5rem !important;
+}
+
+/* Notion-style nested numbered lists: 1,2,3 → a,b,c → i,ii,iii → 1,2,3 ... (cycles through levels) */
+.prose ol {
+  list-style-type: decimal;
+}
+.prose ol ol {
+  list-style-type: lower-alpha;
+  margin-left: 1.5rem !important;
+}
+.prose ol ol ol {
+  list-style-type: lower-roman;
+  margin-left: 1.5rem !important;
+}
+.prose ol ol ol ol {
+  list-style-type: decimal;
+  margin-left: 1.5rem !important;
+}
+.prose ol ol ol ol ol {
+  list-style-type: lower-alpha;
+  margin-left: 1.5rem !important;
+}
+.prose ol ol ol ol ol ol {
+  list-style-type: lower-roman;
+  margin-left: 1.5rem !important;
+}
+.prose ol ol ol ol ol ol ol {
+  list-style-type: decimal;
+  margin-left: 1.5rem !important;
+}
+.prose ol ol ol ol ol ol ol ol {
+  list-style-type: lower-alpha;
+  margin-left: 1.5rem !important;
 }
 
 /* Syntax highlighting for code blocks */
