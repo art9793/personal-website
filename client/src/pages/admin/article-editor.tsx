@@ -333,14 +333,15 @@ export default function ArticleEditor() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="sticky top-0 z-10 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleBack}
+                className="text-muted-foreground hover:text-foreground"
                 data-testid="button-back"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -353,23 +354,26 @@ export default function ArticleEditor() {
                   <span className="animate-pulse">●</span>
                 )}
                 {saveStatus === "saved" && lastSaved && (
-                  <span className="opacity-50">Auto-saved</span>
+                  <span className="opacity-50">Saved</span>
                 )}
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <div className="hidden md:flex items-center gap-4 text-xs text-muted-foreground mr-4">
-                <span>{wordCount} words</span>
-                <span>{readingTime} min read</span>
+            <div className="flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="font-mono">{wordCount}</span>
+                <span className="text-muted-foreground/40">•</span>
+                <span>{readingTime} read</span>
               </div>
 
               <Button
+                variant="default"
                 size="sm"
                 onClick={() => setIsPublishSheetOpen(true)}
+                className="gap-2"
                 data-testid="button-publish"
               >
-                <Eye className="h-4 w-4 mr-2" />
+                <Eye className="h-3.5 w-3.5" />
                 {existingArticle?.status === "Published" ? "Update" : "Publish"}
               </Button>
             </div>
@@ -378,14 +382,14 @@ export default function ArticleEditor() {
       </div>
 
       {/* Editor Content - Full Width */}
-      <div className="h-[calc(100vh-4rem)] overflow-y-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="h-[calc(100vh-3.5rem)] overflow-y-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
-          {/* Title Input */}
+          {/* Title Input - Notion Style */}
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Article title..."
-            className="text-5xl font-bold border-none px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
+            placeholder="Untitled"
+            className="text-5xl font-bold h-auto border-none shadow-none px-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/30"
             data-testid="input-article-title"
           />
 

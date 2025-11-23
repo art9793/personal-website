@@ -632,11 +632,16 @@ export default function AdminDashboard() {
     );
   };
 
+  const getWordCount = (content: string) => {
+    const text = content.replace(/<[^>]*>?/gm, ''); 
+    const noOfWords = text.split(/\s+/).filter(Boolean).length;
+    return noOfWords;
+  };
+
   const getReadingTime = (content: string) => {
     const wordsPerMinute = 200;
-    const text = content.replace(/<[^>]*>?/gm, ''); 
-    const noOfWords = text.split(/\s/g).length;
-    const minutes = Math.ceil(noOfWords / wordsPerMinute);
+    const wordCount = getWordCount(content);
+    const minutes = Math.ceil(wordCount / wordsPerMinute);
     return `${minutes} min read`;
   };
 
@@ -1129,6 +1134,7 @@ export default function AdminDashboard() {
                                     Tags {sortConfig?.key === 'tags' && <ArrowUpDown className="h-3 w-3" />}
                                 </div>
                             </TableHead>
+                            <TableHead className="whitespace-nowrap">Word Count</TableHead>
                             <TableHead className="whitespace-nowrap">Read Time</TableHead>
                             <TableHead className="cursor-pointer hover:text-foreground text-right" onClick={() => handleSort('views')}>
                                 <div className="flex items-center justify-end gap-1">
@@ -1151,7 +1157,7 @@ export default function AdminDashboard() {
                     <TableBody>
                         {filteredArticles.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                                <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
                                     No results found.
                                 </TableCell>
                             </TableRow>
@@ -1180,6 +1186,9 @@ export default function AdminDashboard() {
                                                 {article.tags.split(',').length > 1 && ` +${article.tags.split(',').length - 1}`}
                                             </Badge>
                                         ) : "—"}
+                                    </TableCell>
+                                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap font-mono">
+                                        {getWordCount(article.content).toLocaleString()}
                                     </TableCell>
                                     <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                                         {getReadingTime(article.content)}
@@ -1836,194 +1845,187 @@ export default function AdminDashboard() {
            )}
 
           {activeTab === "settings" && (
-            <div className="max-w-2xl space-y-8">
+            <div className="max-w-3xl space-y-8">
               <div>
                 <h2 className="text-2xl font-bold tracking-tight">Home Page Settings</h2>
                 <p className="text-muted-foreground mt-1">Manage your profile and home page content.</p>
               </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Profile Information</CardTitle>
-                  <CardDescription>This will be displayed on your home page.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-start gap-6">
-                    <Avatar className="h-24 w-24 border-2 border-border/40">
-                      {formData?.avatarUrl ? (
-                        <AvatarImage src={formData.avatarUrl} alt={formData.name || 'Profile'} />
-                      ) : null}
-                      <AvatarFallback className="text-lg">{formData?.name?.substring(0, 2).toUpperCase() || 'AT'}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <ObjectUploader
-                          maxNumberOfFiles={1}
-                          maxFileSize={5242880}
-                          onGetUploadParameters={handleAvatarUpload}
-                          onComplete={handleAvatarUploadComplete}
-                          buttonClassName="gap-2"
-                        >
-                          <Upload className="h-4 w-4" />
-                          {formData?.avatarUrl ? 'Change Photo' : 'Upload Photo'}
-                        </ObjectUploader>
-                        {formData?.avatarUrl && (
-                          <Button 
-                            variant="outline" 
-                            size="default"
-                            onClick={handleDeleteAvatar}
-                            className="gap-2"
-                            data-testid="button-delete-avatar"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Remove
-                          </Button>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Upload a profile picture (JPG, PNG, or GIF, max 5MB). This will be displayed on your homepage.
-                      </p>
-                    </div>
+              {/* Avatar Section */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium mb-1">Profile Picture</h3>
+                  <p className="text-xs text-muted-foreground">This image appears on your homepage</p>
+                </div>
+                <div className="flex items-center gap-6 p-6 bg-muted/30 border border-border/50 rounded-lg">
+                  <Avatar className="h-20 w-20">
+                    {formData?.avatarUrl ? (
+                      <AvatarImage src={formData.avatarUrl} alt={formData.name || 'Profile'} />
+                    ) : null}
+                    <AvatarFallback className="text-lg bg-muted">{formData?.name?.substring(0, 2).toUpperCase() || 'AT'}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 flex items-center gap-3">
+                    <ObjectUploader
+                      maxNumberOfFiles={1}
+                      maxFileSize={5242880}
+                      onGetUploadParameters={handleAvatarUpload}
+                      onComplete={handleAvatarUploadComplete}
+                      buttonClassName="gap-2"
+                    >
+                      <Upload className="h-4 w-4" />
+                      {formData?.avatarUrl ? 'Change' : 'Upload'}
+                    </ObjectUploader>
+                    {formData?.avatarUrl && (
+                      <Button 
+                        variant="ghost"
+                        size="default"
+                        onClick={handleDeleteAvatar}
+                        className="gap-2 text-muted-foreground hover:text-destructive"
+                        data-testid="button-delete-avatar"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Profile Information */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium mb-1">Profile Information</h3>
+                  <p className="text-xs text-muted-foreground">Your name, title, and bio</p>
+                </div>
+                <div className="space-y-4 p-6 bg-muted/30 border border-border/50 rounded-lg">
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-xs font-medium text-muted-foreground">Full Name</Label>
+                    <Input 
+                      id="name" 
+                      value={formData?.name || ''} 
+                      onChange={(e) => setFormData(formData ? {...formData, name: e.target.value} : undefined)}
+                      className="border-none bg-background shadow-sm"
+                    />
                   </div>
                   
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Full Name</Label>
-                      <Input 
-                        id="name" 
-                        value={formData?.name || ''} 
-                        onChange={(e) => setFormData(formData ? {...formData, name: e.target.value} : undefined)} 
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="role">Job Title</Label>
-                      <Input 
-                        id="role" 
-                        value={formData?.title || ''} 
-                        onChange={(e) => setFormData(formData ? {...formData, title: e.target.value} : undefined)} 
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="bio">Bio</Label>
-                      <Textarea 
-                        id="bio" 
-                        value={formData?.bio || ''} 
-                        onChange={(e) => setFormData(formData ? {...formData, bio: e.target.value} : undefined)} 
-                        className="h-24"
-                      />
-                    </div>
-
-                    <div className="space-y-4">
-                       <Label>Social Links</Label>
-                       <p className="text-sm text-muted-foreground">Add your social profiles and control their visibility on your website.</p>
-                       <div className="space-y-3">
-                         {/* Twitter */}
-                         <div className="flex items-center gap-3 pb-3 border-b">
-                           <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                             <Twitter className="h-5 w-5 text-muted-foreground" />
-                           </div>
-                           <Input 
-                             placeholder="Twitter URL" 
-                             value={formData?.twitter || ''}
-                             onChange={(e) => setFormData(formData ? {...formData, twitter: e.target.value} : undefined)}
-                             className="flex-1"
-                             data-testid="input-twitter"
-                           />
-                           <div className="flex items-center gap-2 flex-shrink-0">
-                             <Switch
-                               id="show-twitter"
-                               checked={formData?.showTwitter ?? true}
-                               onCheckedChange={(checked) => setFormData(formData ? {...formData, showTwitter: checked} : undefined)}
-                               data-testid="switch-show-twitter"
-                             />
-                             <Label htmlFor="show-twitter" className="text-sm font-normal cursor-pointer whitespace-nowrap">
-                               Show on website
-                             </Label>
-                           </div>
-                         </div>
-
-                         {/* LinkedIn */}
-                         <div className="flex items-center gap-3 pb-3 border-b">
-                           <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                             <Linkedin className="h-5 w-5 text-muted-foreground" />
-                           </div>
-                           <Input 
-                             placeholder="LinkedIn URL" 
-                             value={formData?.linkedin || ''}
-                             onChange={(e) => setFormData(formData ? {...formData, linkedin: e.target.value} : undefined)}
-                             className="flex-1"
-                             data-testid="input-linkedin"
-                           />
-                           <div className="flex items-center gap-2 flex-shrink-0">
-                             <Switch
-                               id="show-linkedin"
-                               checked={formData?.showLinkedin ?? true}
-                               onCheckedChange={(checked) => setFormData(formData ? {...formData, showLinkedin: checked} : undefined)}
-                               data-testid="switch-show-linkedin"
-                             />
-                             <Label htmlFor="show-linkedin" className="text-sm font-normal cursor-pointer whitespace-nowrap">
-                               Show on website
-                             </Label>
-                           </div>
-                         </div>
-
-                         {/* GitHub */}
-                         <div className="flex items-center gap-3 pb-3 border-b">
-                           <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                             <Github className="h-5 w-5 text-muted-foreground" />
-                           </div>
-                           <Input 
-                             placeholder="GitHub URL" 
-                             value={formData?.github || ''}
-                             onChange={(e) => setFormData(formData ? {...formData, github: e.target.value} : undefined)}
-                             className="flex-1"
-                             data-testid="input-github"
-                           />
-                           <div className="flex items-center gap-2 flex-shrink-0">
-                             <Switch
-                               id="show-github"
-                               checked={formData?.showGithub ?? true}
-                               onCheckedChange={(checked) => setFormData(formData ? {...formData, showGithub: checked} : undefined)}
-                               data-testid="switch-show-github"
-                             />
-                             <Label htmlFor="show-github" className="text-sm font-normal cursor-pointer whitespace-nowrap">
-                               Show on website
-                             </Label>
-                           </div>
-                         </div>
-
-                         {/* Email */}
-                         <div className="flex items-center gap-3 pb-3">
-                           <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                             <Mail className="h-5 w-5 text-muted-foreground" />
-                           </div>
-                           <Input 
-                             placeholder="Email" 
-                             value={formData?.email || ''}
-                             onChange={(e) => setFormData(formData ? {...formData, email: e.target.value} : undefined)}
-                             className="flex-1"
-                             data-testid="input-email"
-                           />
-                           <div className="flex items-center gap-2 flex-shrink-0">
-                             <Switch
-                               id="show-email"
-                               checked={formData?.showEmail ?? true}
-                               onCheckedChange={(checked) => setFormData(formData ? {...formData, showEmail: checked} : undefined)}
-                               data-testid="switch-show-email"
-                             />
-                             <Label htmlFor="show-email" className="text-sm font-normal cursor-pointer whitespace-nowrap">
-                               Show on website
-                             </Label>
-                           </div>
-                         </div>
-                       </div>
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="role" className="text-xs font-medium text-muted-foreground">Job Title</Label>
+                    <Input 
+                      id="role" 
+                      value={formData?.title || ''} 
+                      onChange={(e) => setFormData(formData ? {...formData, title: e.target.value} : undefined)}
+                      className="border-none bg-background shadow-sm"
+                    />
                   </div>
-                  <Button onClick={handleSaveProfile} disabled={!hasProfileChanges}>Save Changes</Button>
-                </CardContent>
-              </Card>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="bio" className="text-xs font-medium text-muted-foreground">Bio</Label>
+                    <Textarea 
+                      id="bio" 
+                      value={formData?.bio || ''} 
+                      onChange={(e) => setFormData(formData ? {...formData, bio: e.target.value} : undefined)} 
+                      className="h-24 border-none bg-background shadow-sm resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Social Links */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium mb-1">Social Links</h3>
+                  <p className="text-xs text-muted-foreground">Connect your social profiles</p>
+                </div>
+                <div className="space-y-3 p-6 bg-muted/30 border border-border/50 rounded-lg">
+                  {/* Twitter */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-background flex items-center justify-center">
+                      <Twitter className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <Input 
+                      placeholder="Twitter URL" 
+                      value={formData?.twitter || ''}
+                      onChange={(e) => setFormData(formData ? {...formData, twitter: e.target.value} : undefined)}
+                      className="flex-1 border-none bg-background shadow-sm"
+                      data-testid="input-twitter"
+                    />
+                    <Switch
+                      id="show-twitter"
+                      checked={formData?.showTwitter ?? true}
+                      onCheckedChange={(checked) => setFormData(formData ? {...formData, showTwitter: checked} : undefined)}
+                      data-testid="switch-show-twitter"
+                    />
+                  </div>
+
+                  {/* LinkedIn */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-background flex items-center justify-center">
+                      <Linkedin className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <Input 
+                      placeholder="LinkedIn URL" 
+                      value={formData?.linkedin || ''}
+                      onChange={(e) => setFormData(formData ? {...formData, linkedin: e.target.value} : undefined)}
+                      className="flex-1 border-none bg-background shadow-sm"
+                      data-testid="input-linkedin"
+                    />
+                    <Switch
+                      id="show-linkedin"
+                      checked={formData?.showLinkedin ?? true}
+                      onCheckedChange={(checked) => setFormData(formData ? {...formData, showLinkedin: checked} : undefined)}
+                      data-testid="switch-show-linkedin"
+                    />
+                  </div>
+
+                  {/* GitHub */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-background flex items-center justify-center">
+                      <Github className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <Input 
+                      placeholder="GitHub URL" 
+                      value={formData?.github || ''}
+                      onChange={(e) => setFormData(formData ? {...formData, github: e.target.value} : undefined)}
+                      className="flex-1 border-none bg-background shadow-sm"
+                      data-testid="input-github"
+                    />
+                    <Switch
+                      id="show-github"
+                      checked={formData?.showGithub ?? true}
+                      onCheckedChange={(checked) => setFormData(formData ? {...formData, showGithub: checked} : undefined)}
+                      data-testid="switch-show-github"
+                    />
+                  </div>
+
+                  {/* Email */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-background flex items-center justify-center">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <Input 
+                      placeholder="Email" 
+                      value={formData?.email || ''}
+                      onChange={(e) => setFormData(formData ? {...formData, email: e.target.value} : undefined)}
+                      className="flex-1 border-none bg-background shadow-sm"
+                      data-testid="input-email"
+                    />
+                    <Switch
+                      id="show-email"
+                      checked={formData?.showEmail ?? true}
+                      onCheckedChange={(checked) => setFormData(formData ? {...formData, showEmail: checked} : undefined)}
+                      data-testid="switch-show-email"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <div className="pt-2">
+                <Button onClick={handleSaveProfile} disabled={!hasProfileChanges} size="default">
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Changes
+                </Button>
+              </div>
             </div>
           )}
         </div>
