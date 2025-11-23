@@ -73,6 +73,30 @@ export default function AdminDashboard() {
   
   const [activeTab, setActiveTab] = useState(initialTab);
   const [articleStatusFilter, setArticleStatusFilter] = useState<"all" | "draft" | "published">("all");
+  
+  // Helper to change tab and update URL (preserves browser history)
+  const changeTab = useCallback((tab: string) => {
+    setActiveTab(tab);
+    // Update URL with query params without full navigation
+    const newUrl = `/admin?tab=${tab}`;
+    window.history.pushState({}, '', newUrl);
+  }, []);
+  
+  // Sync activeTab with URL when browser back/forward buttons are used
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get("tab");
+      if (tab && ["overview", "writing", "projects", "work", "reading", "media", "seo", "settings"].includes(tab)) {
+        setActiveTab(tab);
+      } else {
+        setActiveTab("overview");
+      }
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
   const { 
     profile, seoSettings, articles, projects, workHistory,
     updateProfile, updateSeoSettings, addArticle, updateArticle, deleteArticle,
@@ -599,7 +623,7 @@ export default function AdminDashboard() {
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
             <button
-              onClick={() => setActiveTab(id)}
+              onClick={() => changeTab(id)}
               className={cn(
                 "w-full flex items-center justify-center p-2 rounded-md transition-colors",
                 activeTab === id 
@@ -618,7 +642,7 @@ export default function AdminDashboard() {
     
     return (
       <button
-        onClick={() => setActiveTab(id)}
+        onClick={() => changeTab(id)}
         className={cn(
           "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
           activeTab === id 
@@ -838,10 +862,10 @@ export default function AdminDashboard() {
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="flex gap-4">
-                   <Button onClick={() => { setActiveTab("writing"); handleNewPost(); }} className="gap-2 shadow-none">
+                   <Button onClick={() => { changeTab("writing"); handleNewPost(); }} className="gap-2 shadow-none">
                      <PenTool className="h-4 w-4" /> Write Article
                    </Button>
-                   <Button onClick={() => setActiveTab("projects")} variant="outline" className="gap-2 shadow-none">
+                   <Button onClick={() => changeTab("projects")} variant="outline" className="gap-2 shadow-none">
                      <FolderGit2 className="h-4 w-4" /> Add Project
                    </Button>
                 </CardContent>
