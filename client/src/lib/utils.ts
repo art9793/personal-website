@@ -41,3 +41,29 @@ export function formatDateRange(startDate: string, endDate: string): string {
   
   return `${start} - ${end}`;
 }
+
+/**
+ * Extracts year from a date string (e.g., "2020-09" -> "2020")
+ */
+function formatYear(dateString: string): string {
+  if (!dateString) return '';
+  if (dateString.toLowerCase() === 'present') return 'Present';
+  
+  const yearMatch = dateString.match(/^(\d{4})/);
+  return yearMatch ? yearMatch[1] : dateString;
+}
+
+/**
+ * Formats a date range showing only years (e.g., "2020 - 2023" or "2022 - Present")
+ */
+export function formatYearRange(startDate: string, endDate: string): string {
+  const start = formatYear(startDate);
+  const end = formatYear(endDate);
+  
+  if (!start && !end) return '';
+  if (!start) return end || '';
+  if (!end) return start;
+  if (start === end) return start;
+  
+  return `${start} - ${end}`;
+}
