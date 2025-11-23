@@ -60,6 +60,7 @@ export default function AdminDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
+  const [articleStatusFilter, setArticleStatusFilter] = useState<"all" | "draft" | "published">("all");
   const { 
     profile, seoSettings, articles, projects, workHistory,
     updateProfile, updateSeoSettings, addArticle, updateArticle, deleteArticle,
@@ -430,6 +431,14 @@ export default function AdminDashboard() {
   const getSortedAndFilteredArticles = () => {
     let result = [...articles];
 
+    // Filter by status
+    if (articleStatusFilter === "draft") {
+      result = result.filter(article => article.status === "Draft");
+    } else if (articleStatusFilter === "published") {
+      result = result.filter(article => article.status === "Published");
+    }
+
+    // Filter by search query
     if (filterQuery) {
       const query = filterQuery.toLowerCase();
       result = result.filter(article => 
@@ -993,9 +1002,24 @@ export default function AdminDashboard() {
                             onChange={(e) => setFilterQuery(e.target.value)}
                         />
                     </div>
-                    <Button onClick={handleNewPost} size="sm" className="gap-2 h-9"><Plus className="h-4 w-4" /> New</Button>
+                    <Button onClick={() => setLocation("/admin/article/new")} size="sm" className="gap-2 h-9"><Plus className="h-4 w-4" /> New Article</Button>
                 </div>
               </div>
+
+              {/* Article Status Filter Tabs */}
+              <Tabs value={articleStatusFilter} onValueChange={(value) => setArticleStatusFilter(value as "all" | "draft" | "published")} className="mb-4">
+                <TabsList>
+                  <TabsTrigger value="all" data-testid="tab-all-articles">
+                    All ({articles.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="draft" data-testid="tab-draft-articles">
+                    Drafts ({articles.filter(a => a.status === "Draft").length})
+                  </TabsTrigger>
+                  <TabsTrigger value="published" data-testid="tab-published-articles">
+                    Published ({articles.filter(a => a.status === "Published").length})
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
 
               <div className="border rounded-md bg-background overflow-hidden">
                 <Table>

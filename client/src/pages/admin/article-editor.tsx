@@ -177,6 +177,90 @@ export default function ArticleEditor() {
     }
   };
 
+  const handlePublish = useCallback(async () => {
+    // Validate required fields before publishing
+    if (!title.trim()) {
+      toast({
+        title: "Cannot publish",
+        description: "Please add a title before publishing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!slug.trim()) {
+      toast({
+        title: "Cannot publish",
+        description: "Please add a URL slug before publishing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!content.trim()) {
+      toast({
+        title: "Cannot publish",
+        description: "Please add some content before publishing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSaveStatus("saving");
+
+    try {
+      const now = new Date();
+      const articleData = {
+        title,
+        content,
+        slug,
+        excerpt: excerpt || undefined,
+        tags: tags || undefined,
+        seoKeywords: seoKeywords || undefined,
+        status: "Published",
+        publishedAt: now,
+        firstPublishedAt: existingArticle?.firstPublishedAt || now,
+        lastPublishedAt: now,
+      };
+
+      if (articleId && existingArticle) {
+        // Publish existing article
+        await updateArticle(articleId, articleData);
+        setLastSaved(now);
+        setInitialContent({ title, content, slug, excerpt, tags, seoKeywords });
+        setSaveStatus("saved");
+        toast({
+          title: "Article published",
+          description: existingArticle.status === "Published" 
+            ? "Your changes have been published." 
+            : "Your article is now live!",
+        });
+      } else {
+        // Create and publish new article
+        const newArticle = await addArticle({
+          ...articleData,
+          author: "Admin",
+        });
+        setLastSaved(now);
+        setInitialContent({ title, content, slug, excerpt, tags, seoKeywords });
+        setSaveStatus("saved");
+        toast({
+          title: "Article published",
+          description: "Your article is now live!",
+        });
+        // Redirect to the new article's edit page
+        setLocation(`/admin/article/${newArticle.id}`);
+      }
+    } catch (error) {
+      setSaveStatus("unsaved");
+      toast({
+        title: "Error publishing",
+        description: "Failed to publish your article. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [articleId, existingArticle, title, content, slug, excerpt, tags, seoKeywords, updateArticle, addArticle, toast, setLocation]);
+
   const wordCount = content.replace(/<[^>]*>/g, '').trim().split(/\s+/).filter(Boolean).length;
   const charCount = content.replace(/<[^>]*>/g, '').length;
   const readingTime = Math.ceil(wordCount / 200); // Assuming 200 words per minute
@@ -234,11 +318,12 @@ export default function ArticleEditor() {
 
               <Button
                 size="sm"
+                onClick={handlePublish}
+                disabled={saveStatus === "saving"}
                 data-testid="button-publish"
-                disabled
               >
                 <Eye className="h-4 w-4 mr-2" />
-                Publish
+                {existingArticle?.status === "Published" ? "Update Published" : "Publish"}
               </Button>
             </div>
           </div>
@@ -417,14 +502,17 @@ export default function ArticleEditor() {
                 <Button 
                   className="w-full" 
                   size="sm"
+                  onClick={handlePublish}
+                  disabled={saveStatus === "saving"}
                   data-testid="button-publish-article"
-                  disabled
                 >
-                  Publish Article
+                  {existingArticle?.status === "Published" ? "Update Published Article" : "Publish Article"}
                 </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  Publishing workflow coming soon
-                </p>
+                {existingArticle?.status !== "Published" && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    Requires: title, slug, and content
+                  </p>
+                )}
               </div>
             </div>
           </div>
