@@ -180,6 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/articles', isAdmin, async (req, res) => {
     try {
+      // Allow partial data for draft creation (slug can be undefined/null)
       const validated = insertArticleSchema.parse(req.body);
       const article = await storage.createArticle(validated);
       res.status(201).json(article);
