@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useContent } from "@/lib/content-context";
 import { useToast } from "@/hooks/use-toast";
 import { Editor } from "@/components/admin/editor";
+import { TitleField } from "@/components/TitleField";
 import { format } from "date-fns";
 import {
   Sheet,
@@ -333,44 +334,52 @@ export default function ArticleEditor() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="sticky top-0 z-10 border-b border-border/40 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between py-3">
+            <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleBack}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground hover:bg-transparent -ml-2"
                 data-testid="button-back"
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
+                <ArrowLeft className="h-4 w-4 mr-1.5" />
+                <span className="text-sm">Back</span>
               </Button>
               
               {/* Subtle auto-save indicator */}
-              <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground/60">
                 {saveStatus === "saving" && (
-                  <span className="animate-pulse">●</span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="animate-pulse">●</span>
+                    <span>Saving</span>
+                  </span>
                 )}
                 {saveStatus === "saved" && lastSaved && (
-                  <span className="opacity-50">Saved</span>
+                  <span className="opacity-60">Saved</span>
                 )}
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="hidden md:flex items-center gap-3 text-xs text-muted-foreground">
-                <span className="font-mono">{wordCount}</span>
-                <span className="text-muted-foreground/40">•</span>
-                <span>{readingTime} read</span>
+              {/* Stats Pills */}
+              <div className="hidden md:flex items-center gap-2">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 text-xs">
+                  <span className="font-mono font-medium text-foreground">{wordCount}</span>
+                  <span className="text-muted-foreground">words</span>
+                </div>
+                <div className="px-2.5 py-1 rounded-full bg-muted/50 text-xs text-muted-foreground">
+                  {readingTime} read
+                </div>
               </div>
 
               <Button
                 variant="default"
                 size="sm"
                 onClick={() => setIsPublishSheetOpen(true)}
-                className="gap-2"
+                className="gap-2 shadow-sm hover:shadow transition-shadow"
                 data-testid="button-publish"
               >
                 <Eye className="h-3.5 w-3.5" />
@@ -382,14 +391,13 @@ export default function ArticleEditor() {
       </div>
 
       {/* Editor Content - Full Width */}
-      <div className="h-[calc(100vh-3.5rem)] overflow-y-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="h-[calc(100vh-4rem)] overflow-y-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Title Input - Notion Style */}
-          <Input
+          <TitleField
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={setTitle}
             placeholder="Untitled"
-            className="text-5xl font-bold h-auto border-none shadow-none px-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/30"
             data-testid="input-article-title"
           />
 
