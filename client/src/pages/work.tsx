@@ -1,5 +1,5 @@
 import { useContent } from "@/lib/content-context";
-import { formatDateRange } from "@/lib/utils";
+import { formatYearRange } from "@/lib/utils";
 
 export default function Work() {
   const { workHistory, profile, isLoading } = useContent();
@@ -42,10 +42,10 @@ export default function Work() {
           sortedWorkHistory.map((item) => (
             <div key={item.id} className="grid sm:grid-cols-[180px_minmax(0,1fr)] gap-4 sm:gap-x-10" data-testid={`work-${item.id}`}>
               <div className="text-sm text-muted-foreground/70 font-mono uppercase tracking-wider whitespace-nowrap">
-                {formatDateRange(item.startDate, item.endDate)}
+                {formatYearRange(item.startDate, item.endDate)}
               </div>
               <div className="space-y-3">
-                <h3 className="text-xl md:text-2xl font-semibold text-primary tracking-tight">
+                <h3 className="text-lg md:text-xl font-medium text-primary tracking-tight">
                   {item.company}
                 </h3>
                 <div className="text-sm font-medium text-muted-foreground">
