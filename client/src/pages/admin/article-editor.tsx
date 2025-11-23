@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRoute, useLocation } from "wouter";
-import { ArrowLeft, Save, Eye, Clock, ChevronRight, Settings, FileText, Tag } from "lucide-react";
+import { ArrowLeft, Eye, ChevronRight, Settings, FileText, Tag, PanelRightClose, PanelRightOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,6 +48,21 @@ export default function ArticleEditor() {
   });
   const [metadataOpen, setMetadataOpen] = useState(true);
   const [seoOpen, setSeoOpen] = useState(true);
+  const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
+  
+  // Auto-generate slug from title
+  useEffect(() => {
+    // Only auto-generate slug if it's empty or hasn't been manually edited
+    if (title && !slug) {
+      const autoSlug = title
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '') // Remove special characters
+        .replace(/\s+/g, '-')      // Replace spaces with hyphens
+        .replace(/-+/g, '-');      // Replace multiple hyphens with single hyphen
+      setSlug(autoSlug);
+    }
+  }, [title, slug]);
 
   // Update local state when article data changes
   useEffect(() => {
@@ -178,6 +193,9 @@ export default function ArticleEditor() {
   };
 
   const handlePublish = useCallback(async () => {
+    // Strip HTML to check for actual text content
+    const textContent = content.replace(/<[^>]*>/g, '').trim();
+    
     // Validate required fields before publishing
     if (!title.trim()) {
       toast({
@@ -197,7 +215,7 @@ export default function ArticleEditor() {
       return;
     }
 
-    if (!content.trim()) {
+    if (!textContent) {
       toast({
         title: "Cannot publish",
         description: "Please add some content before publishing.",
@@ -261,9 +279,13 @@ export default function ArticleEditor() {
     }
   }, [articleId, existingArticle, title, content, slug, excerpt, tags, seoKeywords, updateArticle, addArticle, toast, setLocation]);
 
-  const wordCount = content.replace(/<[^>]*>/g, '').trim().split(/\s+/).filter(Boolean).length;
-  const charCount = content.replace(/<[^>]*>/g, '').length;
+  const textContent = content.replace(/<[^>]*>/g, '').trim();
+  const wordCount = textContent.split(/\s+/).filter(Boolean).length;
+  const charCount = textContent.length;
   const readingTime = Math.ceil(wordCount / 200); // Assuming 200 words per minute
+  
+  // Check if publish requirements are met (must have actual text content, not just HTML tags)
+  const canPublish = !!(title.trim() && slug.trim() && textContent);
 
   return (
     <div className="min-h-screen bg-background">
@@ -282,18 +304,13 @@ export default function ArticleEditor() {
                 Back
               </Button>
               
-              <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
-                {saveStatus === "saved" && lastSaved && (
-                  <>
-                    <Clock className="h-3 w-3" />
-                    <span>Saved {format(lastSaved, "h:mm a")}</span>
-                  </>
-                )}
+              {/* Subtle auto-save indicator */}
+              <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
                 {saveStatus === "saving" && (
-                  <span className="text-blue-500">Saving...</span>
+                  <span className="animate-pulse">●</span>
                 )}
-                {saveStatus === "unsaved" && (
-                  <span className="text-amber-500">Unsaved changes</span>
+                {saveStatus === "saved" && lastSaved && (
+                  <span className="opacity-50">Auto-saved</span>
                 )}
               </div>
             </div>
@@ -301,29 +318,27 @@ export default function ArticleEditor() {
             <div className="flex items-center gap-2">
               <div className="hidden md:flex items-center gap-4 text-xs text-muted-foreground mr-4">
                 <span>{wordCount} words</span>
-                <span>{charCount} characters</span>
                 <span>{readingTime} min read</span>
               </div>
 
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                onClick={handleSave}
-                disabled={saveStatus === "saving"}
-                data-testid="button-save-draft"
+                onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
+                data-testid="button-toggle-panel"
+                title={isPanelCollapsed ? "Show settings panel" : "Hide settings panel"}
               >
-                <Save className="h-4 w-4 mr-2" />
-                {saveStatus === "saving" ? "Saving..." : "Save Draft"}
+                {isPanelCollapsed ? <PanelRightOpen className="h-4 w-4" /> : <PanelRightClose className="h-4 w-4" />}
               </Button>
 
               <Button
                 size="sm"
                 onClick={handlePublish}
-                disabled={saveStatus === "saving"}
+                disabled={!canPublish || saveStatus === "saving"}
                 data-testid="button-publish"
               >
                 <Eye className="h-4 w-4 mr-2" />
-                {existingArticle?.status === "Published" ? "Update Published" : "Publish"}
+                {existingArticle?.status === "Published" ? "Update" : "Publish"}
               </Button>
             </div>
           </div>
@@ -333,7 +348,7 @@ export default function ArticleEditor() {
       {/* Editor Content - Two Column Layout */}
       <ResizablePanelGroup direction="horizontal" className="min-h-[calc(100vh-4rem)]">
         {/* Main Editor Panel */}
-        <ResizablePanel defaultSize={65} minSize={50}>
+        <ResizablePanel defaultSize={isPanelCollapsed ? 100 : 65} minSize={50}>
           <div className="h-full overflow-y-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="max-w-3xl mx-auto space-y-8">
               {/* Title Input */}
@@ -356,10 +371,12 @@ export default function ArticleEditor() {
           </div>
         </ResizablePanel>
 
-        <ResizableHandle withHandle />
+        {!isPanelCollapsed && (
+          <>
+            <ResizableHandle withHandle />
 
-        {/* Metadata & SEO Panel */}
-        <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
+            {/* Metadata & SEO Panel */}
+            <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
           <div className="h-full overflow-y-auto border-l bg-muted/20">
             <div className="p-6 space-y-6">
               <div className="flex items-center gap-2 mb-4">
@@ -503,12 +520,12 @@ export default function ArticleEditor() {
                   className="w-full" 
                   size="sm"
                   onClick={handlePublish}
-                  disabled={saveStatus === "saving"}
+                  disabled={!canPublish || saveStatus === "saving"}
                   data-testid="button-publish-article"
                 >
                   {existingArticle?.status === "Published" ? "Update Published Article" : "Publish Article"}
                 </Button>
-                {existingArticle?.status !== "Published" && (
+                {!canPublish && (
                   <p className="text-xs text-muted-foreground text-center">
                     Requires: title, slug, and content
                   </p>
@@ -517,6 +534,8 @@ export default function ArticleEditor() {
             </div>
           </div>
         </ResizablePanel>
+        </>
+        )}
       </ResizablePanelGroup>
     </div>
   );

@@ -155,25 +155,11 @@ export default function AdminDashboard() {
   };
 
   const handleNewPost = () => {
-    const newArticle: Partial<Article> = {
-      title: "",
-      slug: "",
-      content: "",
-      publishedAt: new Date(),
-      status: "Draft",
-      views: "0",
-      excerpt: "",
-      tags: "",
-      seoKeywords: "",
-      author: profile?.name || "Admin"
-    };
-    setEditingArticle(newArticle as Article);
-    setIsWriting(true);
+    setLocation("/admin/article/new");
   };
 
   const handleEditPost = (article: Article) => {
-    setEditingArticle(article);
-    setIsWriting(true);
+    setLocation(`/admin/article/${article.id}`);
   };
 
   const autoSaveArticle = useCallback(async (article: Article) => {
