@@ -32,17 +32,29 @@ const currentYear = new Date().getFullYear();
 const YEARS = Array.from({ length: currentYear - 1990 + 6 }, (_, i) => (currentYear + 5 - i).toString());
 
 export function MonthYearPicker({ value, onChange, label }: MonthYearPickerProps) {
-  // Parse the current value - handle invalid dates gracefully
+  // Normalize legacy work dates: handle "2020", "2020-09", full ISO, or invalid
   const parseValue = (val: string): { month: string; year: string } | null => {
     if (!val || val === "Present") return null;
     
-    const date = new Date(val);
-    if (isNaN(date.getTime())) return null; // Invalid date
+    // Try to extract year and month from various formats
+    // Format: "YYYY" or "YYYY-MM" or "YYYY-MM-DD"
+    const yearMatch = val.match(/^(\d{4})(?:-(\d{2}))?/);
+    if (yearMatch) {
+      const year = yearMatch[1];
+      const month = yearMatch[2] || "01"; // Default to January if month not specified
+      return { month, year };
+    }
     
-    return {
-      month: String(date.getMonth() + 1).padStart(2, "0"),
-      year: String(date.getFullYear())
-    };
+    // Fallback: try parsing as full date
+    const date = new Date(val);
+    if (!isNaN(date.getTime())) {
+      return {
+        month: String(date.getMonth() + 1).padStart(2, "0"),
+        year: String(date.getFullYear())
+      };
+    }
+    
+    return null; // Invalid format
   };
 
   const parsed = parseValue(value);
@@ -58,19 +70,20 @@ export function MonthYearPicker({ value, onChange, label }: MonthYearPickerProps
 
   const handleMonthChange = (month: string) => {
     setSelectedMonth(month);
-    // Only emit onChange if both month and year are selected
-    if (selectedYear) {
-      onChange(`${selectedYear}-${month}-01`);
-    }
+    // Defer emission until both are selected
   };
 
   const handleYearChange = (year: string) => {
     setSelectedYear(year);
-    // Only emit onChange if both month and year are selected
-    if (selectedMonth) {
-      onChange(`${year}-${selectedMonth}-01`);
-    }
+    // Defer emission until both are selected
   };
+
+  // Commit when both values are selected
+  useEffect(() => {
+    if (selectedMonth && selectedYear) {
+      onChange(`${selectedYear}-${selectedMonth}-01`);
+    }
+  }, [selectedMonth, selectedYear, onChange]);
 
   const handleClear = () => {
     setSelectedMonth("");

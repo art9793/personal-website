@@ -1385,7 +1385,7 @@ export default function AdminDashboard() {
                                             {editingWork.endDate !== "Present" && (
                                               <MonthYearPicker
                                                   label="End Date"
-                                                  value={editingWork.endDate}
+                                                  value={editingWork.endDate === "Present" ? "" : editingWork.endDate}
                                                   onChange={(date) => setEditingWork({...editingWork, endDate: date})}
                                                   placeholder="Select end date"
                                               />
