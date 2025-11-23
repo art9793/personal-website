@@ -1,4 +1,5 @@
 import { useContent } from "@/lib/content-context";
+import { formatDateRange } from "@/lib/utils";
 
 export default function Work() {
   const { workHistory, profile, isLoading } = useContent();
@@ -10,28 +11,6 @@ export default function Work() {
       </div>
     );
   }
-
-  const formatDateRange = (startDate: string, endDate: string) => {
-    // Parse start date
-    const startYear = !startDate ? 'Unknown' : (() => {
-      const startDateObj = new Date(startDate);
-      return isNaN(startDateObj.getTime()) ? startDate : startDateObj.getFullYear();
-    })();
-    
-    // Parse end date
-    const endYear = !endDate ? (startYear === 'Unknown' ? 'Unknown' : 'Present') : (() => {
-      const endDateLower = endDate.toLowerCase();
-      if (endDateLower === 'present') return 'Present';
-      const endDateObj = new Date(endDate);
-      return isNaN(endDateObj.getTime()) ? endDate : endDateObj.getFullYear();
-    })();
-    
-    // Format range
-    if (startYear === 'Unknown' && endYear === 'Unknown') return 'Unknown';
-    if (startYear === 'Unknown') return `Unknown — ${endYear}`;
-    if (endYear === startYear) return String(startYear);
-    return `${startYear} — ${endYear}`;
-  };
 
   const sortedWorkHistory = [...workHistory].sort((a, b) => {
     const getEndDateForSort = (endDate: string) => {

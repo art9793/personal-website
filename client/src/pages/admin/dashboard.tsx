@@ -14,7 +14,7 @@ import {
   Twitter, Linkedin, Github, Mail, AlertCircle, Check, Loader2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
+import { cn, formatMonthYear } from "@/lib/utils";
 import { Editor } from "@/components/admin/editor";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
@@ -1459,10 +1459,10 @@ export default function AdminDashboard() {
                         <TableCell className="font-medium">{work.company}</TableCell>
                         <TableCell>{work.role}</TableCell>
                         <TableCell className="text-muted-foreground text-sm">
-                          {work.startDate}
+                          {formatMonthYear(work.startDate)}
                         </TableCell>
                         <TableCell className="text-muted-foreground text-sm">
-                          {work.endDate === "Present" ? <Badge variant="secondary" className="font-normal text-xs">Present</Badge> : work.endDate}
+                          {work.endDate === "Present" ? <Badge variant="secondary" className="font-normal text-xs">Present</Badge> : formatMonthYear(work.endDate)}
                         </TableCell>
                         <TableCell className="max-w-[300px] truncate text-muted-foreground text-sm">
                           {work.description}
