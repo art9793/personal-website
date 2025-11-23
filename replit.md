@@ -129,11 +129,38 @@ Preferred communication style: Simple, everyday language.
 **Object Storage**
 - Replit Object Storage integration for file uploads
 - @google-cloud/storage for GCS bucket access
-- ObjectUploader component using Uppy Dashboard for file management
+- Custom ObjectUploader component with minimal UI design
+- Per-modal Uppy instance lifecycle for clean state management
 - ACL-based access control for public/private objects
 - Profile avatars stored with public visibility for homepage display
 
 ## Recent Changes
+
+### November 23, 2025: Admin Dashboard UI/UX Refinements - World-Class Minimalistic Design
+- **Custom Upload Modal**: Replaced Uppy Dashboard with custom minimal design
+  - Clean drag-and-drop area with image preview
+  - Refined upload/cancel buttons with loading states and progress indicator
+  - Per-modal Uppy instance lifecycle (create on open, destroy on close) for reliable uploads
+  - Proper cleanup and retry handling to prevent duplicate file errors
+- **Home Page Settings Redesign**: Restructured with improved visual hierarchy
+  - Sectioned layout: Profile Picture, Profile Information, Social Links
+  - Each section has descriptive header and muted background containers
+  - Cleaner social links with icon badges and inline toggle switches
+  - Improved spacing and breathing room throughout
+- **Writing Table Enhancement**: Added word count column
+  - Positioned before "Read Time" column
+  - Calculates actual words from article content (not HTML)
+  - Displays formatted numbers (e.g., "1,234") with monospace font
+- **Article Editor Polish**: Refined header and title input
+  - Reduced header height to h-14 (3.5rem) for more minimal feel
+  - Cleaner word count display with monospace font and subtle separators
+  - Notion-style title input: borderless, shadowless, seamless integration
+  - Viewport calculations properly aligned (h-14 matches calc(100vh-3.5rem))
+- **Design Philosophy**: Consistent minimalistic aesthetic throughout admin interface
+  - Subtle borders and muted backgrounds for visual hierarchy
+  - Reduced visual noise with smaller icons and cleaner layouts
+  - Better spacing and use of whitespace
+  - Monospace fonts for numerical data
 
 ### November 23, 2025: Profile Avatar Upload Feature
 - Removed hardcoded placeholder profile image (logo.jpg)
