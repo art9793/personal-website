@@ -107,12 +107,16 @@ export const articles = pgTable("articles", {
   status: varchar("status", { length: 50 }).notNull().default("Draft"),
   views: varchar("views", { length: 50 }).notNull().default("0"),
   publishedAt: timestamp("published_at"),
+  firstPublishedAt: timestamp("first_published_at"),
+  lastPublishedAt: timestamp("last_published_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const insertArticleSchema = createInsertSchema(articles, {
   publishedAt: z.union([z.date(), z.string().datetime().transform(val => new Date(val)), z.string().transform(val => new Date(val))]).optional(),
+  firstPublishedAt: z.union([z.date(), z.string().datetime().transform(val => new Date(val)), z.string().transform(val => new Date(val))]).optional(),
+  lastPublishedAt: z.union([z.date(), z.string().datetime().transform(val => new Date(val)), z.string().transform(val => new Date(val))]).optional(),
 }).omit({
   id: true,
   createdAt: true,

@@ -46,6 +46,8 @@ export interface Article {
   status: string;
   views: string;
   publishedAt?: Date;
+  firstPublishedAt?: Date;
+  lastPublishedAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }
