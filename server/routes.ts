@@ -80,23 +80,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.path,
       );
       
-      // Check if object has ACL policy
-      const aclPolicy = await import('./objectAcl').then(m => m.getObjectAclPolicy(objectFile));
-      
-      // If object is public, serve it without authentication
-      if (aclPolicy?.visibility === 'public') {
-        objectStorageService.downloadObject(objectFile, res);
-        return;
-      }
-      
-      // For private objects, require authentication and check access
+      // Check ACL using canAccessObjectEntity which handles both public and private objects
+      // For public objects with READ permission, it returns true even without userId
       const canAccess = await objectStorageService.canAccessObjectEntity({
         objectFile,
         requestedPermission: ObjectPermission.READ,
       });
+      
       if (!canAccess) {
         return res.sendStatus(401);
       }
+      
       objectStorageService.downloadObject(objectFile, res);
     } catch (error) {
       console.error("Error checking object access:", error);

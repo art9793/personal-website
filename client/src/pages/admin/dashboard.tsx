@@ -161,8 +161,6 @@ export default function AdminDashboard() {
     });
   };
 
-  const [uploadedObjectPath, setUploadedObjectPath] = useState<string | null>(null);
-
   const handleAvatarUpload = async () => {
     try {
       const response = await fetch("/api/objects/upload", {
@@ -172,12 +170,10 @@ export default function AdminDashboard() {
       if (!response.ok) throw new Error("Failed to get upload URL");
       const { uploadURL, objectPath } = await response.json();
       
-      // Store the object path for later use in onComplete
-      setUploadedObjectPath(objectPath);
-      
       return {
         method: "PUT" as const,
         url: uploadURL,
+        objectPath,
       };
     } catch (error) {
       console.error("Error getting upload URL:", error);
@@ -194,7 +190,10 @@ export default function AdminDashboard() {
     try {
       if (!result.successful || result.successful.length === 0) return;
       
-      if (!uploadedObjectPath) {
+      const uploadedFile = result.successful[0];
+      const objectPath = uploadedFile.meta?.objectPath as string | undefined;
+      
+      if (!objectPath) {
         throw new Error("Object path not available - upload may have failed");
       }
       
@@ -202,7 +201,7 @@ export default function AdminDashboard() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ objectPath: uploadedObjectPath }),
+        body: JSON.stringify({ objectPath }),
       });
 
       if (!response.ok) {
@@ -213,7 +212,6 @@ export default function AdminDashboard() {
       const { avatarUrl } = await response.json();
       
       setFormData(prev => prev ? { ...prev, avatarUrl } : undefined);
-      setUploadedObjectPath(null); // Clear for next upload
       
       toast({
         title: "Avatar Updated",
@@ -221,7 +219,6 @@ export default function AdminDashboard() {
       });
     } catch (error) {
       console.error("Error saving avatar:", error);
-      setUploadedObjectPath(null);
       toast({
         title: "Save Error",
         description: error instanceof Error ? error.message : "Failed to save your profile picture",

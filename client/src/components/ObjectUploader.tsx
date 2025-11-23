@@ -14,6 +14,7 @@ interface ObjectUploaderProps {
   onGetUploadParameters: () => Promise<{
     method: "PUT";
     url: string;
+    objectPath?: string;
   }>;
   onComplete?: (
     result: UploadResult<Record<string, unknown>, Record<string, unknown>>
@@ -43,7 +44,23 @@ export function ObjectUploader({
     })
       .use(AwsS3, {
         shouldUseMultipart: false,
-        getUploadParameters: onGetUploadParameters,
+        getUploadParameters: async (file) => {
+          const params = await onGetUploadParameters();
+          
+          // Merge objectPath into file metadata if provided
+          if (params.objectPath) {
+            const currentFile = uppyInstance.getFile(file.id);
+            uppyInstance.setFileMeta(file.id, {
+              ...(currentFile?.meta || {}),
+              objectPath: params.objectPath
+            });
+          }
+          
+          return {
+            method: params.method,
+            url: params.url,
+          };
+        },
       })
       .on("complete", (result) => {
         onComplete?.(result);
