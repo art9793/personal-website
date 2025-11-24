@@ -21,6 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useContent, Article, Project, WorkExperience } from "@/lib/content-context";
 import { ObjectUploader } from "@/components/ObjectUploader";
+import { queryClient } from "@/lib/queryClient";
 import type { UploadResult } from "@uppy/core";
 import {
   DropdownMenu,
@@ -173,8 +174,23 @@ export default function AdminDashboard() {
     });
   }, [seoSettings]);
 
-  const handleSignOut = () => {
-    setLocation("/");
+  const handleSignOut = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setLocation("/admin/login");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast({
+        title: "Sign Out Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
   const handleSaveProfile = async () => {
