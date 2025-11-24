@@ -1,61 +1,125 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Loader2, Lock } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, Lock, AlertCircle } from "lucide-react";
+import { queryClient } from "@/lib/queryClient";
 
 export default function AdminLogin() {
+  const [, setLocation] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
     setIsLoading(true);
-    window.location.href = "/api/login";
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || "Login failed");
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setLocation("/admin");
+    } catch (err: any) {
+      setError(err.message || "Failed to log in. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="w-full max-w-md px-6">
-        <div className="text-center space-y-8">
-          {/* Icon */}
+        <div className="space-y-8">
           <div className="flex justify-center">
             <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center">
               <Lock className="h-8 w-8 text-primary" />
             </div>
           </div>
 
-          {/* Heading */}
-          <div className="space-y-3">
+          <div className="space-y-3 text-center">
             <h1 className="text-3xl font-bold tracking-tight">Admin Access</h1>
             <p className="text-muted-foreground text-lg">
               Sign in to manage your portfolio
             </p>
           </div>
 
-          {/* Login Button */}
-          <div className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-6">
+            {error && (
+              <div className="flex items-center gap-2 p-3 text-sm text-destructive bg-destructive/10 rounded-lg border border-destructive/20">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                <p>{error}</p>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" data-testid="label-email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="admin@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={isLoading}
+                  data-testid="input-email"
+                  className="h-12"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" data-testid="label-password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={isLoading}
+                  data-testid="input-password"
+                  className="h-12"
+                />
+              </div>
+            </div>
+
             <Button 
+              type="submit"
               size="lg" 
               className="w-full h-12 text-base font-medium shadow-lg hover:shadow-xl transition-all" 
-              onClick={handleLogin}
               disabled={isLoading}
+              data-testid="button-login"
             >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Redirecting...
+                  Signing in...
                 </>
               ) : (
-                <>
-                  <svg className="mr-2 h-5 w-5" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-                    <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
-                  </svg>
-                  Continue with Google
-                </>
+                "Sign In"
               )}
             </Button>
 
             <p className="text-sm text-muted-foreground/70 text-center">
               Authorized access only
             </p>
-          </div>
+          </form>
         </div>
       </div>
     </div>

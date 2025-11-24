@@ -70,11 +70,12 @@ Preferred communication style: Simple, everyday language.
 - Middleware-based authentication and authorization
 
 **Authentication & Authorization**
-- Replit Auth integration via OpenID Connect (OIDC)
-- Passport.js strategy for session-based authentication
+- Email/password authentication system
+- Passport.js Local Strategy for credential verification
+- Bcrypt for password hashing (10 salt rounds)
 - Email-based access control (hardcoded admin email: art9793@gmail.com)
 - Protected routes using `isAuthenticated` and `isAdmin` middleware
-- Session storage in PostgreSQL database
+- Session storage in PostgreSQL database via connect-pg-simple
 
 ### Data Storage
 
@@ -85,8 +86,8 @@ Preferred communication style: Simple, everyday language.
 - Schema-first approach with shared types between client and server
 
 **Database Schema**
-- `sessions`: OIDC session storage for authentication
-- `users`: User profile information from Replit Auth
+- `sessions`: Express session storage for authentication
+- `users`: User accounts with email/password credentials
 - `profiles`: Site owner profile information (singleton)
 - `articles`: Blog posts with slug-based routing, SEO metadata, and publishing workflow
 - `projects`: Portfolio projects with featured flag and status
@@ -105,9 +106,11 @@ Preferred communication style: Simple, everyday language.
 - Connection pooling via @neondatabase/serverless with WebSocket support (ws package)
 
 **Authentication**
-- Replit Auth OIDC provider
-- Required environment variables: ISSUER_URL, REPL_ID, SESSION_SECRET
+- Email/password authentication with Passport Local Strategy
+- Bcrypt for secure password hashing
+- Required environment variables: SESSION_SECRET, DATABASE_URL
 - Session store: connect-pg-simple for PostgreSQL session persistence
+- Admin setup script: `tsx scripts/setup-admin.ts` for initial account creation
 
 **Development Tools**
 - Replit-specific Vite plugins:
@@ -135,6 +138,17 @@ Preferred communication style: Simple, everyday language.
 - Profile avatars stored with public visibility for homepage display
 
 ## Recent Changes
+
+### November 24, 2025: Authentication System Migration
+- Migrated from Replit Auth (OIDC) to email/password authentication
+- Implemented Passport Local Strategy for credential verification
+- Added password field to users table with bcrypt hashing (10 salt rounds)
+- Created new login page with email/password form
+- Updated authentication routes: POST /api/auth/login and /api/auth/logout
+- Simplified middleware (removed token refresh logic)
+- Created admin setup script (`tsx scripts/setup-admin.ts`) for initial account creation
+- Removed Replit Auth dependencies (openid-client, google-auth-library)
+- Session management remains unchanged (connect-pg-simple with PostgreSQL)
 
 ### November 23, 2025: Admin Dashboard UI/UX Refinements - World-Class Minimalistic Design
 - **Custom Upload Modal**: Replaced Uppy Dashboard with custom minimal design
