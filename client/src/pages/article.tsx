@@ -1,4 +1,5 @@
 import { Link, useRoute } from "wouter";
+import { ArrowLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 
@@ -31,52 +32,37 @@ export default function Article() {
       <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
         <h1 className="text-2xl font-bold mb-4">Article not found</h1>
         <p className="text-muted-foreground mb-6">The article you're looking for doesn't exist.</p>
-        <Link href="/writing" className="text-sm text-primary hover:underline">
-          ← Back to writing
+        <Link href="/writing" className="inline-flex items-center text-sm text-primary hover:underline">
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to writing
         </Link>
       </div>
     );
   }
 
   return (
-    <>
-      {/* Top Bar with Breadcrumb and Date - Full Width from Sidebar to Right Edge */}
-      <div className="absolute top-0 left-0 right-0 bg-muted/30 border-b z-10">
-        <div className="px-6 py-4 md:py-5 flex items-center justify-between gap-4 min-w-0">
-          <div className="flex items-center gap-2.5 text-sm md:text-base font-medium text-muted-foreground min-w-0 flex-1">
-            <Link href="/writing" className="hover:text-primary transition-colors flex-shrink-0">
-              Writing
-            </Link>
-            <span className="text-muted-foreground/40 flex-shrink-0">/</span>
-            <span className="text-foreground truncate min-w-0">{article.title}</span>
-          </div>
-          <div className="text-sm text-muted-foreground flex-shrink-0">
-            {article.publishedAt && format(new Date(article.publishedAt), "MMM d, yyyy")}
-          </div>
+    <article className="max-w-none">
+      <div className="mb-8">
+        <Link href="/writing" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-6">
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to writing
+        </Link>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-primary">
+          {article.title}
+        </h1>
+        <div className="text-sm text-muted-foreground">
+          {article.publishedAt && format(new Date(article.publishedAt), "MMMM d, yyyy")}
         </div>
       </div>
-      
-      <div className="max-w-none">
-        {/* Main Article Content */}
-        <article>
-          <div className="mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-primary">
-              {article.title}
-            </h1>
-          </div>
 
-          {article.excerpt && (
-            <p className="text-lg text-muted-foreground mb-8 font-medium">
-              {article.excerpt}
-            </p>
-          )}
+      {article.excerpt && (
+        <p className="text-lg text-muted-foreground mb-8 font-medium">
+          {article.excerpt}
+        </p>
+      )}
 
-          <div 
-            className="prose prose-sm sm:prose max-w-none prose-headings:text-primary prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground prose-img:rounded-lg prose-img:border"
-            dangerouslySetInnerHTML={{ __html: article.content }}
-          />
-        </article>
-      </div>
-    </>
+      <div 
+        className="prose prose-sm sm:prose max-w-none prose-headings:text-primary prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground prose-img:rounded-lg prose-img:border"
+        dangerouslySetInnerHTML={{ __html: article.content }}
+      />
+    </article>
   );
 }
