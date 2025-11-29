@@ -1,3 +1,11 @@
+// Load environment variables from .env file BEFORE any other imports
+import { config } from "dotenv";
+import { resolve } from "path";
+
+const envPath = resolve(import.meta.dirname, "..", ".env");
+config({ path: envPath });
+
+// Now import db after .env is loaded
 import { db } from "../server/db";
 import { 
   profiles, 

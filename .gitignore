@@ -10,3 +10,5 @@ vite.config.ts.*
 exports/
 *.service-account.json
 *-export-*.json
+.local/
+setup-env.sh
