@@ -1,0 +1,13 @@
+node_modules
+dist
+.git
+.env
+.env.local
+.DS_Store
+*.log
+.local
+attached_assets
+migrations
+*.md
+replit.md
+

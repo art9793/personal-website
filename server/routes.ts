@@ -5,6 +5,7 @@ import { setupAuth, isAuthenticated, isAdmin } from "./auth";
 import passport from "passport";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission, setObjectAclPolicy } from "./objectAcl";
+import { logError } from "./app";
 import { 
   insertProfileSchema,
   insertArticleSchema,
@@ -59,7 +60,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastName: req.user.lastName
       });
     } catch (error) {
-      console.error("Error fetching user:", error);
+      logError("Error fetching user", error);
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });

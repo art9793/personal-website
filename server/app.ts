@@ -15,6 +15,23 @@ export function log(message: string, source = "express") {
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
+export function logError(message: string, error: unknown, source = "express") {
+  const formattedTime = new Date().toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const errorStack = error instanceof Error ? error.stack : undefined;
+  
+  console.error(`${formattedTime} [${source}] ${message}: ${errorMessage}`);
+  if (errorStack && process.env.NODE_ENV === "development") {
+    console.error(errorStack);
+  }
+}
+
 export const app = express();
 
 app.use(compression({
