@@ -53,58 +53,86 @@ async function importData() {
     console.log(`\n📥 Importing data from: ${selectedFile}`);
     console.log(`   Exported at: ${data.exportedAt}\n`);
 
+    // Helper function to convert date strings to Date objects
+    const convertDates = (obj: any): any => {
+      if (obj === null || obj === undefined) return obj;
+      if (Array.isArray(obj)) {
+        return obj.map(convertDates);
+      }
+      if (typeof obj === 'object') {
+        const converted: any = {};
+        for (const [key, value] of Object.entries(obj)) {
+          if (key.includes('At') || key.includes('Date') || key === 'publishedAt' || key === 'startDate' || key === 'endDate') {
+            converted[key] = value ? new Date(value as string) : value;
+          } else if (typeof value === 'object' && value !== null) {
+            converted[key] = convertDates(value);
+          } else {
+            converted[key] = value;
+          }
+        }
+        return converted;
+      }
+      return obj;
+    };
+
     // Import profile
     if (data.profile) {
+      const profileData = convertDates(data.profile);
       const existing = await db.select().from(profiles).limit(1);
       if (existing.length > 0) {
         await db.update(profiles)
-          .set({ ...data.profile, updatedAt: new Date() })
+          .set({ ...profileData, updatedAt: new Date() })
           .where(eq(profiles.id, existing[0].id));
         console.log("✓ Profile updated");
       } else {
-        await db.insert(profiles).values(data.profile);
+        await db.insert(profiles).values(profileData);
         console.log("✓ Profile imported");
       }
     }
 
     // Import articles (clear and re-insert to avoid duplicates)
     if (data.articles && data.articles.length > 0) {
+      const articlesData = convertDates(data.articles);
       await db.delete(articles);
-      await db.insert(articles).values(data.articles);
+      await db.insert(articles).values(articlesData);
       console.log(`✓ Imported ${data.articles.length} articles`);
     }
 
     // Import projects
     if (data.projects && data.projects.length > 0) {
+      const projectsData = convertDates(data.projects);
       await db.delete(projects);
-      await db.insert(projects).values(data.projects);
+      await db.insert(projects).values(projectsData);
       console.log(`✓ Imported ${data.projects.length} projects`);
     }
 
     // Import work experiences
     if (data.workExperiences && data.workExperiences.length > 0) {
+      const workData = convertDates(data.workExperiences);
       await db.delete(workExperiences);
-      await db.insert(workExperiences).values(data.workExperiences);
+      await db.insert(workExperiences).values(workData);
       console.log(`✓ Imported ${data.workExperiences.length} work experiences`);
     }
 
     // Import reading list
     if (data.readingList && data.readingList.length > 0) {
+      const readingData = convertDates(data.readingList);
       await db.delete(readingList);
-      await db.insert(readingList).values(data.readingList);
+      await db.insert(readingList).values(readingData);
       console.log(`✓ Imported ${data.readingList.length} reading list items`);
     }
 
     // Import SEO settings
     if (data.seoSettings) {
+      const seoData = convertDates(data.seoSettings);
       const existing = await db.select().from(seoSettings).limit(1);
       if (existing.length > 0) {
         await db.update(seoSettings)
-          .set({ ...data.seoSettings, updatedAt: new Date() })
+          .set({ ...seoData, updatedAt: new Date() })
           .where(eq(seoSettings.id, existing[0].id));
         console.log("✓ SEO settings updated");
       } else {
-        await db.insert(seoSettings).values(data.seoSettings);
+        await db.insert(seoSettings).values(seoData);
         console.log("✓ SEO settings imported");
       }
     }
