@@ -15,7 +15,7 @@ A modern, full-stack personal portfolio website with a built-in CMS for managing
 
 - **Frontend**: React 19, TypeScript, Vite, Tailwind CSS
 - **Backend**: Express.js, Node.js
-- **Database**: PostgreSQL (Neon)
+- **Database**: PostgreSQL
 - **Storage**: Google Cloud Storage
 - **Authentication**: Passport.js with session-based auth
 - **ORM**: Drizzle ORM
@@ -23,16 +23,19 @@ A modern, full-stack personal portfolio website with a built-in CMS for managing
 ## 📦 Quick Start
 
 ### Prerequisites
+
 - Node.js 18+
 - PostgreSQL database
 - Google Cloud Storage bucket
 
 ### Installation
+
 ```bash
 npm install
 ```
 
 ### Development
+
 ```bash
 # Start dev server
 npm run dev
@@ -42,26 +45,26 @@ npm run dev:client
 ```
 
 ### Build
+
 ```bash
 npm run build
 npm start
 ```
-
-## 📚 Documentation
-
-- `RAILWAY_SETUP.md` - Complete Railway deployment guide
-- `GITHUB_SETUP.md` - GitHub setup and deployment
-- `DEPLOY_TO_EXISTING_DOMAIN.md` - Deploying to existing domain
-- `QUICK_START.md` - Quick deployment reference
-- `CODE_QUALITY_REPORT.md` - Code quality assessment
 
 ## 🔐 Admin Access
 
 Default admin email: `art9793@gmail.com`
 
 To set up admin account:
+
 ```bash
 tsx scripts/setup-admin.ts
+```
+
+For production (Railway):
+
+```bash
+railway run tsx scripts/setup-admin-noninteractive.ts
 ```
 
 ## 📝 License
@@ -71,4 +74,3 @@ MIT
 ## 👤 Author
 
 Arshad Teli - [arshad-teli.com](https://arshad-teli.com)
-

@@ -80,6 +80,39 @@ function csrfProtection(req: any, res: any, next: any) {
   next();
 }
 
+// Helper function to get deployment URL
+function getDeploymentUrl(): string {
+  // Check for explicit deployment URL first
+  if (process.env.DEPLOYMENT_URL) {
+    return process.env.DEPLOYMENT_URL;
+  }
+
+  // Vercel
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  // Railway
+  if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+    return `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
+  }
+
+  // Render
+  if (process.env.RENDER_EXTERNAL_URL) {
+    return process.env.RENDER_EXTERNAL_URL;
+  }
+
+  // Fallback to request host in development
+  return 'https://arshad-teli.com';
+}
+
+// Helper function to format date for sitemap (YYYY-MM-DD)
+function formatSitemapDate(date: Date | string | null | undefined): string {
+  if (!date) return new Date().toISOString().split('T')[0];
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return d.toISOString().split('T')[0];
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
@@ -89,6 +122,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Apply general API rate limiting
   app.use('/api', apiLimiter);
+
+  // Dynamic robots.txt generation
+  app.get('/robots.txt', async (req, res) => {
+    try {
+      const baseUrl = getDeploymentUrl();
+      const robots = `User-agent: *
+Allow: /
+Disallow: /admin/
+
+Sitemap: ${baseUrl}/sitemap.xml
+`;
+      res.set('Content-Type', 'text/plain');
+      res.send(robots);
+    } catch (error) {
+      logError("Error generating robots.txt", error, "robots");
+      res.status(500).send('User-agent: *\nDisallow: /');
+    }
+  });
+
+  // Dynamic sitemap generation (before API routes to avoid rate limiting)
+  app.get('/sitemap.xml', async (req, res) => {
+    try {
+      const baseUrl = getDeploymentUrl();
+      
+      // Get all published articles
+      const allArticles = await storage.getArticles();
+      const publishedArticles = allArticles
+        .filter(a => a.status === 'Published' && a.slug)
+        .sort((a, b) => {
+          const dateA = a.updatedAt || a.publishedAt || a.createdAt;
+          const dateB = b.updatedAt || b.publishedAt || b.createdAt;
+          const timeA = dateA ? new Date(dateA).getTime() : 0;
+          const timeB = dateB ? new Date(dateB).getTime() : 0;
+          return timeB - timeA; // Most recent first
+        });
+      
+      // Get all active projects
+      const allProjects = await storage.getProjects();
+      const activeProjects = allProjects
+        .filter(p => p.status === 'Active')
+        .sort((a, b) => {
+          const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+          const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+          return timeB - timeA; // Most recent first
+        });
+      
+      // Get profile for lastmod date
+      const profile = await storage.getProfile();
+      const profileLastmod = profile?.updatedAt ? formatSitemapDate(profile.updatedAt) : formatSitemapDate(new Date());
+
+      // Get most recent article date for /writing page
+      const mostRecentArticleDate = publishedArticles.length > 0 
+        ? formatSitemapDate(publishedArticles[0].updatedAt || publishedArticles[0].publishedAt || publishedArticles[0].createdAt)
+        : profileLastmod;
+
+      // Get most recent project date for /projects page
+      const mostRecentProjectDate = activeProjects.length > 0
+        ? formatSitemapDate(activeProjects[0].updatedAt || activeProjects[0].createdAt)
+        : profileLastmod;
+
+      // Build sitemap XML
+      let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Main Pages -->
+  <url>
+    <loc>${baseUrl}/</loc>
+    <lastmod>${profileLastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/writing</loc>
+    <lastmod>${mostRecentArticleDate}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/projects</loc>
+    <lastmod>${mostRecentProjectDate}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/work</loc>
+    <lastmod>${profileLastmod}</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/reading</loc>
+    <lastmod>${profileLastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+`;
+
+      // Add published articles
+      for (const article of publishedArticles) {
+        const lastmod = formatSitemapDate(article.updatedAt || article.publishedAt || article.createdAt);
+        const slug = article.slug || article.id.toString();
+        sitemap += `  <url>
+    <loc>${baseUrl}/article/${slug}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+`;
+      }
+
+      sitemap += `</urlset>`;
+
+      res.set('Content-Type', 'application/xml');
+      res.send(sitemap);
+    } catch (error) {
+      logError("Error generating sitemap", error, "sitemap");
+      res.status(500).send('<?xml version="1.0" encoding="UTF-8"?><error>Failed to generate sitemap</error>');
+    }
+  });
 
   // Auth routes with stricter rate limiting
   app.post('/api/auth/login', authLimiter, (req, res, next) => {
