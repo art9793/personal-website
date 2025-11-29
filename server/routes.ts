@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import rateLimit from "express-rate-limit";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isAdmin } from "./auth";
 import passport from "passport";
@@ -15,12 +16,82 @@ import {
   insertSeoSettingsSchema
 } from "@shared/schema";
 
+// Rate limiting for auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 requests per windowMs
+  message: "Too many login attempts, please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// General API rate limiter (more lenient)
+const apiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 100, // Limit each IP to 100 requests per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// CSRF protection middleware
+function csrfProtection(req: any, res: any, next: any) {
+  // Skip CSRF for GET requests
+  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
+    return next();
+  }
+
+  // For same-origin requests, check Origin header
+  const origin = req.headers.origin;
+  const host = req.headers.host;
+  const referer = req.headers.referer;
+
+  // Allow requests from same origin
+  if (origin && host && origin.includes(host)) {
+    return next();
+  }
+
+  // Allow requests with referer from same origin
+  if (referer && host && referer.includes(`https://${host}`)) {
+    return next();
+  }
+
+  // In production, be more strict
+  if (process.env.NODE_ENV === 'production') {
+    // For API routes, require Origin header to match
+    if (req.path.startsWith('/api') && origin) {
+      const allowedOrigins = [
+        process.env.DEPLOYMENT_URL,
+        `https://${host}`,
+        `http://${host}`,
+      ].filter(Boolean);
+      
+      if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+        return next();
+      }
+    }
+  }
+
+  // For development, be more lenient
+  if (process.env.NODE_ENV === 'development') {
+    return next();
+  }
+
+  // Default: allow (can be made stricter if needed)
+  next();
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
-  // Auth routes
-  app.post('/api/auth/login', (req, res, next) => {
+  // Apply CSRF protection to all routes
+  app.use(csrfProtection);
+
+  // Apply general API rate limiting
+  app.use('/api', apiLimiter);
+
+  // Auth routes with stricter rate limiting
+  app.post('/api/auth/login', authLimiter, (req, res, next) => {
     passport.authenticate('local', (err: any, user: any, info: any) => {
       if (err) {
         return res.status(500).json({ message: "Internal server error" });

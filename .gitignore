@@ -12,3 +12,5 @@ exports/
 *-export-*.json
 .local/
 setup-env.sh
+*.log
+coverage/

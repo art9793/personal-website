@@ -96,9 +96,9 @@ export default async function runApp(
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
+    logError(message, err, "express-error-middleware");
     res.status(status).json({ message });
-    throw err;
+    // Do not throw err here, as it can cause unhandled promise rejections in async handlers
   });
 
   // importantly run the final setup after setting up all the other routes so
