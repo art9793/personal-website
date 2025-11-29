@@ -77,13 +77,6 @@ function getDeploymentUrl(): string | null {
     return url;
   }
 
-  // Render
-  if (process.env.RENDER_EXTERNAL_URL) {
-    const url = process.env.RENDER_EXTERNAL_URL;
-    log('[meta-images] using Render URL:', url);
-    return url;
-  }
-
   // Fly.io
   if (process.env.FLY_APP_NAME) {
     const url = `https://${process.env.FLY_APP_NAME}.fly.dev`;
