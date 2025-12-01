@@ -1,5 +1,4 @@
 import { Link, useRoute } from "wouter";
-import { ArrowLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 
@@ -33,7 +32,7 @@ export default function Article() {
         <h1 className="text-2xl font-bold mb-4">Article not found</h1>
         <p className="text-muted-foreground mb-6">The article you're looking for doesn't exist.</p>
         <Link href="/writing" className="inline-flex items-center text-sm text-primary hover:underline">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to writing
+          Back to writing
         </Link>
       </div>
     );
@@ -42,10 +41,7 @@ export default function Article() {
   return (
     <article className="max-w-none">
       <div className="mb-8">
-        <Link href="/writing" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors mb-6">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to writing
-        </Link>
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-primary">
+        <h1 className="text-2xl md:text-4xl font-bold tracking-tight mb-4 text-primary">
           {article.title}
         </h1>
         <div className="text-sm text-muted-foreground">

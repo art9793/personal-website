@@ -8,6 +8,14 @@ import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useContent } from "@/lib/content-context";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "./ui/breadcrumb";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -77,13 +85,45 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     </nav>
   );
 
+  // Check if we're on writing, article, projects, or work pages for breadcrumbs
+  const isWritingPage = location === "/writing";
+  const isArticlePage = location.startsWith("/article/");
+  const isProjectsPage = location === "/projects";
+  const isWorkPage = location === "/work";
+
   return (
     <div className="min-h-screen bg-background font-sans flex flex-col md:flex-row overflow-x-hidden">
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between px-6 py-4 border-b bg-background/80 backdrop-blur-xl sticky top-0 z-50">
-        <Link href="/" className="font-semibold text-lg tracking-tight">
-          Arshad Teli
-        </Link>
+        {isWritingPage || isArticlePage || isProjectsPage || isWorkPage ? (
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href="/">Arshad</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                {isWritingPage ? (
+                  <BreadcrumbPage>Writing</BreadcrumbPage>
+                ) : isArticlePage ? (
+                  <BreadcrumbLink asChild>
+                    <Link href="/writing">Writing</Link>
+                  </BreadcrumbLink>
+                ) : isProjectsPage ? (
+                  <BreadcrumbPage>Projects</BreadcrumbPage>
+                ) : isWorkPage ? (
+                  <BreadcrumbPage>Work</BreadcrumbPage>
+                ) : null}
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        ) : (
+          <Link href="/" className="font-semibold text-lg tracking-tight">
+            Arshad Teli
+          </Link>
+        )}
         <div className="flex items-center gap-1">
           <ThemeToggle />
           <Sheet open={open} onOpenChange={setOpen}>

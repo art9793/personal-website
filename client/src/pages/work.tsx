@@ -27,7 +27,7 @@ export default function Work() {
   return (
     <div className="space-y-12">
       <div className="space-y-4">
-        <h1 className="text-3xl font-bold tracking-tight">Work</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Work</h1>
         <p className="text-muted-foreground text-lg">
           My career journey and the teams I've been lucky to work with.
         </p>

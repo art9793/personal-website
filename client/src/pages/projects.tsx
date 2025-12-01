@@ -15,7 +15,7 @@ export default function Projects() {
   return (
     <div className="space-y-12 animate-in fade-in-50 duration-500">
       <div className="space-y-4">
-        <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Projects</h1>
         <p className="text-muted-foreground text-lg">
           Products I've built, communities I've founded, and open source work.
         </p>
