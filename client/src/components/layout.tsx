@@ -7,12 +7,22 @@ import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useContent } from "@/lib/content-context";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [isMobile, setIsMobile] = useState(false);
   const [open, setOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
+  const { profile } = useContent();
+  
+  // Debug: Log profile to console
+  useEffect(() => {
+    if (profile) {
+      console.log("Profile loaded:", profile);
+      console.log("Profile title:", profile.title);
+    }
+  }, [profile]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -86,7 +96,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <div className="flex flex-col h-full">
                 <div className="mb-8">
                    <div className="font-bold text-2xl tracking-tight mb-2">Arshad Teli</div>
-                   <p className="text-muted-foreground">Product Manager & Designer</p>
+                   <p className="text-muted-foreground">{profile?.title || "Product Manager & Designer"}</p>
                 </div>
                 <nav className="flex flex-col gap-1">
                   {navItems.map((item) => {
