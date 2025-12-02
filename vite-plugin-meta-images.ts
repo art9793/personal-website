@@ -26,20 +26,15 @@ export function metaImagesPlugin(): Plugin {
       const opengraphJpegPath = path.join(publicDir, 'opengraph.jpeg');
       const faviconPngPath = path.join(publicDir, 'favicon.png');
 
-      let imagePath: string | null = null;
       let imageName: string | null = null;
       if (fs.existsSync(opengraphPngPath)) {
-        imagePath = opengraphPngPath;
         imageName = 'opengraph.png';
       } else if (fs.existsSync(opengraphJpgPath)) {
-        imagePath = opengraphJpgPath;
         imageName = 'opengraph.jpg';
       } else if (fs.existsSync(opengraphJpegPath)) {
-        imagePath = opengraphJpegPath;
         imageName = 'opengraph.jpeg';
       } else if (fs.existsSync(faviconPngPath)) {
         // Fallback to favicon.png if no opengraph image exists
-        imagePath = faviconPngPath;
         imageName = 'favicon.png';
       }
 
