@@ -12,6 +12,12 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Clean up any existing dist directory to ensure a clean build
+RUN rm -rf dist || true
+
+# Verify index.html exists as a file (not a directory) before building
+RUN test -f client/index.html || (echo "ERROR: client/index.html is not a file" && ls -la client/ && exit 1)
+
 # Build the application
 RUN npm run build
 
