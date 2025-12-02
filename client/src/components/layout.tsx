@@ -23,14 +23,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   const { profile } = useContent();
-  
-  // Debug: Log profile to console
-  useEffect(() => {
-    if (profile) {
-      console.log("Profile loaded:", profile);
-      console.log("Profile title:", profile.title);
-    }
-  }, [profile]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
