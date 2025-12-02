@@ -2,13 +2,10 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
+import { fileURLToPath } from "url";
 import { metaImagesPlugin } from "./vite-plugin-meta-images";
 
-// Use process.cwd() which is more reliable in Docker builds
-// The config file is at the project root, so cwd should be /app
-const projectRoot = process.cwd();
-const clientRoot = path.resolve(projectRoot, "client");
-const distRoot = path.resolve(projectRoot, "dist", "public");
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [
@@ -18,8 +15,8 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(clientRoot, "src"),
-      "@shared": path.resolve(projectRoot, "shared"),
+      "@": path.resolve(__dirname, "client", "src"),
+      "@shared": path.resolve(__dirname, "shared"),
     },
   },
   css: {
@@ -27,12 +24,9 @@ export default defineConfig({
       plugins: [],
     },
   },
-  // Explicitly set public directory
-  publicDir: path.resolve(clientRoot, "public"),
-  // Use absolute path for root to avoid resolution issues
-  root: clientRoot,
+  root: path.resolve(__dirname, "client"),
   build: {
-    outDir: distRoot,
+    outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
   },
   server: {
