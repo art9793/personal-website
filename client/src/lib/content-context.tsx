@@ -122,31 +122,37 @@ export function ContentProvider({ children }: { children: ReactNode }) {
   // Fetch profile
   const { data: profile, isLoading: profileLoading } = useQuery<Profile>({
     queryKey: ["/api/profile"],
+    staleTime: 10 * 60 * 1000, // 10 minutes - profile doesn't change often
   });
 
   // Fetch SEO settings
   const { data: seoSettings, isLoading: seoLoading } = useQuery<SeoSettings>({
     queryKey: ["/api/seo-settings"],
+    staleTime: 10 * 60 * 1000, // 10 minutes - SEO settings don't change often
   });
 
   // Fetch articles
   const { data: articles = [], isLoading: articlesLoading } = useQuery<Article[]>({
     queryKey: ["/api/articles"],
+    staleTime: 2 * 60 * 1000, // 2 minutes - articles change more frequently
   });
 
   // Fetch projects
   const { data: projects = [], isLoading: projectsLoading } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Fetch work experiences
   const { data: workHistory = [], isLoading: workLoading } = useQuery<WorkExperience[]>({
     queryKey: ["/api/work-experiences"],
+    staleTime: 10 * 60 * 1000, // 10 minutes - work history doesn't change often
   });
 
   // Fetch reading list
   const { data: readingList = [], isLoading: readingLoading } = useQuery<ReadingListItem[]>({
     queryKey: ["/api/reading-list"],
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const handleUnauthorized = (error: Error) => {

@@ -11,9 +11,10 @@ import {
   ChevronsLeft, ChevronsRight, Link as LinkIcon, Star,
   ChevronRight, Upload, Trash2, Edit2, ArrowLeft, Eye, CheckCircle,
   MoreHorizontal, Clock, Calendar as CalendarIcon, ArrowUpDown, Filter, Briefcase,
-  Twitter, Linkedin, Github, Mail, AlertCircle, Check, Loader2
+  Twitter, Linkedin, Github, Mail, AlertCircle, Check, Loader2, Menu
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn, formatMonthYear } from "@/lib/utils";
 import { Editor } from "@/components/admin/editor";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -114,9 +115,12 @@ export default function AdminDashboard() {
   const [isWriting, setIsWriting] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isProjectSheetOpen, setIsProjectSheetOpen] = useState(false);
   const [isWorkSheetOpen, setIsWorkSheetOpen] = useState(false);
+  const [profileSaveStatus, setProfileSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const isMobile = useIsMobile();
   
   const [sortConfig, setSortConfig] = useState<{ key: keyof Article | keyof Project | keyof WorkExperience; direction: 'asc' | 'desc' } | null>(null);
   const [filterQuery, setFilterQuery] = useState("");
@@ -195,11 +199,18 @@ export default function AdminDashboard() {
   
   const handleSaveProfile = async () => {
     if (!formData) return;
-    await updateProfile(formData);
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been saved.",
-    });
+    setProfileSaveStatus("saving");
+    try {
+      await updateProfile(formData);
+      setProfileSaveStatus("saved");
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been saved.",
+      });
+      setTimeout(() => setProfileSaveStatus("idle"), 2000);
+    } catch (error) {
+      setProfileSaveStatus("idle");
+    }
   };
 
   const handleAvatarUpload = async () => {
@@ -673,12 +684,19 @@ export default function AdminDashboard() {
   const filteredWork = getSortedAndFilteredWork();
 
   const SidebarItem = ({ icon: Icon, label, id }: { icon: any, label: string, id: string }) => {
-    if (!isSidebarExpanded) {
+    const handleClick = () => {
+      changeTab(id);
+      if (isMobile) {
+        setIsMobileSidebarOpen(false);
+      }
+    };
+
+    if (!isSidebarExpanded && !isMobile) {
       return (
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
             <button
-              onClick={() => changeTab(id)}
+              onClick={handleClick}
               className={cn(
                 "w-full flex items-center justify-center p-2 rounded-md transition-colors",
                 activeTab === id 
@@ -697,7 +715,7 @@ export default function AdminDashboard() {
     
     return (
       <button
-        onClick={() => changeTab(id)}
+        onClick={handleClick}
         className={cn(
           "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
           activeTab === id 
@@ -724,107 +742,162 @@ export default function AdminDashboard() {
     return `${minutes} min read`;
   };
 
+  // Sidebar content component (reusable for desktop and mobile)
+  const SidebarContent = () => (
+    <>
+      <div className={cn(
+        "bg-background/50 backdrop-blur transition-all",
+        isSidebarExpanded && !isMobile ? "p-6 border-b" : isMobile ? "p-6 border-b" : "p-4 border-b-0"
+      )}>
+        {isSidebarExpanded || isMobile ? (
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 overflow-hidden flex-1">
+              <div className="h-8 w-8 rounded-lg bg-primary flex-shrink-0 flex items-center justify-center text-primary-foreground font-bold">
+                {profile?.name?.charAt(0) || 'A'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-sm truncate">{profile?.name || 'Admin'}</div>
+                <div className="text-xs text-muted-foreground truncate">Admin</div>
+              </div>
+            </div>
+            {!isMobile && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6 text-muted-foreground hover:bg-secondary flex-shrink-0"
+                onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold">
+              {profile?.name?.charAt(0) || 'A'}
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-6 w-6 text-muted-foreground hover:bg-secondary"
+              onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <div className={cn(
+        "flex-1 overflow-y-auto space-y-6",
+        (isSidebarExpanded || isMobile) ? "py-6 px-3" : "py-6 px-2"
+      )}>
+        <div className="space-y-1">
+          {(isSidebarExpanded || isMobile) && (
+            <h4 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Content</h4>
+          )}
+          <SidebarItem icon={LayoutDashboard} label="Overview" id="overview" />
+          <SidebarItem icon={Settings} label="Home Page" id="settings" />
+          <SidebarItem icon={PenTool} label="Writing" id="writing" />
+          <SidebarItem icon={FolderGit2} label="Projects" id="projects" />
+          <SidebarItem icon={Briefcase} label="Work History" id="work" />
+          <SidebarItem icon={BookOpen} label="Reading List" id="reading" />
+        </div>
+
+        <div className="space-y-1">
+           {(isSidebarExpanded || isMobile) && (
+             <h4 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">System</h4>
+           )}
+           <SidebarItem icon={ImageIcon} label="Media Library" id="media" />
+           <SidebarItem icon={Globe} label="SEO & Metadata" id="seo" />
+        </div>
+      </div>
+
+      <div className={cn(
+        "p-4 border-t bg-background/50 backdrop-blur flex items-center gap-2",
+        (isSidebarExpanded || isMobile) ? "justify-between" : "flex-col justify-center"
+      )}>
+        <Button 
+          variant="ghost" 
+          onClick={handleSignOut} 
+          className={cn(
+            "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
+            (isSidebarExpanded || isMobile) ? "flex-1 justify-start gap-2" : "w-full justify-center px-0"
+          )}
+          title="Sign Out"
+        >
+          <LogOut className="h-4 w-4" />
+          {(isSidebarExpanded || isMobile) && "Sign Out"}
+        </Button>
+        <div className={cn((isSidebarExpanded || isMobile) ? "flex-shrink-0" : "")}>
+          <ThemeToggle />
+        </div>
+      </div>
+    </>
+  );
+
+  // Get tab title for mobile header
+  const getTabTitle = () => {
+    const titles: Record<string, string> = {
+      overview: "Overview",
+      settings: "Home Page",
+      writing: "Writing",
+      projects: "Projects",
+      work: "Work History",
+      reading: "Reading List",
+      media: "Media Library",
+      seo: "SEO & Metadata"
+    };
+    return titles[activeTab] || "Dashboard";
+  };
+
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      {/* Admin Sidebar */}
+      {/* Mobile Header */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-b flex items-center justify-between px-4 py-3">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsMobileSidebarOpen(true)}
+          className="h-8 w-8"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+        <h1 className="text-sm font-semibold">{getTabTitle()}</h1>
+        <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-xs">
+          {profile?.name?.charAt(0) || 'A'}
+        </div>
+      </div>
+
+      {/* Mobile Sidebar Drawer */}
+      <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
+        <SheetContent side="left" className="w-[280px] p-0">
+          <div className="flex flex-col h-full bg-muted/30">
+            <SidebarContent />
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Desktop Sidebar */}
       <aside className={cn(
-        "border-r bg-muted/30 flex flex-col transition-all duration-300 ease-in-out group relative",
+        "hidden md:flex border-r bg-muted/30 flex-col transition-all duration-300 ease-in-out group relative",
         isSidebarExpanded ? "w-64" : "w-[72px]"
       )}>
-        <div className={cn(
-          "bg-background/50 backdrop-blur transition-all flex flex-col",
-          isSidebarExpanded ? "p-6 border-b" : "p-4 border-b-0 items-center"
-        )}>
-          <div className={cn(
-            "flex items-center gap-3 overflow-hidden w-full",
-            isSidebarExpanded ? "" : "justify-center"
-          )}>
-             <div className="h-8 w-8 rounded-lg bg-primary flex-shrink-0 flex items-center justify-center text-primary-foreground font-bold">
-               {profile?.name?.charAt(0) || 'A'}
-             </div>
-             {isSidebarExpanded && (
-               <div>
-                 <div className="font-semibold text-sm truncate max-w-[100px]">{profile?.name || 'Admin'}</div>
-                 <div className="text-xs text-muted-foreground truncate">Admin</div>
-               </div>
-             )}
-          </div>
-          
-          <Button 
-             variant="ghost" 
-             size="icon" 
-             className={cn(
-               "h-6 w-6 text-muted-foreground hover:bg-secondary mt-4",
-               isSidebarExpanded ? "self-end" : ""
-             )}
-             onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-           >
-             {isSidebarExpanded ? <ChevronsLeft className="h-4 w-4" /> : <ChevronsRight className="h-4 w-4" />}
-           </Button>
-        </div>
-        
-        {/* Spacer for collapsed state toggle button */}
-        {!isSidebarExpanded && <div className="h-8"></div>}
-
-        <div className={cn(
-          "flex-1 overflow-y-auto space-y-6",
-          isSidebarExpanded ? "py-6 px-3" : "py-6 px-2"
-        )}>
-          <div className="space-y-1">
-            {isSidebarExpanded && (
-              <h4 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Content</h4>
-            )}
-            <SidebarItem icon={LayoutDashboard} label="Overview" id="overview" />
-            <SidebarItem icon={Settings} label="Home Page" id="settings" />
-            <SidebarItem icon={PenTool} label="Writing" id="writing" />
-            <SidebarItem icon={FolderGit2} label="Projects" id="projects" />
-            <SidebarItem icon={Briefcase} label="Work History" id="work" />
-            <SidebarItem icon={BookOpen} label="Reading List" id="reading" />
-          </div>
-
-          <div className="space-y-1">
-             {isSidebarExpanded && (
-               <h4 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">System</h4>
-             )}
-             <SidebarItem icon={ImageIcon} label="Media Library" id="media" />
-             <SidebarItem icon={Globe} label="SEO & Metadata" id="seo" />
-          </div>
-        </div>
-
-        <div className={cn(
-          "p-4 border-t bg-background/50 backdrop-blur flex items-center gap-2",
-          isSidebarExpanded ? "justify-between" : "flex-col justify-center"
-        )}>
-          <Button 
-            variant="ghost" 
-            onClick={handleSignOut} 
-            className={cn(
-              "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
-              isSidebarExpanded ? "flex-1 justify-start gap-2" : "w-full justify-center px-0"
-            )}
-            title="Sign Out"
-          >
-            <LogOut className="h-4 w-4" />
-            {isSidebarExpanded && "Sign Out"}
-          </Button>
-          <div className={cn(isSidebarExpanded ? "flex-shrink-0" : "")}>
-            <ThemeToggle />
-          </div>
-        </div>
+        <SidebarContent />
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto bg-background">
-        <div className="p-8 max-w-[1600px] mx-auto space-y-8">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background pt-14 md:pt-0">
+        <div className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-4 md:space-y-8">
           {activeTab === "overview" && (
-            <div className="space-y-8 animate-in fade-in-50 duration-500">
-              <div>
+            <div className="space-y-4 md:space-y-8 animate-in fade-in-50 duration-500">
+              <div className="hidden md:block">
                 <h2 className="text-3xl font-bold tracking-tight">Welcome, {profile?.name?.split(' ')[0] || 'Admin'}!</h2>
                 <p className="text-muted-foreground mt-1">Here's what's happening with your website today.</p>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="lg:col-span-2 shadow-sm border-border/50">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+                <Card className="lg:col-span-2 shadow-sm border-border/50 hidden md:block">
                   <CardHeader>
                     <CardTitle>Daily Visitors</CardTitle>
                     <CardDescription>
@@ -875,7 +948,7 @@ export default function AdminDashboard() {
                   </CardContent>
                 </Card>
 
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                   <Card className="shadow-sm border-border/50">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm font-medium text-muted-foreground">Total Views</CardTitle>
@@ -916,11 +989,11 @@ export default function AdminDashboard() {
                 <CardHeader>
                   <CardTitle>Quick Actions</CardTitle>
                 </CardHeader>
-                <CardContent className="flex gap-4">
-                   <Button onClick={() => { changeTab("writing"); handleNewPost(); }} className="gap-2 shadow-none">
+                <CardContent className="flex flex-col md:flex-row gap-4">
+                   <Button onClick={() => { changeTab("writing"); handleNewPost(); }} className="gap-2 shadow-none w-full md:w-auto">
                      <PenTool className="h-4 w-4" /> Write Article
                    </Button>
-                   <Button onClick={() => changeTab("projects")} variant="outline" className="gap-2 shadow-none">
+                   <Button onClick={() => changeTab("projects")} variant="outline" className="gap-2 shadow-none w-full md:w-auto">
                      <FolderGit2 className="h-4 w-4" /> Add Project
                    </Button>
                 </CardContent>
@@ -930,28 +1003,27 @@ export default function AdminDashboard() {
 
           {activeTab === "projects" && (
             <div className="space-y-4 animate-in fade-in-50 duration-500">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
+              <div className="hidden md:block mb-6">
+                <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
+              </div>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+                <div className="relative w-full md:w-64">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                        placeholder="Filter projects..." 
+                        className="pl-8 h-9 text-sm" 
+                        value={filterQuery}
+                        onChange={(e) => setFilterQuery(e.target.value)}
+                    />
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="relative w-64">
-                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                            placeholder="Filter projects..." 
-                            className="pl-8 h-9 text-sm" 
-                            value={filterQuery}
-                            onChange={(e) => setFilterQuery(e.target.value)}
-                        />
-                    </div>
-                    <Sheet open={isProjectSheetOpen} onOpenChange={(open) => {
-                        setIsProjectSheetOpen(open);
-                        if (!open) setEditingProject(null);
-                    }}>
-                        <SheetTrigger asChild>
-                            <Button onClick={handleNewProject} size="sm" className="gap-2 h-9"><Plus className="h-4 w-4" /> Add Project</Button>
-                        </SheetTrigger>
-                        <SheetContent className="sm:max-w-[540px] overflow-y-auto">
+                <Sheet open={isProjectSheetOpen} onOpenChange={(open) => {
+                    setIsProjectSheetOpen(open);
+                    if (!open) setEditingProject(null);
+                }}>
+                    <SheetTrigger asChild>
+                        <Button onClick={handleNewProject} size="sm" className="gap-2 h-9 shadow-none w-full md:w-auto"><Plus className="h-4 w-4" /> Add Project</Button>
+                    </SheetTrigger>
+                    <SheetContent className="sm:max-w-[540px] overflow-y-auto">
                             <SheetHeader className="mb-6">
                                 <SheetTitle>{editingProject?.title ? 'Edit Project' : 'New Project'}</SheetTitle>
                                 <SheetDescription>
@@ -1040,10 +1112,10 @@ export default function AdminDashboard() {
                             )}
                         </SheetContent>
                     </Sheet>
-                </div>
               </div>
 
-              <div className="border rounded-md bg-background overflow-hidden">
+              <div className="border rounded-md bg-background overflow-hidden min-w-0">
+                <div className="overflow-x-auto">
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-muted/50 hover:bg-muted/50">
@@ -1155,28 +1227,27 @@ export default function AdminDashboard() {
                         )}
                     </TableBody>
                 </Table>
+                </div>
               </div>
             </div>
           )}
 
           {activeTab === "writing" && !isWriting && (
             <div className="space-y-4 animate-in fade-in-50 duration-500">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold tracking-tight">Writing</h2>
+              <div className="hidden md:block mb-6">
+                <h2 className="text-2xl font-bold tracking-tight">Writing</h2>
+              </div>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+                <div className="relative w-full md:w-64">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                        placeholder="Filter by tags or keywords..." 
+                        className="pl-8 h-9 text-sm" 
+                        value={filterQuery}
+                        onChange={(e) => setFilterQuery(e.target.value)}
+                    />
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="relative w-64">
-                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                            placeholder="Filter by tags or keywords..." 
-                            className="pl-8 h-9 text-sm" 
-                            value={filterQuery}
-                            onChange={(e) => setFilterQuery(e.target.value)}
-                        />
-                    </div>
-                    <Button onClick={() => setLocation("/admin/article/new")} size="sm" className="gap-2 h-9"><Plus className="h-4 w-4" /> New Article</Button>
-                </div>
+                <Button onClick={() => setLocation("/admin/article/new")} size="sm" className="gap-2 h-9 shadow-none w-full md:w-auto"><Plus className="h-4 w-4" /> New Article</Button>
               </div>
 
               {/* Article Status Filter Tabs */}
@@ -1194,7 +1265,8 @@ export default function AdminDashboard() {
                 </TabsList>
               </Tabs>
 
-              <div className="border rounded-md bg-background overflow-hidden">
+              <div className="border rounded-md bg-background overflow-hidden min-w-0">
+                <div className="overflow-x-auto">
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-muted/50 hover:bg-muted/50">
@@ -1308,34 +1380,34 @@ export default function AdminDashboard() {
                         )}
                     </TableBody>
                 </Table>
+                </div>
               </div>
             </div>
           )}
 
           {activeTab === "work" && (
             <div className="space-y-4 animate-in fade-in-50 duration-500">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold tracking-tight">Work History</h2>
+              <div className="hidden md:block mb-6">
+                <h2 className="text-2xl font-bold tracking-tight">Work History</h2>
+              </div>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+                <div className="relative w-full md:w-64">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                        placeholder="Filter work history..." 
+                        className="pl-8 h-9 text-sm" 
+                        value={filterQuery}
+                        onChange={(e) => setFilterQuery(e.target.value)}
+                    />
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="relative w-64">
-                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                            placeholder="Filter work history..." 
-                            className="pl-8 h-9 text-sm" 
-                            value={filterQuery}
-                            onChange={(e) => setFilterQuery(e.target.value)}
-                        />
-                    </div>
-                    <Sheet open={isWorkSheetOpen} onOpenChange={(open) => {
-                        setIsWorkSheetOpen(open);
-                        if (!open) setEditingWork(null);
-                    }}>
-                        <SheetTrigger asChild>
-                            <Button onClick={handleNewWork} size="sm" className="gap-2 h-9 shadow-none"><Plus className="h-4 w-4" /> Add Experience</Button>
-                        </SheetTrigger>
-                        <SheetContent className="sm:max-w-[540px] overflow-y-auto">
+                <Sheet open={isWorkSheetOpen} onOpenChange={(open) => {
+                    setIsWorkSheetOpen(open);
+                    if (!open) setEditingWork(null);
+                }}>
+                    <SheetTrigger asChild>
+                        <Button onClick={handleNewWork} size="sm" className="gap-2 h-9 shadow-none w-full md:w-auto"><Plus className="h-4 w-4" /> Add Experience</Button>
+                    </SheetTrigger>
+                    <SheetContent className="sm:max-w-[540px] overflow-y-auto">
                             <SheetHeader className="mb-6">
                                 <SheetTitle>{editingWork?.company ? 'Edit Experience' : 'New Experience'}</SheetTitle>
                                 <SheetDescription>
@@ -1486,7 +1558,6 @@ export default function AdminDashboard() {
                         </SheetContent>
                     </Sheet>
                 </div>
-              </div>
 
               <div className="rounded-md border">
                 <Table>
@@ -1616,7 +1687,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Settings Drawer/Panel */}
-              <div className="mt-32 border-t pt-12 grid grid-cols-1 md:grid-cols-3 gap-16 opacity-40 hover:opacity-100 transition-all duration-500 ease-in-out group">
+              <div className="mt-8 md:mt-32 border-t pt-6 md:pt-12 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-16 opacity-40 hover:opacity-100 transition-all duration-500 ease-in-out group">
                   <div className="space-y-6">
                      <div className="flex items-center gap-2 text-sm font-medium text-foreground/70">
                         <Settings className="h-4 w-4" />
@@ -1694,7 +1765,7 @@ export default function AdminDashboard() {
                         <Globe className="h-4 w-4" />
                         SEO & Metadata
                      </div>
-                     <div className="grid grid-cols-2 gap-12">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
                        <div className="space-y-5">
                          <div className="space-y-2 group/item p-2 -mx-2 rounded-md hover:bg-secondary/40 transition-colors">
                            <Label className="text-xs text-muted-foreground font-normal">Excerpt</Label>
@@ -1783,8 +1854,8 @@ export default function AdminDashboard() {
           )}
 
           {!isWriting && activeTab === "seo" && (
-             <div className="space-y-6 max-w-3xl">
-               <div>
+             <div className="space-y-4 md:space-y-6 max-w-3xl">
+               <div className="hidden md:block">
                  <h2 className="text-2xl font-bold tracking-tight">SEO & Metadata</h2>
                  <p className="text-muted-foreground mt-1">Configure site-wide SEO settings.</p>
                </div>
@@ -1906,48 +1977,55 @@ export default function AdminDashboard() {
            )}
 
           {activeTab === "settings" && (
-            <div className="max-w-3xl space-y-8">
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight">Home Page Settings</h2>
-                <p className="text-muted-foreground mt-1">Manage your profile and home page content.</p>
+            <div className="max-w-4xl space-y-4 md:space-y-12 pb-24 md:pb-0">
+              <div className="hidden md:block pb-6 border-b border-border/30">
+                <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Home Page Settings</h2>
+                <p className="text-muted-foreground mt-3 text-sm md:text-base">Manage your profile and home page content.</p>
               </div>
 
               {/* Avatar Section */}
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium mb-1">Profile Picture</h3>
-                  <p className="text-xs text-muted-foreground">This image appears on your homepage</p>
+                  <h3 className="text-lg md:text-xl font-semibold mb-1.5">Profile Picture</h3>
+                  <p className="text-xs md:text-sm text-muted-foreground">This image appears on your homepage</p>
                 </div>
-                <div className="flex items-center gap-6 p-6 bg-muted/30 border border-border/50 rounded-lg">
-                  <Avatar className="h-20 w-20">
-                    {formData?.avatarUrl ? (
-                      <AvatarImage src={formData.avatarUrl} alt={formData.name || 'Profile'} />
-                    ) : null}
-                    <AvatarFallback className="text-lg bg-muted">{formData?.name?.substring(0, 2).toUpperCase() || 'AT'}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 flex items-center gap-3">
-                    <ObjectUploader
-                      maxNumberOfFiles={1}
-                      maxFileSize={5242880}
-                      onGetUploadParameters={handleAvatarUpload}
-                      onComplete={handleAvatarUploadComplete}
-                      buttonClassName="gap-2"
-                    >
-                      <Upload className="h-4 w-4" />
-                      {formData?.avatarUrl ? 'Change' : 'Upload'}
-                    </ObjectUploader>
-                    {formData?.avatarUrl && (
-                      <Button 
-                        variant="ghost"
-                        size="default"
-                        onClick={handleDeleteAvatar}
-                        className="gap-2 text-muted-foreground hover:text-destructive"
-                        data-testid="button-delete-avatar"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Remove
-                      </Button>
-                    )}
+                <div className="p-6 md:p-8 lg:p-10 bg-background border border-border/30 rounded-xl shadow-sm">
+                  <div className="flex flex-col md:flex-row md:items-start gap-6 md:gap-8">
+                    <div className="flex-shrink-0">
+                      <Avatar className="h-24 w-24 md:h-28 md:w-28 ring-2 ring-border/20 ring-offset-2 ring-offset-background">
+                        {formData?.avatarUrl ? (
+                          <AvatarImage src={formData.avatarUrl} alt={formData.name || 'Profile'} />
+                        ) : null}
+                        <AvatarFallback className="text-xl md:text-2xl bg-muted font-semibold">{formData?.name?.substring(0, 2).toUpperCase() || 'AT'}</AvatarFallback>
+                      </Avatar>
+                    </div>
+                    <div className="flex-1 flex flex-col gap-3 min-w-0">
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <ObjectUploader
+                          maxNumberOfFiles={1}
+                          maxFileSize={5242880}
+                          onGetUploadParameters={handleAvatarUpload}
+                          onComplete={handleAvatarUploadComplete}
+                          buttonClassName="gap-2 w-full sm:w-auto"
+                        >
+                          <Upload className="h-4 w-4" />
+                          {formData?.avatarUrl ? 'Change Picture' : 'Upload Picture'}
+                        </ObjectUploader>
+                        {formData?.avatarUrl && (
+                          <Button 
+                            variant="outline"
+                            size="default"
+                            onClick={handleDeleteAvatar}
+                            className="gap-2 w-full sm:w-auto text-muted-foreground hover:text-destructive hover:border-destructive/50"
+                            data-testid="button-delete-avatar"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Recommended: Square image, at least 400x400 pixels. Max file size: 5MB.</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1955,37 +2033,45 @@ export default function AdminDashboard() {
               {/* Profile Information */}
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium mb-1">Profile Information</h3>
-                  <p className="text-xs text-muted-foreground">Your name, title, and bio</p>
+                  <h3 className="text-lg md:text-xl font-semibold mb-1.5">Profile Information</h3>
+                  <p className="text-xs md:text-sm text-muted-foreground">Your name, title, and bio</p>
                 </div>
-                <div className="space-y-4 p-6 bg-muted/30 border border-border/50 rounded-lg">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-xs font-medium text-muted-foreground">Full Name</Label>
+                <div className="space-y-6 p-6 md:p-8 lg:p-10 bg-background border border-border/30 rounded-xl shadow-sm">
+                  <div className="space-y-3">
+                    <Label htmlFor="name" className="text-sm font-medium text-foreground">Full Name</Label>
                     <Input 
                       id="name" 
                       value={formData?.name || ''} 
                       onChange={(e) => setFormData(formData ? {...formData, name: e.target.value} : undefined)}
-                      className="border-none bg-background shadow-sm"
+                      className="h-11 text-base transition-all border border-border/50 bg-background hover:border-border focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+                      placeholder="Enter your full name"
                     />
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="role" className="text-xs font-medium text-muted-foreground">Job Title</Label>
+                  <div className="space-y-3">
+                    <Label htmlFor="role" className="text-sm font-medium text-foreground">Job Title</Label>
                     <Input 
                       id="role" 
                       value={formData?.title || ''} 
                       onChange={(e) => setFormData(formData ? {...formData, title: e.target.value} : undefined)}
-                      className="border-none bg-background shadow-sm"
+                      className="h-11 text-base transition-all border border-border/50 bg-background hover:border-border focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+                      placeholder="e.g. Product Manager, Designer"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="bio" className="text-xs font-medium text-muted-foreground">Bio</Label>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="bio" className="text-sm font-medium text-foreground">Bio</Label>
+                      {formData?.bio && (
+                        <span className="text-xs text-muted-foreground">{formData.bio.length} characters</span>
+                      )}
+                    </div>
                     <Textarea 
                       id="bio" 
                       value={formData?.bio || ''} 
                       onChange={(e) => setFormData(formData ? {...formData, bio: e.target.value} : undefined)} 
-                      className="h-24 border-none bg-background shadow-sm resize-none"
+                      className="min-h-[140px] text-base transition-all border border-border/50 bg-background hover:border-border focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary resize-none leading-relaxed"
+                      placeholder="Tell visitors about yourself..."
                     />
                   </div>
                 </div>
@@ -1994,98 +2080,172 @@ export default function AdminDashboard() {
               {/* Social Links */}
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium mb-1">Social Links</h3>
-                  <p className="text-xs text-muted-foreground">Connect your social profiles</p>
+                  <h3 className="text-lg md:text-xl font-semibold mb-1.5">Social Links</h3>
+                  <p className="text-xs md:text-sm text-muted-foreground">Connect your social profiles</p>
                 </div>
-                <div className="space-y-3 p-6 bg-muted/30 border border-border/50 rounded-lg">
+                <div className="space-y-4">
                   {/* Twitter */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-background flex items-center justify-center">
-                      <Twitter className="h-4 w-4 text-muted-foreground" />
+                  <div className="group bg-background border border-border/30 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+                    <div className="p-4 sm:p-5">
+                      {/* Header Row: Icon + Label + Switch */}
+                      <div className="flex items-center justify-between gap-3 mb-3">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-[#1DA1F2]/10 flex items-center justify-center border border-[#1DA1F2]/20 transition-colors group-hover:border-[#1DA1F2]/40">
+                            <Twitter className="h-5 w-5 text-[#1DA1F2]" />
+                          </div>
+                          <Label htmlFor="show-twitter" className="text-sm font-medium text-foreground flex-shrink-0">
+                            Twitter
+                          </Label>
+                        </div>
+                        <Switch
+                          id="show-twitter"
+                          checked={formData?.showTwitter ?? true}
+                          onCheckedChange={(checked) => setFormData(formData ? {...formData, showTwitter: checked} : undefined)}
+                          data-testid="switch-show-twitter"
+                        />
+                      </div>
+                      {/* Input Row */}
+                      <Input 
+                        placeholder="https://twitter.com/username" 
+                        value={formData?.twitter || ''}
+                        onChange={(e) => setFormData(formData ? {...formData, twitter: e.target.value} : undefined)}
+                        className="h-11 text-base transition-all border border-border/50 bg-background hover:border-border focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+                        data-testid="input-twitter"
+                      />
                     </div>
-                    <Input 
-                      placeholder="Twitter URL" 
-                      value={formData?.twitter || ''}
-                      onChange={(e) => setFormData(formData ? {...formData, twitter: e.target.value} : undefined)}
-                      className="flex-1 border-none bg-background shadow-sm"
-                      data-testid="input-twitter"
-                    />
-                    <Switch
-                      id="show-twitter"
-                      checked={formData?.showTwitter ?? true}
-                      onCheckedChange={(checked) => setFormData(formData ? {...formData, showTwitter: checked} : undefined)}
-                      data-testid="switch-show-twitter"
-                    />
                   </div>
 
                   {/* LinkedIn */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-background flex items-center justify-center">
-                      <Linkedin className="h-4 w-4 text-muted-foreground" />
+                  <div className="group bg-background border border-border/30 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+                    <div className="p-4 sm:p-5">
+                      {/* Header Row: Icon + Label + Switch */}
+                      <div className="flex items-center justify-between gap-3 mb-3">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-[#0077B5]/10 flex items-center justify-center border border-[#0077B5]/20 transition-colors group-hover:border-[#0077B5]/40">
+                            <Linkedin className="h-5 w-5 text-[#0077B5]" />
+                          </div>
+                          <Label htmlFor="show-linkedin" className="text-sm font-medium text-foreground flex-shrink-0">
+                            LinkedIn
+                          </Label>
+                        </div>
+                        <Switch
+                          id="show-linkedin"
+                          checked={formData?.showLinkedin ?? true}
+                          onCheckedChange={(checked) => setFormData(formData ? {...formData, showLinkedin: checked} : undefined)}
+                          data-testid="switch-show-linkedin"
+                        />
+                      </div>
+                      {/* Input Row */}
+                      <Input 
+                        placeholder="https://linkedin.com/in/username" 
+                        value={formData?.linkedin || ''}
+                        onChange={(e) => setFormData(formData ? {...formData, linkedin: e.target.value} : undefined)}
+                        className="h-11 text-base transition-all border border-border/50 bg-background hover:border-border focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+                        data-testid="input-linkedin"
+                      />
                     </div>
-                    <Input 
-                      placeholder="LinkedIn URL" 
-                      value={formData?.linkedin || ''}
-                      onChange={(e) => setFormData(formData ? {...formData, linkedin: e.target.value} : undefined)}
-                      className="flex-1 border-none bg-background shadow-sm"
-                      data-testid="input-linkedin"
-                    />
-                    <Switch
-                      id="show-linkedin"
-                      checked={formData?.showLinkedin ?? true}
-                      onCheckedChange={(checked) => setFormData(formData ? {...formData, showLinkedin: checked} : undefined)}
-                      data-testid="switch-show-linkedin"
-                    />
                   </div>
 
                   {/* GitHub */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-background flex items-center justify-center">
-                      <Github className="h-4 w-4 text-muted-foreground" />
+                  <div className="group bg-background border border-border/30 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+                    <div className="p-4 sm:p-5">
+                      {/* Header Row: Icon + Label + Switch */}
+                      <div className="flex items-center justify-between gap-3 mb-3">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-foreground/10 flex items-center justify-center border border-border/40 transition-colors group-hover:border-border/60">
+                            <Github className="h-5 w-5 text-foreground" />
+                          </div>
+                          <Label htmlFor="show-github" className="text-sm font-medium text-foreground flex-shrink-0">
+                            GitHub
+                          </Label>
+                        </div>
+                        <Switch
+                          id="show-github"
+                          checked={formData?.showGithub ?? true}
+                          onCheckedChange={(checked) => setFormData(formData ? {...formData, showGithub: checked} : undefined)}
+                          data-testid="switch-show-github"
+                        />
+                      </div>
+                      {/* Input Row */}
+                      <Input 
+                        placeholder="https://github.com/username" 
+                        value={formData?.github || ''}
+                        onChange={(e) => setFormData(formData ? {...formData, github: e.target.value} : undefined)}
+                        className="h-11 text-base transition-all border border-border/50 bg-background hover:border-border focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+                        data-testid="input-github"
+                      />
                     </div>
-                    <Input 
-                      placeholder="GitHub URL" 
-                      value={formData?.github || ''}
-                      onChange={(e) => setFormData(formData ? {...formData, github: e.target.value} : undefined)}
-                      className="flex-1 border-none bg-background shadow-sm"
-                      data-testid="input-github"
-                    />
-                    <Switch
-                      id="show-github"
-                      checked={formData?.showGithub ?? true}
-                      onCheckedChange={(checked) => setFormData(formData ? {...formData, showGithub: checked} : undefined)}
-                      data-testid="switch-show-github"
-                    />
                   </div>
 
                   {/* Email */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-background flex items-center justify-center">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
+                  <div className="group bg-background border border-border/30 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+                    <div className="p-4 sm:p-5">
+                      {/* Header Row: Icon + Label + Switch */}
+                      <div className="flex items-center justify-between gap-3 mb-3">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 transition-colors group-hover:border-primary/40">
+                            <Mail className="h-5 w-5 text-primary" />
+                          </div>
+                          <Label htmlFor="show-email" className="text-sm font-medium text-foreground flex-shrink-0">
+                            Email
+                          </Label>
+                        </div>
+                        <Switch
+                          id="show-email"
+                          checked={formData?.showEmail ?? true}
+                          onCheckedChange={(checked) => setFormData(formData ? {...formData, showEmail: checked} : undefined)}
+                          data-testid="switch-show-email"
+                        />
+                      </div>
+                      {/* Input Row */}
+                      <Input 
+                        placeholder="your.email@example.com" 
+                        value={formData?.email || ''}
+                        onChange={(e) => setFormData(formData ? {...formData, email: e.target.value} : undefined)}
+                        className="h-11 text-base transition-all border border-border/50 bg-background hover:border-border focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary"
+                        data-testid="input-email"
+                      />
                     </div>
-                    <Input 
-                      placeholder="Email" 
-                      value={formData?.email || ''}
-                      onChange={(e) => setFormData(formData ? {...formData, email: e.target.value} : undefined)}
-                      className="flex-1 border-none bg-background shadow-sm"
-                      data-testid="input-email"
-                    />
-                    <Switch
-                      id="show-email"
-                      checked={formData?.showEmail ?? true}
-                      onCheckedChange={(checked) => setFormData(formData ? {...formData, showEmail: checked} : undefined)}
-                      data-testid="switch-show-email"
-                    />
                   </div>
                 </div>
               </div>
 
               {/* Save Button */}
-              <div className="pt-2">
-                <Button onClick={handleSaveProfile} disabled={!hasProfileChanges} size="default">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
-                </Button>
+              <div className="pt-6 md:pt-8 border-t border-border/30">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="text-sm text-muted-foreground">
+                    {hasProfileChanges && (
+                      <span className="flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4" />
+                        You have unsaved changes
+                      </span>
+                    )}
+                    {!hasProfileChanges && profileSaveStatus === "saved" && (
+                      <span className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                        <CheckCircle className="h-4 w-4" />
+                        Changes saved
+                      </span>
+                    )}
+                  </div>
+                  <Button 
+                    onClick={handleSaveProfile} 
+                    disabled={!hasProfileChanges || profileSaveStatus === "saving"} 
+                    size="lg"
+                    className="h-12 px-8 text-base font-medium shadow-sm transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+                  >
+                    {profileSaveStatus === "saving" ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           )}
