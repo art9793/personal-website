@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Link } from "wouter";
 import { ArrowRight, Github, Linkedin, Mail, ExternalLink } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -10,6 +11,23 @@ export default function Home() {
   const { articles, isLoading: articlesLoading } = useArticles();
   const isLoading = profileLoading || projectsLoading || articlesLoading;
 
+  const featuredProjects = useMemo(() => {
+    return projects
+      .filter(p => p.status === "Active" && p.featured)
+      .slice(0, 4);
+  }, [projects]);
+
+  const recentPosts = useMemo(() => {
+    return articles
+      .filter(a => a.status === "Published")
+      .sort((a, b) => {
+        const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+        const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+        return dateB - dateA;
+      })
+      .slice(0, 3);
+  }, [articles]);
+
   if (isLoading || !profile) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
@@ -17,19 +35,6 @@ export default function Home() {
       </div>
     );
   }
-
-  const featuredProjects = projects
-    .filter(p => p.status === "Active" && p.featured)
-    .slice(0, 4);
-
-  const recentPosts = articles
-    .filter(a => a.status === "Published")
-    .sort((a, b) => {
-      const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
-      const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
-      return dateB - dateA;
-    })
-    .slice(0, 3);
 
 
   return (

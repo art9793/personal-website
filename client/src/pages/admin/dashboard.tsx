@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,17 +49,13 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { lazy, Suspense } from "react";
 
-const visitorData = [
-  { name: 'Mon', visits: 1240 },
-  { name: 'Tue', visits: 1450 },
-  { name: 'Wed', visits: 1800 },
-  { name: 'Thu', visits: 1600 },
-  { name: 'Fri', visits: 2100 },
-  { name: 'Sat', visits: 1900 },
-  { name: 'Sun', visits: 2300 },
-];
+// Lazy load dashboard tabs for code splitting
+const OverviewTab = lazy(() => import("./dashboard-tabs/OverviewTab").then(m => ({ default: m.OverviewTab })));
+const ReadingTab = lazy(() => import("./dashboard-tabs/ReadingTab").then(m => ({ default: m.ReadingTab })));
+const MediaTab = lazy(() => import("./dashboard-tabs/MediaTab").then(m => ({ default: m.MediaTab })));
+const SEOTab = lazy(() => import("./dashboard-tabs/SEOTab").then(m => ({ default: m.SEOTab })));
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
@@ -579,7 +575,7 @@ export default function AdminDashboard() {
     setSortConfig({ key, direction });
   };
 
-  const getSortedAndFilteredProjects = () => {
+  const filteredProjects = useMemo(() => {
     let result = [...projects];
 
     if (filterQuery) {
@@ -603,11 +599,9 @@ export default function AdminDashboard() {
     }
 
     return result;
-  };
+  }, [projects, filterQuery, sortConfig]);
 
-  const filteredProjects = getSortedAndFilteredProjects();
-
-  const getSortedAndFilteredArticles = () => {
+  const filteredArticles = useMemo(() => {
     let result = [...articles];
 
     // Filter by status
@@ -651,11 +645,9 @@ export default function AdminDashboard() {
     }
 
     return result;
-  };
+  }, [articles, articleStatusFilter, filterQuery, sortConfig]);
 
-  const filteredArticles = getSortedAndFilteredArticles();
-
-  const getSortedAndFilteredWork = () => {
+  const filteredWork = useMemo(() => {
     let result = [...workHistory];
 
     if (filterQuery) {
@@ -679,9 +671,17 @@ export default function AdminDashboard() {
     }
 
     return result;
-  };
+  }, [workHistory, filterQuery, sortConfig]);
 
-  const filteredWork = getSortedAndFilteredWork();
+  // Memoize article counts
+  const draftArticlesCount = useMemo(() => 
+    articles.filter(a => a.status === "Draft").length, 
+    [articles]
+  );
+  const publishedArticlesCount = useMemo(() => 
+    articles.filter(a => a.status === "Published").length, 
+    [articles]
+  );
 
   const SidebarItem = ({ icon: Icon, label, id }: { icon: any, label: string, id: string }) => {
     const handleClick = () => {
@@ -890,115 +890,16 @@ export default function AdminDashboard() {
       <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background pt-14 md:pt-0">
         <div className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-4 md:space-y-8">
           {activeTab === "overview" && (
-            <div className="space-y-4 md:space-y-8 animate-in fade-in-50 duration-500">
-              <div className="hidden md:block">
-                <h2 className="text-3xl font-bold tracking-tight">Welcome, {profile?.name?.split(' ')[0] || 'Admin'}!</h2>
-                <p className="text-muted-foreground mt-1">Here's what's happening with your website today.</p>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-                <Card className="lg:col-span-2 shadow-sm border-border/50 hidden md:block">
-                  <CardHeader>
-                    <CardTitle>Daily Visitors</CardTitle>
-                    <CardDescription>
-                      Traffic trends for the past 7 days
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pl-2">
-                    <div className="h-[300px] w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={visitorData}>
-                          <XAxis 
-                            dataKey="name" 
-                            stroke="#888888" 
-                            fontSize={12} 
-                            tickLine={false} 
-                            axisLine={false}
-                            dy={10}
-                          />
-                          <YAxis 
-                            stroke="#888888" 
-                            fontSize={12} 
-                            tickLine={false} 
-                            axisLine={false}
-                            tickFormatter={(value) => `${value}`}
-                            dx={-10}
-                          />
-                          <RechartsTooltip 
-                            contentStyle={{ 
-                              borderRadius: 'var(--radius)', 
-                              border: '1px solid hsl(var(--border))', 
-                              boxShadow: 'var(--shadow-sm)',
-                              backgroundColor: 'hsl(var(--background))',
-                              color: 'hsl(var(--foreground))'
-                            }}
-                            cursor={{ stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1, strokeDasharray: '4 4' }}
-                          />
-                          <Line 
-                            type="monotone" 
-                            dataKey="visits" 
-                            stroke="hsl(var(--primary))" 
-                            strokeWidth={2}
-                            dot={false}
-                            activeDot={{ r: 4, strokeWidth: 0, fill: 'hsl(var(--primary))' }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <div className="space-y-4 md:space-y-6">
-                  <Card className="shadow-sm border-border/50">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">Total Views</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold tracking-tight">12,345</div>
-                      <p className="text-xs text-green-500 flex items-center mt-1 font-medium">
-                        +12% from last month
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card className="shadow-sm border-border/50">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">Articles</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold tracking-tight">{articles.length}</div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {articles.filter(a => a.status === "Draft").length} drafts pending
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card className="shadow-sm border-border/50">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">Projects</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold tracking-tight">{projects.length}</div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        All active
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-
-              <Card className="shadow-sm border-border/50">
-                <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col md:flex-row gap-4">
-                   <Button onClick={() => { changeTab("writing"); handleNewPost(); }} className="gap-2 shadow-none w-full md:w-auto">
-                     <PenTool className="h-4 w-4" /> Write Article
-                   </Button>
-                   <Button onClick={() => changeTab("projects")} variant="outline" className="gap-2 shadow-none w-full md:w-auto">
-                     <FolderGit2 className="h-4 w-4" /> Add Project
-                   </Button>
-                </CardContent>
-              </Card>
-            </div>
+            <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
+              <OverviewTab
+                profileName={profile?.name}
+                articlesCount={articles.length}
+                draftArticlesCount={draftArticlesCount}
+                projectsCount={projects.length}
+                onChangeTab={changeTab}
+                onNewPost={handleNewPost}
+              />
+            </Suspense>
           )}
 
           {activeTab === "projects" && (
@@ -1257,10 +1158,10 @@ export default function AdminDashboard() {
                     All ({articles.length})
                   </TabsTrigger>
                   <TabsTrigger value="draft" data-testid="tab-draft-articles">
-                    Drafts ({articles.filter(a => a.status === "Draft").length})
+                    Drafts ({draftArticlesCount})
                   </TabsTrigger>
                   <TabsTrigger value="published" data-testid="tab-published-articles">
-                    Published ({articles.filter(a => a.status === "Published").length})
+                    Published ({publishedArticlesCount})
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -1810,171 +1711,22 @@ export default function AdminDashboard() {
 
           {/* Existing Tabs (Projects, Reading, Settings) - keeping them as is but ensuring they don't render when writing */}
           {!isWriting && activeTab === "reading" && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold tracking-tight">Reading List</h2>
-                  <p className="text-muted-foreground mt-1">Books and articles you're reading.</p>
-                </div>
-                <Button className="gap-2"><Plus className="h-4 w-4" /> Add Book</Button>
-              </div>
-              <Card className="border-dashed shadow-none">
-                 <CardContent className="flex flex-col items-center justify-center h-[400px] text-center">
-                   <BookOpen className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
-                   <h3 className="text-lg font-medium">Empty reading list</h3>
-                   <p className="text-muted-foreground max-w-sm mt-2 mb-6">
-                     Keep track of books you've read or want to read.
-                   </p>
-                   <Button variant="outline">Add Book</Button>
-                 </CardContent>
-               </Card>
-            </div>
+            <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
+              <ReadingTab />
+            </Suspense>
           )}
 
           {!isWriting && activeTab === "media" && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold tracking-tight">Media Library</h2>
-                  <p className="text-muted-foreground mt-1">Manage your images and files.</p>
-                </div>
-                <Button className="gap-2"><Upload className="h-4 w-4" /> Upload</Button>
-              </div>
-              <Card className="border-dashed shadow-none">
-                 <CardContent className="flex flex-col items-center justify-center h-[400px] text-center">
-                   <ImageIcon className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
-                   <h3 className="text-lg font-medium">No media files</h3>
-                   <p className="text-muted-foreground max-w-sm mt-2 mb-6">
-                     Upload images and files to use in your articles and projects.
-                   </p>
-                   <Button variant="outline">Upload Files</Button>
-                 </CardContent>
-               </Card>
-            </div>
+            <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
+              <MediaTab />
+            </Suspense>
           )}
 
           {!isWriting && activeTab === "seo" && (
-             <div className="space-y-4 md:space-y-6 max-w-3xl">
-               <div className="hidden md:block">
-                 <h2 className="text-2xl font-bold tracking-tight">SEO & Metadata</h2>
-                 <p className="text-muted-foreground mt-1">Configure site-wide SEO settings.</p>
-               </div>
-               
-               <Card>
-                 <CardHeader>
-                   <CardTitle>Site Identity</CardTitle>
-                   <CardDescription>Basic information about your website.</CardDescription>
-                 </CardHeader>
-                 <CardContent className="space-y-4">
-                   <div className="space-y-2">
-                     <Label htmlFor="seo-title" data-testid="label-seo-title">Site Title</Label>
-                     <Input 
-                       id="seo-title"
-                       data-testid="input-seo-title"
-                       value={seoFormData?.siteTitle || ''} 
-                       onChange={(e) => setSeoFormData(seoFormData ? {...seoFormData, siteTitle: e.target.value} : undefined)}
-                       placeholder="Your Portfolio" 
-                     />
-                   </div>
-                   <div className="space-y-2">
-                     <Label htmlFor="seo-description" data-testid="label-seo-description">Site Description</Label>
-                     <Textarea 
-                       id="seo-description"
-                       data-testid="input-seo-description"
-                       value={seoFormData?.siteDescription || ''} 
-                       onChange={(e) => setSeoFormData(seoFormData ? {...seoFormData, siteDescription: e.target.value} : undefined)}
-                       placeholder="A brief description of your website"
-                       className="h-20"
-                     />
-                   </div>
-                   <div className="space-y-2">
-                     <Label htmlFor="seo-keywords" data-testid="label-seo-keywords">Keywords (comma-separated)</Label>
-                     <Input 
-                       id="seo-keywords"
-                       data-testid="input-seo-keywords"
-                       value={seoFormData?.siteKeywords || ''} 
-                       onChange={(e) => setSeoFormData(seoFormData ? {...seoFormData, siteKeywords: e.target.value} : undefined)}
-                       placeholder="portfolio, product manager, fintech" 
-                     />
-                   </div>
-                 </CardContent>
-               </Card>
-
-               <Card>
-                 <CardHeader>
-                   <CardTitle>Open Graph (Facebook, LinkedIn)</CardTitle>
-                   <CardDescription>How your site appears when shared on social platforms.</CardDescription>
-                 </CardHeader>
-                 <CardContent className="space-y-4">
-                   <div className="space-y-2">
-                     <Label htmlFor="og-title" data-testid="label-og-title">OG Title</Label>
-                     <Input 
-                       id="og-title"
-                       data-testid="input-og-title"
-                       value={seoFormData?.ogTitle || ''} 
-                       onChange={(e) => setSeoFormData(seoFormData ? {...seoFormData, ogTitle: e.target.value} : undefined)}
-                       placeholder="Leave blank to use Site Title" 
-                     />
-                   </div>
-                   <div className="space-y-2">
-                     <Label htmlFor="og-description" data-testid="label-og-description">OG Description</Label>
-                     <Textarea 
-                       id="og-description"
-                       data-testid="input-og-description"
-                       value={seoFormData?.ogDescription || ''} 
-                       onChange={(e) => setSeoFormData(seoFormData ? {...seoFormData, ogDescription: e.target.value} : undefined)}
-                       placeholder="Leave blank to use Site Description"
-                       className="h-20"
-                     />
-                   </div>
-                   <div className="space-y-2">
-                     <Label htmlFor="og-image" data-testid="label-og-image">OG Image URL</Label>
-                     <Input 
-                       id="og-image"
-                       data-testid="input-og-image"
-                       value={seoFormData?.ogImage || ''} 
-                       onChange={(e) => setSeoFormData(seoFormData ? {...seoFormData, ogImage: e.target.value} : undefined)}
-                       placeholder="https://example.com/image.jpg" 
-                     />
-                   </div>
-                 </CardContent>
-               </Card>
-
-               <Card>
-                 <CardHeader>
-                   <CardTitle>Twitter Card</CardTitle>
-                   <CardDescription>How your site appears when shared on Twitter/X.</CardDescription>
-                 </CardHeader>
-                 <CardContent className="space-y-4">
-                   <div className="space-y-2">
-                     <Label htmlFor="twitter-site" data-testid="label-twitter-site">Twitter Site Handle</Label>
-                     <Input 
-                       id="twitter-site"
-                       data-testid="input-twitter-site"
-                       value={seoFormData?.twitterSite || ''} 
-                       onChange={(e) => setSeoFormData(seoFormData ? {...seoFormData, twitterSite: e.target.value} : undefined)}
-                       placeholder="@yourhandle" 
-                     />
-                   </div>
-                   <div className="space-y-2">
-                     <Label htmlFor="twitter-creator" data-testid="label-twitter-creator">Twitter Creator Handle</Label>
-                     <Input 
-                       id="twitter-creator"
-                       data-testid="input-twitter-creator"
-                       value={seoFormData?.twitterCreator || ''} 
-                       onChange={(e) => setSeoFormData(seoFormData ? {...seoFormData, twitterCreator: e.target.value} : undefined)}
-                       placeholder="@creatorhandle" 
-                     />
-                   </div>
-                 </CardContent>
-               </Card>
-
-               <Button onClick={handleSaveSeoSettings} data-testid="button-save-seo">
-                 <Save className="h-4 w-4 mr-2" />
-                 Save SEO Settings
-               </Button>
-             </div>
-           )}
+            <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
+              <SEOTab />
+            </Suspense>
+          )}
 
           {activeTab === "settings" && (
             <div className="max-w-4xl space-y-4 md:space-y-12 pb-24 md:pb-0">

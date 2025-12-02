@@ -1,16 +1,19 @@
+import { useMemo } from "react";
 import { ExternalLink } from "lucide-react";
 import { useProjects } from "@/lib/content-hooks";
 
 export default function Projects() {
   const { projects } = useProjects();
 
-  const activeProjects = projects
-    .filter(p => p.status === "Active")
-    .sort((a, b) => {
-      if (a.featured && !b.featured) return -1;
-      if (!a.featured && b.featured) return 1;
-      return 0;
-    });
+  const activeProjects = useMemo(() => {
+    return projects
+      .filter(p => p.status === "Active")
+      .sort((a, b) => {
+        if (a.featured && !b.featured) return -1;
+        if (!a.featured && b.featured) return 1;
+        return 0;
+      });
+  }, [projects]);
 
   return (
     <div className="space-y-12 animate-in fade-in-50 duration-500">

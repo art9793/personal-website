@@ -224,6 +224,7 @@ export function ObjectUploader({
                       src={previewUrl}
                       alt="Preview"
                       className="w-full h-full object-cover"
+                      loading="lazy"
                     />
                     {isUploading && (
                       <div className="absolute inset-0 bg-background/80 flex items-center justify-center">

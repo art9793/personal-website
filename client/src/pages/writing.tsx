@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Link } from "wouter";
 import { useArticles } from "@/lib/content-hooks";
 import { format } from "date-fns";
@@ -6,21 +7,25 @@ export default function Writing() {
   const { articles } = useArticles();
   
   // Filter for Published status only and sort by date descending
-  const publishedPosts = articles
-    .filter(a => a.status === "Published")
-    .sort((a, b) => {
-      const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
-      const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
-      return dateB - dateA;
-    });
+  const publishedPosts = useMemo(() => {
+    return articles
+      .filter(a => a.status === "Published")
+      .sort((a, b) => {
+        const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+        const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+        return dateB - dateA;
+      });
+  }, [articles]);
 
-  const postsByYear = publishedPosts.reduce((acc, post) => {
-    if (!post.publishedAt) return acc;
-    const year = new Date(post.publishedAt).getFullYear().toString();
-    if (!acc[year]) acc[year] = [];
-    acc[year].push(post);
-    return acc;
-  }, {} as Record<string, typeof articles>);
+  const postsByYear = useMemo(() => {
+    return publishedPosts.reduce((acc, post) => {
+      if (!post.publishedAt) return acc;
+      const year = new Date(post.publishedAt).getFullYear().toString();
+      if (!acc[year]) acc[year] = [];
+      acc[year].push(post);
+      return acc;
+    }, {} as Record<string, typeof articles>);
+  }, [publishedPosts]);
 
   return (
     <div className="space-y-12 animate-in fade-in-50 duration-500">
