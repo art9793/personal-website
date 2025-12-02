@@ -110,8 +110,19 @@ export default async function runApp(
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
-  const host = process.env.HOST || "localhost";
+  // Default to 0.0.0.0 in production to accept external connections (Railway, etc.)
+  // Use localhost in development for security
+  const host = process.env.HOST || (process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost');
   server.listen(port, host, () => {
-    log(`serving on port ${port}`);
+    log(`serving on port ${port} on ${host}`);
+  });
+
+  server.on('error', (error: NodeJS.ErrnoException) => {
+    if (error.code === 'EADDRINUSE') {
+      logError(`Port ${port} is already in use`, error);
+    } else {
+      logError('Server error', error);
+    }
+    process.exit(1);
   });
 }
