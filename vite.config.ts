@@ -27,6 +27,9 @@ export default defineConfig({
       plugins: [],
     },
   },
+  // Explicitly set public directory
+  publicDir: path.resolve(clientRoot, "public"),
+  // Use absolute path for root to avoid resolution issues
   root: clientRoot,
   build: {
     outDir: distRoot,

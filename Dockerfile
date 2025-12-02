@@ -45,6 +45,20 @@ RUN echo "=== Checking file structure ===" && \
   echo "=== Vite config location ===" && \
   ls -la vite.config.ts
 
+# Double-check index.html is a file right before build and try to fix if needed
+RUN echo "=== Final check before build ===" && \
+  if [ -d client/index.html ]; then \
+    echo "ERROR: index.html is a directory! Removing it..." && \
+    rm -rf client/index.html && \
+    exit 1; \
+  fi && \
+  if [ ! -f client/index.html ]; then \
+    echo "ERROR: index.html does not exist!" && \
+    exit 1; \
+  fi && \
+  echo "=== index.html verified as file ===" && \
+  cat client/index.html | head -1
+
 # Build the application with explicit config
 RUN npm run build
 
