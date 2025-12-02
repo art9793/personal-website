@@ -9,57 +9,10 @@ COPY package*.json ./
 # Install dependencies
 RUN npm ci
 
-# Copy client directory first to ensure index.html is copied as a file
-COPY client ./client
+# Copy source code
+COPY . .
 
-# Copy rest of source code
-COPY server ./server
-COPY shared ./shared
-COPY vite.config.ts ./
-COPY vite-plugin-meta-images.ts ./
-COPY tsconfig.json ./
-COPY drizzle.config.ts ./
-COPY components.json ./
-COPY scripts ./scripts
-
-# Clean up any existing dist directory to ensure a clean build
-RUN rm -rf dist || true
-
-# Verify index.html exists as a file (not a directory) before building
-RUN echo "=== Checking file structure ===" && \
-  ls -la client/ && \
-  echo "=== Checking index.html ===" && \
-  test -f client/index.html && \
-  echo "=== File check passed ===" && \
-  echo "=== Verifying index.html content ===" && \
-  head -5 client/index.html && \
-  echo "=== Ensuring file is readable ===" && \
-  chmod 644 client/index.html && \
-  ls -la client/index.html && \
-  echo "=== Checking for any conflicting directories ===" && \
-  (test ! -d client/index.html || (echo "ERROR: client/index.html exists as directory!" && rm -rf client/index.html && exit 1)) && \
-  (test ! -d /app/client/index.html || (echo "ERROR: /app/client/index.html exists as directory!" && rm -rf /app/client/index.html && exit 1)) && \
-  echo "=== All checks passed ===" && \
-  echo "=== Current working directory ===" && \
-  pwd && \
-  echo "=== Vite config location ===" && \
-  ls -la vite.config.ts
-
-# Double-check index.html is a file right before build and try to fix if needed
-RUN echo "=== Final check before build ===" && \
-  if [ -d client/index.html ]; then \
-    echo "ERROR: index.html is a directory! Removing it..." && \
-    rm -rf client/index.html && \
-    exit 1; \
-  fi && \
-  if [ ! -f client/index.html ]; then \
-    echo "ERROR: index.html does not exist!" && \
-    exit 1; \
-  fi && \
-  echo "=== index.html verified as file ===" && \
-  cat client/index.html | head -1
-
-# Build the application with explicit config
+# Build the application
 RUN npm run build
 
 # Production stage
@@ -81,4 +34,3 @@ EXPOSE 5000
 
 # Start the application
 CMD ["npm", "start"]
-

@@ -24,22 +24,31 @@ export function metaImagesPlugin(): Plugin {
       const opengraphPngPath = path.join(publicDir, 'opengraph.png');
       const opengraphJpgPath = path.join(publicDir, 'opengraph.jpg');
       const opengraphJpegPath = path.join(publicDir, 'opengraph.jpeg');
+      const faviconPngPath = path.join(publicDir, 'favicon.png');
 
-      let imageExt: string | null = null;
+      let imagePath: string | null = null;
+      let imageName: string | null = null;
       if (fs.existsSync(opengraphPngPath)) {
-        imageExt = 'png';
+        imagePath = opengraphPngPath;
+        imageName = 'opengraph.png';
       } else if (fs.existsSync(opengraphJpgPath)) {
-        imageExt = 'jpg';
+        imagePath = opengraphJpgPath;
+        imageName = 'opengraph.jpg';
       } else if (fs.existsSync(opengraphJpegPath)) {
-        imageExt = 'jpeg';
+        imagePath = opengraphJpegPath;
+        imageName = 'opengraph.jpeg';
+      } else if (fs.existsSync(faviconPngPath)) {
+        // Fallback to favicon.png if no opengraph image exists
+        imagePath = faviconPngPath;
+        imageName = 'favicon.png';
       }
 
-      if (!imageExt) {
-        log('[meta-images] OpenGraph image not found, skipping meta tag updates');
+      if (!imageName) {
+        log('[meta-images] No suitable image found, skipping meta tag updates');
         return html;
       }
 
-      const imageUrl = `${baseUrl}/opengraph.${imageExt}`;
+      const imageUrl = `${baseUrl}/${imageName}`;
 
       log('[meta-images] updating meta image tags to:', imageUrl);
 
