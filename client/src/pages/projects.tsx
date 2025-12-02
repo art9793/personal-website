@@ -1,8 +1,8 @@
 import { ExternalLink } from "lucide-react";
-import { useContent } from "@/lib/content-context";
+import { useProjects } from "@/lib/content-hooks";
 
 export default function Projects() {
-  const { projects } = useContent();
+  const { projects } = useProjects();
 
   const activeProjects = projects
     .filter(p => p.status === "Active")

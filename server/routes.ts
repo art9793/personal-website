@@ -113,77 +113,62 @@ function formatSitemapDate(date: Date | string | null | undefined): string {
   return d.toISOString().split('T')[0];
 }
 
-export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
+// Sitemap cache with TTL (10 minutes)
+interface SitemapCache {
+  content: string;
+  expiresAt: number;
+}
 
-  // Apply CSRF protection to all routes
-  app.use(csrfProtection);
+let sitemapCache: SitemapCache | null = null;
+const SITEMAP_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
-  // Apply general API rate limiting
-  app.use('/api', apiLimiter);
+// Function to invalidate sitemap cache (call when articles/projects are updated)
+export function invalidateSitemapCache() {
+  sitemapCache = null;
+}
 
-  // Dynamic robots.txt generation
-  app.get('/robots.txt', async (req, res) => {
-    try {
-      const baseUrl = getDeploymentUrl();
-      const robots = `User-agent: *
-Allow: /
-Disallow: /admin/
+// Function to generate sitemap XML
+async function generateSitemap(): Promise<string> {
+  const baseUrl = getDeploymentUrl();
+  
+  // Get all published articles
+  const allArticles = await storage.getArticles();
+  const publishedArticles = allArticles
+    .filter(a => a.status === 'Published' && a.slug)
+    .sort((a, b) => {
+      const dateA = a.updatedAt || a.publishedAt || a.createdAt;
+      const dateB = b.updatedAt || b.publishedAt || b.createdAt;
+      const timeA = dateA ? new Date(dateA).getTime() : 0;
+      const timeB = dateB ? new Date(dateB).getTime() : 0;
+      return timeB - timeA; // Most recent first
+    });
+  
+  // Get all active projects
+  const allProjects = await storage.getProjects();
+  const activeProjects = allProjects
+    .filter(p => p.status === 'Active')
+    .sort((a, b) => {
+      const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+      const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+      return timeB - timeA; // Most recent first
+    });
+  
+  // Get profile for lastmod date
+  const profile = await storage.getProfile();
+  const profileLastmod = profile?.updatedAt ? formatSitemapDate(profile.updatedAt) : formatSitemapDate(new Date());
 
-Sitemap: ${baseUrl}/sitemap.xml
-`;
-      res.set('Content-Type', 'text/plain');
-      res.send(robots);
-    } catch (error) {
-      logError("Error generating robots.txt", error, "robots");
-      res.status(500).send('User-agent: *\nDisallow: /');
-    }
-  });
+  // Get most recent article date for /writing page
+  const mostRecentArticleDate = publishedArticles.length > 0 
+    ? formatSitemapDate(publishedArticles[0].updatedAt || publishedArticles[0].publishedAt || publishedArticles[0].createdAt)
+    : profileLastmod;
 
-  // Dynamic sitemap generation (before API routes to avoid rate limiting)
-  app.get('/sitemap.xml', async (req, res) => {
-    try {
-      const baseUrl = getDeploymentUrl();
-      
-      // Get all published articles
-      const allArticles = await storage.getArticles();
-      const publishedArticles = allArticles
-        .filter(a => a.status === 'Published' && a.slug)
-        .sort((a, b) => {
-          const dateA = a.updatedAt || a.publishedAt || a.createdAt;
-          const dateB = b.updatedAt || b.publishedAt || b.createdAt;
-          const timeA = dateA ? new Date(dateA).getTime() : 0;
-          const timeB = dateB ? new Date(dateB).getTime() : 0;
-          return timeB - timeA; // Most recent first
-        });
-      
-      // Get all active projects
-      const allProjects = await storage.getProjects();
-      const activeProjects = allProjects
-        .filter(p => p.status === 'Active')
-        .sort((a, b) => {
-          const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
-          const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
-          return timeB - timeA; // Most recent first
-        });
-      
-      // Get profile for lastmod date
-      const profile = await storage.getProfile();
-      const profileLastmod = profile?.updatedAt ? formatSitemapDate(profile.updatedAt) : formatSitemapDate(new Date());
+  // Get most recent project date for /projects page
+  const mostRecentProjectDate = activeProjects.length > 0
+    ? formatSitemapDate(activeProjects[0].updatedAt || activeProjects[0].createdAt)
+    : profileLastmod;
 
-      // Get most recent article date for /writing page
-      const mostRecentArticleDate = publishedArticles.length > 0 
-        ? formatSitemapDate(publishedArticles[0].updatedAt || publishedArticles[0].publishedAt || publishedArticles[0].createdAt)
-        : profileLastmod;
-
-      // Get most recent project date for /projects page
-      const mostRecentProjectDate = activeProjects.length > 0
-        ? formatSitemapDate(activeProjects[0].updatedAt || activeProjects[0].createdAt)
-        : profileLastmod;
-
-      // Build sitemap XML
-      let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+  // Build sitemap XML
+  let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Main Pages -->
   <url>
@@ -218,22 +203,76 @@ Sitemap: ${baseUrl}/sitemap.xml
   </url>
 `;
 
-      // Add published articles
-      for (const article of publishedArticles) {
-        const lastmod = formatSitemapDate(article.updatedAt || article.publishedAt || article.createdAt);
-        const slug = article.slug || article.id.toString();
-        sitemap += `  <url>
+  // Add published articles
+  for (const article of publishedArticles) {
+    const lastmod = formatSitemapDate(article.updatedAt || article.publishedAt || article.createdAt);
+    const slug = article.slug || article.id.toString();
+    sitemap += `  <url>
     <loc>${baseUrl}/article/${slug}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 `;
+  }
+
+  sitemap += `</urlset>`;
+  return sitemap;
+}
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth middleware
+  await setupAuth(app);
+
+  // Apply CSRF protection to all routes
+  app.use(csrfProtection);
+
+  // Apply general API rate limiting
+  app.use('/api', apiLimiter);
+
+  // Dynamic robots.txt generation
+  app.get('/robots.txt', async (req, res) => {
+    try {
+      const baseUrl = getDeploymentUrl();
+      const robots = `User-agent: *
+Allow: /
+Disallow: /admin/
+
+Sitemap: ${baseUrl}/sitemap.xml
+`;
+      res.set('Content-Type', 'text/plain');
+      res.send(robots);
+    } catch (error) {
+      logError("Error generating robots.txt", error, "robots");
+      res.status(500).send('User-agent: *\nDisallow: /');
+    }
+  });
+
+  // Dynamic sitemap generation with caching (before API routes to avoid rate limiting)
+  app.get('/sitemap.xml', async (req, res) => {
+    try {
+      const now = Date.now();
+      
+      // Check if cache is valid
+      if (sitemapCache && sitemapCache.expiresAt > now) {
+        res.set('Content-Type', 'application/xml');
+        res.set('Cache-Control', 'public, max-age=600'); // 10 minutes
+        res.set('X-Cache', 'HIT');
+        return res.send(sitemapCache.content);
       }
-
-      sitemap += `</urlset>`;
-
+      
+      // Generate new sitemap
+      const sitemap = await generateSitemap();
+      
+      // Cache the result
+      sitemapCache = {
+        content: sitemap,
+        expiresAt: now + SITEMAP_CACHE_TTL,
+      };
+      
       res.set('Content-Type', 'application/xml');
+      res.set('Cache-Control', 'public, max-age=600'); // 10 minutes
+      res.set('X-Cache', 'MISS');
       res.send(sitemap);
     } catch (error) {
       logError("Error generating sitemap", error, "sitemap");
@@ -363,6 +402,8 @@ Sitemap: ${baseUrl}/sitemap.xml
   app.get('/api/profile', async (req, res) => {
     try {
       const profile = await storage.getProfile();
+      // Cache profile for 5 minutes (stale-while-revalidate)
+      res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
       res.json(profile);
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -374,6 +415,7 @@ Sitemap: ${baseUrl}/sitemap.xml
     try {
       const validated = insertProfileSchema.partial().parse(req.body);
       const profile = await storage.updateProfile(validated);
+      invalidateSitemapCache(); // Invalidate cache when profile is updated (affects lastmod)
       res.json(profile);
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -431,6 +473,8 @@ Sitemap: ${baseUrl}/sitemap.xml
   app.get('/api/seo-settings', async (req, res) => {
     try {
       const settings = await storage.getSeoSettings();
+      // Cache SEO settings for 10 minutes (stale-while-revalidate)
+      res.set('Cache-Control', 'public, max-age=600, stale-while-revalidate=1200');
       res.json(settings);
     } catch (error) {
       console.error("Error fetching SEO settings:", error);
@@ -453,6 +497,8 @@ Sitemap: ${baseUrl}/sitemap.xml
   app.get('/api/articles', async (req, res) => {
     try {
       const articles = await storage.getArticles();
+      // Cache articles list for 2 minutes (stale-while-revalidate)
+      res.set('Cache-Control', 'public, max-age=120, stale-while-revalidate=300');
       res.json(articles);
     } catch (error) {
       console.error("Error fetching articles:", error);
@@ -492,6 +538,7 @@ Sitemap: ${baseUrl}/sitemap.xml
       // Allow partial data for draft creation (slug can be undefined/null)
       const validated = insertArticleSchema.parse(req.body);
       const article = await storage.createArticle(validated);
+      invalidateSitemapCache(); // Invalidate cache when article is created
       res.status(201).json(article);
     } catch (error) {
       console.error("Error creating article:", error);
@@ -504,6 +551,7 @@ Sitemap: ${baseUrl}/sitemap.xml
       const id = parseInt(req.params.id);
       const validated = insertArticleSchema.partial().parse(req.body);
       const article = await storage.updateArticle(id, validated);
+      invalidateSitemapCache(); // Invalidate cache when article is updated
       res.json(article);
     } catch (error) {
       console.error("Error updating article:", error);
@@ -515,6 +563,7 @@ Sitemap: ${baseUrl}/sitemap.xml
     try {
       const id = parseInt(req.params.id);
       await storage.deleteArticle(id);
+      invalidateSitemapCache(); // Invalidate cache when article is deleted
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting article:", error);
@@ -526,6 +575,8 @@ Sitemap: ${baseUrl}/sitemap.xml
   app.get('/api/projects', async (req, res) => {
     try {
       const projects = await storage.getProjects();
+      // Cache projects list for 5 minutes (stale-while-revalidate)
+      res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
       res.json(projects);
     } catch (error) {
       console.error("Error fetching projects:", error);
@@ -551,6 +602,7 @@ Sitemap: ${baseUrl}/sitemap.xml
     try {
       const validated = insertProjectSchema.parse(req.body);
       const project = await storage.createProject(validated);
+      invalidateSitemapCache(); // Invalidate cache when project is created
       res.status(201).json(project);
     } catch (error) {
       console.error("Error creating project:", error);
@@ -563,6 +615,7 @@ Sitemap: ${baseUrl}/sitemap.xml
       const id = parseInt(req.params.id);
       const validated = insertProjectSchema.partial().parse(req.body);
       const project = await storage.updateProject(id, validated);
+      invalidateSitemapCache(); // Invalidate cache when project is updated
       res.json(project);
     } catch (error) {
       console.error("Error updating project:", error);
@@ -574,6 +627,7 @@ Sitemap: ${baseUrl}/sitemap.xml
     try {
       const id = parseInt(req.params.id);
       await storage.deleteProject(id);
+      invalidateSitemapCache(); // Invalidate cache when project is deleted
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting project:", error);
@@ -585,6 +639,8 @@ Sitemap: ${baseUrl}/sitemap.xml
   app.get('/api/work-experiences', async (req, res) => {
     try {
       const workExperiences = await storage.getWorkExperiences();
+      // Cache work experiences for 10 minutes (stale-while-revalidate)
+      res.set('Cache-Control', 'public, max-age=600, stale-while-revalidate=1200');
       res.json(workExperiences);
     } catch (error) {
       console.error("Error fetching work experiences:", error);
@@ -644,6 +700,8 @@ Sitemap: ${baseUrl}/sitemap.xml
   app.get('/api/reading-list', async (req, res) => {
     try {
       const items = await storage.getReadingList();
+      // Cache reading list for 5 minutes (stale-while-revalidate)
+      res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
       res.json(items);
     } catch (error) {
       console.error("Error fetching reading list:", error);

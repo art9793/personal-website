@@ -1,9 +1,9 @@
 import { Link } from "wouter";
-import { useContent } from "@/lib/content-context";
+import { useArticles } from "@/lib/content-hooks";
 import { format } from "date-fns";
 
 export default function Writing() {
-  const { articles } = useContent();
+  const { articles } = useArticles();
   
   // Filter for Published status only and sort by date descending
   const publishedPosts = articles

@@ -1,8 +1,10 @@
-import { useContent } from "@/lib/content-context";
+import { useWorkExperiences, useProfile } from "@/lib/content-hooks";
 import { formatYearRange } from "@/lib/utils";
 
 export default function Work() {
-  const { workHistory, profile, isLoading } = useContent();
+  const { workHistory, isLoading: workLoading } = useWorkExperiences();
+  const { profile, isLoading: profileLoading } = useProfile();
+  const isLoading = workLoading || profileLoading;
 
   if (isLoading || !profile) {
     return (

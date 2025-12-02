@@ -21,7 +21,13 @@ export async function serveStatic(app: Express, server: Server) {
     );
   }
 
-  app.use(express.static(distPath));
+  // Serve static files with caching headers
+  app.use(express.static(distPath, {
+    maxAge: '1y', // Cache static assets for 1 year
+    immutable: true, // Assets are immutable (hashed filenames)
+    etag: true,
+    lastModified: true,
+  }));
 
   // fall through to index.html if the file doesn't exist
   app.use("*", (_req, res) => {

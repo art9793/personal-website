@@ -1,11 +1,14 @@
 import { Link } from "wouter";
 import { ArrowRight, Github, Linkedin, Mail, ExternalLink } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useContent } from "@/lib/content-context";
+import { useProfile, useProjects, useArticles } from "@/lib/content-hooks";
 import { format } from "date-fns";
 
 export default function Home() {
-  const { profile, projects, articles, isLoading } = useContent();
+  const { profile, isLoading: profileLoading } = useProfile();
+  const { projects, isLoading: projectsLoading } = useProjects();
+  const { articles, isLoading: articlesLoading } = useArticles();
+  const isLoading = profileLoading || projectsLoading || articlesLoading;
 
   if (isLoading || !profile) {
     return (

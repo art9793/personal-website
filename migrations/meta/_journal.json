@@ -8,6 +8,13 @@
       "when": 1763959877705,
       "tag": "0000_add_password_to_users",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1764398766000,
+      "tag": "0001_add_performance_indexes",
+      "breakpoints": true
     }
   ]
 }
