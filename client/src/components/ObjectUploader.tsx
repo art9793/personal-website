@@ -6,6 +6,7 @@ import AwsS3 from "@uppy/aws-s3";
 import { Button } from "@/components/ui/button";
 import { Upload, X, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface ObjectUploaderProps {
   maxNumberOfFiles?: number;
@@ -37,6 +38,7 @@ export function ObjectUploader({
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uppyRef = useRef<Uppy | null>(null);
+  const { toast } = useToast();
 
   // Initialize Uppy when modal opens
   useEffect(() => {
@@ -106,7 +108,11 @@ export function ObjectUploader({
 
     // Validate file size
     if (file.size > maxFileSize) {
-      alert(`File size must be less than ${Math.round(maxFileSize / 1024 / 1024)}MB`);
+      toast({
+        title: "File too large",
+        description: `File size must be less than ${Math.round(maxFileSize / 1024 / 1024)}MB`,
+        variant: "destructive",
+      });
       return;
     }
 
@@ -167,7 +173,11 @@ export function ObjectUploader({
     if (!file) return;
 
     if (file.size > maxFileSize) {
-      alert(`File size must be less than ${Math.round(maxFileSize / 1024 / 1024)}MB`);
+      toast({
+        title: "File too large",
+        description: `File size must be less than ${Math.round(maxFileSize / 1024 / 1024)}MB`,
+        variant: "destructive",
+      });
       return;
     }
 

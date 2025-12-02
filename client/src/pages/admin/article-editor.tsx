@@ -18,6 +18,16 @@ import {
   SheetTitle,
   SheetFooter,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ArticleEditor() {
   const [, params] = useRoute("/admin/article/:id");
@@ -37,6 +47,7 @@ export default function ArticleEditor() {
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved");
   const [lastSaved, setLastSaved] = useState<Date | null>(existingArticle?.updatedAt || null);
   const [isPublishSheetOpen, setIsPublishSheetOpen] = useState(false);
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [hasManuallyEditedSlug, setHasManuallyEditedSlug] = useState(false);
   const [initialContent, setInitialContent] = useState({ 
     title: existingArticle?.title || "", 
@@ -201,12 +212,15 @@ export default function ArticleEditor() {
 
   const handleBack = () => {
     if (saveStatus === "unsaved") {
-      if (confirm("You have unsaved changes. Do you want to leave without saving?")) {
-        setLocation("/admin?tab=writing");
-      }
+      setIsLeaveDialogOpen(true);
     } else {
       setLocation("/admin?tab=writing");
     }
+  };
+
+  const handleLeaveConfirm = () => {
+    setIsLeaveDialogOpen(false);
+    setLocation("/admin?tab=writing");
   };
 
   const handlePublish = useCallback(async () => {
@@ -410,6 +424,24 @@ export default function ArticleEditor() {
           </div>
         </div>
       </div>
+
+      {/* Leave Without Saving Dialog */}
+      <AlertDialog open={isLeaveDialogOpen} onOpenChange={setIsLeaveDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes. Do you want to leave without saving?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Stay</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLeaveConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Leave Without Saving
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Publish Settings Sheet */}
       <Sheet open={isPublishSheetOpen} onOpenChange={setIsPublishSheetOpen}>
