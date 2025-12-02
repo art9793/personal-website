@@ -185,6 +185,93 @@
 .ProseMirror img {
   @apply rounded-lg my-6 sm:my-8 border max-w-full h-auto;
 }
+
+/* Image Node View Styles */
+.ProseMirror .image-node-view {
+  @apply my-6 sm:my-8;
+}
+
+.ProseMirror .image-node-view[data-align="left"] {
+  @apply ml-0 mr-auto;
+}
+
+.ProseMirror .image-node-view[data-align="center"] {
+  @apply mx-auto;
+}
+
+.ProseMirror .image-node-view[data-align="right"] {
+  @apply ml-auto mr-0;
+}
+
+.ProseMirror .image-node-view[data-align="full-width"] {
+  @apply w-full;
+}
+
+/* Image Selection State */
+.ProseMirror .image-node-view.selected {
+  @apply outline-2 outline-primary outline-offset-2;
+}
+
+/* Image Resize Handles */
+.ProseMirror .image-resize-handle {
+  @apply absolute bg-primary border-2 border-background rounded-full;
+  @apply w-3 h-3 z-10;
+  @apply hover:bg-primary/80;
+}
+
+.ProseMirror .image-resize-handle-nw {
+  @apply top-0 left-0 cursor-nw-resize;
+}
+
+.ProseMirror .image-resize-handle-ne {
+  @apply top-0 right-0 cursor-ne-resize;
+}
+
+.ProseMirror .image-resize-handle-sw {
+  @apply bottom-0 left-0 cursor-sw-resize;
+}
+
+.ProseMirror .image-resize-handle-se {
+  @apply bottom-0 right-0 cursor-se-resize;
+}
+
+.ProseMirror .image-resize-handle-n {
+  @apply top-0 left-1/2 -translate-x-1/2 cursor-n-resize;
+}
+
+.ProseMirror .image-resize-handle-s {
+  @apply bottom-0 left-1/2 -translate-x-1/2 cursor-s-resize;
+}
+
+.ProseMirror .image-resize-handle-e {
+  @apply top-1/2 right-0 -translate-y-1/2 cursor-e-resize;
+}
+
+.ProseMirror .image-resize-handle-w {
+  @apply top-1/2 left-0 -translate-y-1/2 cursor-w-resize;
+}
+
+/* Image Caption Styles */
+.ProseMirror [data-caption] {
+  @apply mt-2 text-sm text-muted-foreground text-center italic;
+  @apply max-w-2xl mx-auto;
+}
+
+/* Image Toolbar Styles */
+.image-toolbar {
+  @apply fixed z-50 bg-background border border-border rounded-lg shadow-lg;
+  @apply p-2 flex items-center gap-1;
+}
+
+/* Drag and Drop Zone */
+.ProseMirror.drag-over {
+  @apply ring-2 ring-primary ring-offset-2;
+}
+
+.ProseMirror .drop-indicator {
+  @apply absolute border-2 border-dashed border-primary bg-primary/5 rounded-lg;
+  @apply pointer-events-none z-50;
+}
 .ProseMirror hr {
   @apply my-8 border-t-2 border-border;
 }

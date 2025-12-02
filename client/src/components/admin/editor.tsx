@@ -1,7 +1,9 @@
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import Image from '@tiptap/extension-image'
+import { Image } from './image-extension'
 import Link from '@tiptap/extension-link'
+import { uploadImage, isImageFile, dataURLtoFile } from '@/lib/image-upload'
+import { ImageUploadProgress } from './image-upload-progress'
 import Placeholder from '@tiptap/extension-placeholder'
 import Underline from '@tiptap/extension-underline'
 import Strike from '@tiptap/extension-strike'
@@ -41,6 +43,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from "react"
+import { useToast } from "@/hooks/use-toast"
 
 const lowlight = createLowlight(common)
 
@@ -449,57 +452,43 @@ const LinkDialog = ({
 const MenuBar = ({ editor }: { editor: any }) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false)
+  const { toast } = useToast()
 
   if (!editor) {
     return null
   }
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const handleImageUpload = async (file: File) => {
+    if (!isImageFile(file)) {
+      toast({
+        title: 'Invalid file',
+        description: 'Please select an image file',
+        variant: 'destructive',
+      })
+      return
+    }
 
     try {
-      // Step 1: Get presigned upload URL from server
-      const uploadResponse = await fetch('/api/objects/upload', {
-        method: 'POST',
-        credentials: 'include',
-      })
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to get upload URL')
-      }
-      const { uploadURL } = await uploadResponse.json()
-
-      // Step 2: Upload file to object storage
-      const uploadResult = await fetch(uploadURL, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': file.type,
-        },
-      })
-      if (!uploadResult.ok) {
-        throw new Error('Failed to upload image')
-      }
-
-      // Step 3: Set ACL policy and get normalized path
-      const aclResponse = await fetch('/api/article-images', {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ imageURL: uploadURL }),
-      })
-      if (!aclResponse.ok) {
-        throw new Error('Failed to set image permissions')
-      }
-      const { objectPath } = await aclResponse.json()
-
-      // Step 4: Insert image into editor with normalized path
+      const { objectPath } = await uploadImage(file)
       editor.chain().focus().setImage({ src: objectPath }).run()
     } catch (error) {
       console.error('Error uploading image:', error)
-      alert('Failed to upload image. Please try again.')
+      toast({
+        title: 'Upload failed',
+        description: 'Failed to upload image. Please try again.',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      await handleImageUpload(file)
+    }
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
     }
   }
 
@@ -782,7 +771,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
         ref={fileInputRef} 
         className="hidden" 
         accept="image/*"
-        onChange={handleImageUpload}
+        onChange={handleFileInputChange}
       />
       
       <Button
@@ -799,6 +788,52 @@ const MenuBar = ({ editor }: { editor: any }) => {
 }
 
 export function Editor({ content, onChange }: { content?: string, onChange?: (html: string) => void }) {
+  const [isDragging, setIsDragging] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({})
+  const { toast } = useToast()
+
+  const handleImageUpload = async (file: File, onProgress?: (progress: number) => void) => {
+    if (!isImageFile(file)) {
+      toast({
+        title: 'Invalid file',
+        description: 'Please select an image file',
+        variant: 'destructive',
+      })
+      return null
+    }
+
+    try {
+      const fileId = `${file.name}-${Date.now()}`
+      const { objectPath } = await uploadImage(file, {
+        onProgress: (progress) => {
+          if (onProgress) {
+            onProgress(progress.percentage)
+          }
+          setUploadProgress((prev) => ({ ...prev, [fileId]: progress.percentage }))
+        },
+      })
+      setUploadProgress((prev) => {
+        const newProgress = { ...prev }
+        delete newProgress[fileId]
+        return newProgress
+      })
+      return objectPath
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      toast({
+        title: 'Upload failed',
+        description: 'Failed to upload image. Please try again.',
+        variant: 'destructive',
+      })
+      setUploadProgress((prev) => {
+        const newProgress = { ...prev }
+        delete newProgress[fileId]
+        return newProgress
+      })
+      return null
+    }
+  }
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -853,13 +888,120 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
     content: content || '',
     editorProps: {
       attributes: {
-        class: 'prose prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[500px] leading-relaxed',
+        class: cn(
+          'prose prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[500px] leading-relaxed',
+          isDragging && 'drag-over'
+        ),
+      },
+      handleDrop: (view, event, slice, moved) => {
+        // Don't handle if it's a moved node
+        if (moved) return false
+
+        const files = Array.from(event.dataTransfer?.files || [])
+        const imageFiles = files.filter(isImageFile)
+
+        if (imageFiles.length > 0) {
+          event.preventDefault()
+          
+          // Insert images at drop position
+          const coordinates = view.posAtCoords({
+            left: event.clientX,
+            top: event.clientY,
+          })
+
+          if (coordinates) {
+            imageFiles.forEach(async (file) => {
+              const objectPath = await handleImageUpload(file)
+              if (objectPath && editor) {
+                editor.chain().focus().setImage({ src: objectPath }).run()
+              }
+            })
+          }
+          return true
+        }
+
+        return false
+      },
+      handlePaste: (view, event, slice) => {
+        const items = Array.from(event.clipboardData?.items || [])
+        const imageItems = items.filter((item) => item.type.startsWith('image/'))
+
+        if (imageItems.length > 0) {
+          event.preventDefault()
+          
+          imageItems.forEach(async (item) => {
+            const file = item.getAsFile()
+            if (file) {
+              const objectPath = await handleImageUpload(file)
+              if (objectPath && editor) {
+                editor.chain().focus().setImage({ src: objectPath }).run()
+              }
+            } else {
+              // Try to get as data URL
+              const reader = new FileReader()
+              reader.onload = async (e) => {
+                const dataURL = e.target?.result as string
+                if (dataURL) {
+                  const file = dataURLtoFile(dataURL, `pasted-image-${Date.now()}.png`)
+                  const objectPath = await handleImageUpload(file)
+                  if (objectPath && editor) {
+                    editor.chain().focus().setImage({ src: objectPath }).run()
+                  }
+                }
+              }
+              reader.readAsDataURL(new Blob([item.getAsFile() || ''], { type: item.type }))
+            }
+          })
+          return true
+        }
+
+        return false
       },
     },
     onUpdate: ({ editor }) => {
       onChange?.(editor.getHTML())
     },
   })
+
+  // Handle drag events
+  useEffect(() => {
+    if (!editor) return
+
+    const handleDragEnter = (e: DragEvent) => {
+      e.preventDefault()
+      const files = Array.from(e.dataTransfer?.files || [])
+      if (files.some(isImageFile)) {
+        setIsDragging(true)
+      }
+    }
+
+    const handleDragOver = (e: DragEvent) => {
+      e.preventDefault()
+    }
+
+    const handleDragLeave = (e: DragEvent) => {
+      e.preventDefault()
+      setIsDragging(false)
+    }
+
+    const handleDrop = (e: DragEvent) => {
+      e.preventDefault()
+      setIsDragging(false)
+    }
+
+    const editorElement = editor.view.dom
+    editorElement.addEventListener('dragenter', handleDragEnter)
+    editorElement.addEventListener('dragover', handleDragOver)
+    editorElement.addEventListener('dragleave', handleDragLeave)
+    editorElement.addEventListener('drop', handleDrop)
+
+    return () => {
+      editorElement.removeEventListener('dragenter', handleDragEnter)
+      editorElement.removeEventListener('dragover', handleDragOver)
+      editorElement.removeEventListener('dragleave', handleDragLeave)
+      editorElement.removeEventListener('drop', handleDrop)
+    }
+  }, [editor])
 
   // Sync content when prop changes (for loading existing articles)
   useEffect(() => {
