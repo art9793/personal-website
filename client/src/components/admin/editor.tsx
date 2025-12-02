@@ -35,7 +35,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { 
-  Bold, Italic, Underline as UnderlineIcon, Strikethrough, Highlighter, Code, FileCode,
+  Bold, Italic, Underline as UnderlineIcon, Strikethrough, Code, FileCode,
   List, ListOrdered, ListTodo, Image as ImageIcon, Link as LinkIcon, Quote, 
   Heading1, Heading2, Heading3, Heading4, Minus, Undo, Redo, ChevronDown, Check, ExternalLink
 } from "lucide-react"
@@ -793,21 +793,6 @@ const MenuBar = ({ editor }: { editor: any }) => {
         className="min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
       >
         <ImageIcon className="h-4 w-4" />
-      </Button>
-      
-      {/* Highlight - hidden on mobile */}
-      <div className="w-px h-6 bg-border mx-1 self-center hidden md:block" />
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() => editor.chain().focus().toggleHighlight().run()}
-        className={cn(
-          editor.isActive('highlight') ? 'bg-muted' : '',
-          "hidden md:inline-flex min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
-        )}
-      >
-        <Highlighter className="h-4 w-4" />
       </Button>
     </div>
   )
