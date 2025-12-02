@@ -1,31 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  This is a static fallback sitemap. 
+  The dynamic sitemap is generated at /sitemap.xml and includes all published articles and projects.
+  This file is only used if the dynamic generation fails.
+-->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://yourdomain.com/</loc>
+    <loc>/</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://yourdomain.com/writing</loc>
+    <loc>/writing</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yourdomain.com/projects</loc>
+    <loc>/projects</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yourdomain.com/reading</loc>
+    <loc>/reading</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://yourdomain.com/work</loc>
+    <loc>/work</loc>
     <lastmod>2025-01-01</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.7</priority>

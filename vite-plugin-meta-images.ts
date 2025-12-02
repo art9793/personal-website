@@ -84,19 +84,6 @@ function getDeploymentUrl(): string | null {
     return url;
   }
 
-  // Replit (for backwards compatibility)
-  if (process.env.REPLIT_INTERNAL_APP_DOMAIN) {
-    const url = `https://${process.env.REPLIT_INTERNAL_APP_DOMAIN}`;
-    log('[meta-images] using Replit internal app domain:', url);
-    return url;
-  }
-
-  if (process.env.REPLIT_DEV_DOMAIN) {
-    const url = `https://${process.env.REPLIT_DEV_DOMAIN}`;
-    log('[meta-images] using Replit dev domain:', url);
-    return url;
-  }
-
   return null;
 }
 
