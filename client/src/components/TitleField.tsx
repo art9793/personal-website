@@ -35,7 +35,7 @@ export function TitleField({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       rows={1}
-      className={`w-full resize-none overflow-hidden bg-transparent border-none outline-none focus:outline-none text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight placeholder:text-muted-foreground/30 ${className}`}
+      className={`w-full resize-none overflow-hidden bg-transparent border-none outline-none focus:outline-none text-2xl sm:text-3xl lg:text-4xl font-semibold leading-tight placeholder:text-muted-foreground/30 ${className}`}
       data-testid={testId}
     />
   );

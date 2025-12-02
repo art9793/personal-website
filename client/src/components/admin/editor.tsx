@@ -18,10 +18,26 @@ import Suggestion from '@tiptap/suggestion'
 import { ReactRenderer } from '@tiptap/react'
 import tippy from 'tippy.js'
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { 
   Bold, Italic, Underline as UnderlineIcon, Strikethrough, Highlighter, Code, FileCode,
   List, ListOrdered, ListTodo, Image as ImageIcon, Link as LinkIcon, Quote, 
-  Heading1, Heading2, Heading3, Heading4, Minus, Undo, Redo 
+  Heading1, Heading2, Heading3, Heading4, Minus, Undo, Redo, ChevronDown, Check, ExternalLink
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from "react"
@@ -218,8 +234,221 @@ const SlashCommand = Extension.create({
   },
 })
 
+// Link Dialog Component
+const LinkDialog = ({ 
+  open, 
+  onOpenChange, 
+  editor 
+}: { 
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  editor: any
+}) => {
+  const [url, setUrl] = useState('')
+  const [linkText, setLinkText] = useState('')
+  const [urlError, setUrlError] = useState('')
+
+  // Validate URL format
+  const validateUrl = (urlString: string): boolean => {
+    if (!urlString.trim()) {
+      setUrlError('URL is required')
+      return false
+    }
+    
+    // Basic URL validation - accepts http://, https://, mailto:, tel:, or relative paths starting with /
+    const urlPattern = /^(https?:\/\/|mailto:|tel:|\/)/i
+    if (!urlPattern.test(urlString)) {
+      // If it doesn't start with a protocol, try adding https://
+      const testUrl = `https://${urlString}`
+      try {
+        new URL(testUrl)
+        // Valid URL format, but we'll keep the original input
+        setUrlError('')
+        return true
+      } catch {
+        setUrlError('Please enter a valid URL (e.g., https://example.com or /page)')
+        return false
+      }
+    }
+    
+    // If it has a protocol, validate it's a proper URL
+    if (urlString.match(/^(https?:\/\/)/i)) {
+      try {
+        new URL(urlString)
+        setUrlError('')
+        return true
+      } catch {
+        setUrlError('Please enter a valid URL')
+        return false
+      }
+    }
+    
+    setUrlError('')
+    return true
+  }
+
+  // Initialize form when dialog opens
+  useEffect(() => {
+    if (open && editor) {
+      const { from, to } = editor.state.selection
+      const selectedText = editor.state.doc.textBetween(from, to, ' ')
+      const linkAttributes = editor.getAttributes('link')
+      
+      setLinkText(selectedText || linkAttributes.text || '')
+      setUrl(linkAttributes.href || '')
+      setUrlError('')
+    }
+  }, [open, editor])
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!validateUrl(url)) {
+      return
+    }
+
+    // Normalize URL - add https:// if no protocol is provided
+    let normalizedUrl = url.trim()
+    if (normalizedUrl && !normalizedUrl.match(/^(https?:\/\/|mailto:|tel:|\/)/i)) {
+      normalizedUrl = `https://${normalizedUrl}`
+    }
+
+    if (normalizedUrl) {
+      // If there's selected text, use it; otherwise use the link text input
+      const { from, to } = editor.state.selection
+      const hasSelection = from !== to
+      
+      if (hasSelection) {
+        // Apply link to selected text
+        editor.chain().focus().extendMarkRange('link').setLink({ href: normalizedUrl }).run()
+      } else if (linkText.trim()) {
+        // Insert new text with link
+        editor.chain().focus().insertContent(`<a href="${normalizedUrl}">${linkText.trim()}</a>`).run()
+      } else {
+        // Just insert the URL as a link
+        editor.chain().focus().insertContent(`<a href="${normalizedUrl}">${normalizedUrl}</a>`).run()
+      }
+    }
+    
+    onOpenChange(false)
+  }
+
+  const handleRemove = () => {
+    editor.chain().focus().extendMarkRange('link').unsetLink().run()
+    onOpenChange(false)
+  }
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) {
+      setUrl('')
+      setLinkText('')
+      setUrlError('')
+    }
+    onOpenChange(newOpen)
+  }
+
+  const isEditing = editor?.getAttributes('link').href
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <LinkIcon className="h-5 w-5" />
+            {isEditing ? 'Edit Link' : 'Insert Link'}
+          </DialogTitle>
+          <DialogDescription>
+            {isEditing 
+              ? 'Update the link URL or remove it entirely.'
+              : 'Add a link to your content. You can link to external websites or internal pages.'
+            }
+          </DialogDescription>
+        </DialogHeader>
+        
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="link-url">URL</Label>
+              <div className="relative">
+                <Input
+                  id="link-url"
+                  type="text"
+                  placeholder="https://example.com or /page"
+                  value={url}
+                  onChange={(e) => {
+                    setUrl(e.target.value)
+                    setUrlError('')
+                  }}
+                  onBlur={() => {
+                    if (url) {
+                      validateUrl(url)
+                    }
+                  }}
+                  className={cn(
+                    "pr-10",
+                    urlError && "border-destructive focus-visible:ring-destructive"
+                  )}
+                  autoFocus
+                />
+                {url && !urlError && (
+                  <ExternalLink className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                )}
+              </div>
+              {urlError && (
+                <p className="text-sm text-destructive">{urlError}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Enter a full URL (https://example.com) or a relative path (/page)
+              </p>
+            </div>
+
+            {!isEditing && (
+              <div className="space-y-2">
+                <Label htmlFor="link-text">Link Text (Optional)</Label>
+                <Input
+                  id="link-text"
+                  type="text"
+                  placeholder="Link text"
+                  value={linkText}
+                  onChange={(e) => setLinkText(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Leave empty to use the URL as the link text
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2">
+            {isEditing && (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleRemove}
+              >
+                Remove Link
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={!url.trim() || !!urlError}>
+              {isEditing ? 'Update Link' : 'Insert Link'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 const MenuBar = ({ editor }: { editor: any }) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false)
 
   if (!editor) {
     return null
@@ -274,14 +503,124 @@ const MenuBar = ({ editor }: { editor: any }) => {
     }
   }
 
+  // Get current heading level or paragraph
+  const getCurrentHeadingLabel = () => {
+    if (editor.isActive('heading', { level: 1 })) return 'Heading 1'
+    if (editor.isActive('heading', { level: 2 })) return 'Heading 2'
+    if (editor.isActive('heading', { level: 3 })) return 'Heading 3'
+    if (editor.isActive('heading', { level: 4 })) return 'Heading 4'
+    return 'Normal text'
+  }
+
   return (
-    <div className="border-b py-2 mb-4 flex flex-wrap gap-1 bg-background sticky top-16 z-10 opacity-100 transition-opacity duration-300">
+    <div className="border-b py-2 md:py-2 mb-4 flex flex-wrap gap-1 md:gap-1 bg-background sticky top-16 z-10 opacity-100 transition-opacity duration-300">
+      {/* Undo/Redo - First */}
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().undo().run()}
+        disabled={!editor.can().undo()}
+        className="min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
+      >
+        <Undo className="h-4 w-4 md:h-4 md:w-4" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => editor.chain().focus().redo().run()}
+        disabled={!editor.can().redo()}
+        className="min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
+      >
+        <Redo className="h-4 w-4 md:h-4 md:w-4" />
+      </Button>
+      
+      <div className="w-px h-6 bg-border mx-1 self-center hidden md:block" />
+      
+      {/* Heading Dropdown */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 min-h-[44px] md:min-h-0 px-3 md:px-2"
+          >
+            <span className="text-sm">{getCurrentHeadingLabel()}</span>
+            <ChevronDown className="h-3.5 w-3.5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="min-w-[200px]">
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().setParagraph().run()}
+            className={cn(
+              "flex items-center gap-2 py-3 md:py-1.5",
+              !editor.isActive('heading') && "bg-muted"
+            )}
+          >
+            <span>Normal text</span>
+            {!editor.isActive('heading') && <Check className="ml-auto h-4 w-4" />}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            className={cn(
+              "flex items-center gap-2 py-3 md:py-1.5",
+              editor.isActive('heading', { level: 1 }) && "bg-muted"
+            )}
+          >
+            <Heading1 className="h-4 w-4" />
+            <span>Heading 1</span>
+            {editor.isActive('heading', { level: 1 }) && <Check className="ml-auto h-4 w-4" />}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            className={cn(
+              "flex items-center gap-2 py-3 md:py-1.5",
+              editor.isActive('heading', { level: 2 }) && "bg-muted"
+            )}
+          >
+            <Heading2 className="h-4 w-4" />
+            <span>Heading 2</span>
+            {editor.isActive('heading', { level: 2 }) && <Check className="ml-auto h-4 w-4" />}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            className={cn(
+              "flex items-center gap-2 py-3 md:py-1.5",
+              editor.isActive('heading', { level: 3 }) && "bg-muted"
+            )}
+          >
+            <Heading3 className="h-4 w-4" />
+            <span>Heading 3</span>
+            {editor.isActive('heading', { level: 3 }) && <Check className="ml-auto h-4 w-4" />}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
+            className={cn(
+              "flex items-center gap-2 py-3 md:py-1.5",
+              editor.isActive('heading', { level: 4 }) && "bg-muted"
+            )}
+          >
+            <Heading4 className="h-4 w-4" />
+            <span>Heading 4</span>
+            {editor.isActive('heading', { level: 4 }) && <Check className="ml-auto h-4 w-4" />}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      
+      <div className="w-px h-6 bg-border mx-1 self-center hidden md:block" />
+      
+      {/* Text Formatting - B, I, U, Strikethrough (hidden on mobile), Code (hidden on mobile) */}
       <Button
         type="button"
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().toggleBold().run()}
-        className={cn(editor.isActive('bold') ? 'bg-muted' : '')}
+        className={cn(
+          editor.isActive('bold') ? 'bg-muted' : '',
+          "min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
+        )}
       >
         <Bold className="h-4 w-4" />
       </Button>
@@ -290,7 +629,10 @@ const MenuBar = ({ editor }: { editor: any }) => {
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().toggleItalic().run()}
-        className={cn(editor.isActive('italic') ? 'bg-muted' : '')}
+        className={cn(
+          editor.isActive('italic') ? 'bg-muted' : '',
+          "min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
+        )}
       >
         <Italic className="h-4 w-4" />
       </Button>
@@ -299,7 +641,10 @@ const MenuBar = ({ editor }: { editor: any }) => {
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().toggleUnderline().run()}
-        className={cn(editor.isActive('underline') ? 'bg-muted' : '')}
+        className={cn(
+          editor.isActive('underline') ? 'bg-muted' : '',
+          "min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
+        )}
       >
         <UnderlineIcon className="h-4 w-4" />
       </Button>
@@ -308,7 +653,10 @@ const MenuBar = ({ editor }: { editor: any }) => {
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().toggleStrike().run()}
-        className={cn(editor.isActive('strike') ? 'bg-muted' : '')}
+        className={cn(
+          editor.isActive('strike') ? 'bg-muted' : '',
+          "hidden md:inline-flex min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
+        )}
       >
         <Strikethrough className="h-4 w-4" />
       </Button>
@@ -317,63 +665,26 @@ const MenuBar = ({ editor }: { editor: any }) => {
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().toggleCode().run()}
-        className={cn(editor.isActive('code') ? 'bg-muted' : '')}
+        className={cn(
+          editor.isActive('code') ? 'bg-muted' : '',
+          "hidden md:inline-flex min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
+        )}
       >
         <Code className="h-4 w-4" />
       </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() => editor.chain().focus().toggleHighlight().run()}
-        className={cn(editor.isActive('highlight') ? 'bg-muted' : '')}
-      >
-        <Highlighter className="h-4 w-4" />
-      </Button>
-      <div className="w-px h-6 bg-border mx-1 self-center" />
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-        className={cn(editor.isActive('heading', { level: 1 }) ? 'bg-muted' : '')}
-      >
-        <Heading1 className="h-4 w-4" />
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-        className={cn(editor.isActive('heading', { level: 2 }) ? 'bg-muted' : '')}
-      >
-        <Heading2 className="h-4 w-4" />
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-        className={cn(editor.isActive('heading', { level: 3 }) ? 'bg-muted' : '')}
-      >
-        <Heading3 className="h-4 w-4" />
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
-        className={cn(editor.isActive('heading', { level: 4 }) ? 'bg-muted' : '')}
-      >
-        <Heading4 className="h-4 w-4" />
-      </Button>
-      <div className="w-px h-6 bg-border mx-1 self-center" />
+      
+      <div className="w-px h-6 bg-border mx-1 self-center hidden md:block" />
+      
+      {/* Lists */}
       <Button
         type="button"
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().toggleBulletList().run()}
-        className={cn(editor.isActive('bulletList') ? 'bg-muted' : '')}
+        className={cn(
+          editor.isActive('bulletList') ? 'bg-muted' : '',
+          "min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
+        )}
       >
         <List className="h-4 w-4" />
       </Button>
@@ -382,7 +693,10 @@ const MenuBar = ({ editor }: { editor: any }) => {
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        className={cn(editor.isActive('orderedList') ? 'bg-muted' : '')}
+        className={cn(
+          editor.isActive('orderedList') ? 'bg-muted' : '',
+          "min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
+        )}
       >
         <ListOrdered className="h-4 w-4" />
       </Button>
@@ -391,18 +705,27 @@ const MenuBar = ({ editor }: { editor: any }) => {
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().toggleTaskList().run()}
-        className={cn(editor.isActive('taskList') ? 'bg-muted' : '')}
+        className={cn(
+          editor.isActive('taskList') ? 'bg-muted' : '',
+          "hidden md:inline-flex min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
+        )}
         title="Task List"
       >
         <ListTodo className="h-4 w-4" />
       </Button>
-      <div className="w-px h-6 bg-border mx-1 self-center" />
+      
+      <div className="w-px h-6 bg-border mx-1 self-center hidden md:block" />
+      
+      {/* Block Elements */}
       <Button
         type="button"
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
-        className={cn(editor.isActive('blockquote') ? 'bg-muted' : '')}
+        className={cn(
+          editor.isActive('blockquote') ? 'bg-muted' : '',
+          "min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
+        )}
       >
         <Quote className="h-4 w-4" />
       </Button>
@@ -411,7 +734,10 @@ const MenuBar = ({ editor }: { editor: any }) => {
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-        className={cn(editor.isActive('codeBlock') ? 'bg-muted' : '')}
+        className={cn(
+          editor.isActive('codeBlock') ? 'bg-muted' : '',
+          "hidden md:inline-flex min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
+        )}
         title="Code Block"
       >
         <FileCode className="h-4 w-4" />
@@ -421,37 +747,35 @@ const MenuBar = ({ editor }: { editor: any }) => {
         variant="ghost"
         size="sm"
         onClick={() => editor.chain().focus().setHorizontalRule().run()}
+        className={cn(
+          "hidden md:inline-flex min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
+        )}
         title="Horizontal Rule"
       >
         <Minus className="h-4 w-4" />
       </Button>
-      <div className="w-px h-6 bg-border mx-1 self-center" />
+      
+      <div className="w-px h-6 bg-border mx-1 self-center hidden md:block" />
+      
+      {/* Link and Image */}
       <Button
         type="button"
         variant="ghost"
         size="sm"
-        onClick={() => {
-          const previousUrl = editor.getAttributes('link').href
-          const url = window.prompt('URL', previousUrl)
-          
-          // cancelled
-          if (url === null) {
-            return
-          }
-
-          // empty
-          if (url === '') {
-            editor.chain().focus().extendMarkRange('link').unsetLink().run()
-            return
-          }
-
-          // update
-          editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
-        }}
-        className={cn(editor.isActive('link') ? 'bg-muted' : '')}
+        onClick={() => setIsLinkDialogOpen(true)}
+        className={cn(
+          editor.isActive('link') ? 'bg-muted' : '',
+          "min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
+        )}
       >
         <LinkIcon className="h-4 w-4" />
       </Button>
+      
+      <LinkDialog 
+        open={isLinkDialogOpen} 
+        onOpenChange={setIsLinkDialogOpen}
+        editor={editor}
+      />
       
       <input 
         type="file" 
@@ -466,25 +790,24 @@ const MenuBar = ({ editor }: { editor: any }) => {
         variant="ghost"
         size="sm"
         onClick={() => fileInputRef.current?.click()}
+        className="min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
       >
         <ImageIcon className="h-4 w-4" />
       </Button>
-      <div className="flex-1" />
+      
+      {/* Highlight - hidden on mobile */}
+      <div className="w-px h-6 bg-border mx-1 self-center hidden md:block" />
       <Button
         type="button"
         variant="ghost"
         size="sm"
-        onClick={() => editor.chain().focus().undo().run()}
+        onClick={() => editor.chain().focus().toggleHighlight().run()}
+        className={cn(
+          editor.isActive('highlight') ? 'bg-muted' : '',
+          "hidden md:inline-flex min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
+        )}
       >
-        <Undo className="h-4 w-4" />
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() => editor.chain().focus().redo().run()}
-      >
-        <Redo className="h-4 w-4" />
+        <Highlighter className="h-4 w-4" />
       </Button>
     </div>
   )
