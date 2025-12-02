@@ -9,14 +9,31 @@ COPY package*.json ./
 # Install dependencies
 RUN npm ci
 
-# Copy source code
-COPY . .
+# Copy client directory first to ensure index.html is copied as a file
+COPY client ./client
+
+# Copy rest of source code
+COPY server ./server
+COPY shared ./shared
+COPY vite.config.ts ./
+COPY vite-plugin-meta-images.ts ./
+COPY tsconfig.json ./
+COPY drizzle.config.ts ./
+COPY components.json ./
+COPY scripts ./scripts
 
 # Clean up any existing dist directory to ensure a clean build
 RUN rm -rf dist || true
 
 # Verify index.html exists as a file (not a directory) before building
-RUN test -f client/index.html || (echo "ERROR: client/index.html is not a file" && ls -la client/ && exit 1)
+RUN echo "=== Checking file structure ===" && \
+  ls -la client/ && \
+  echo "=== Checking index.html ===" && \
+  file client/index.html && \
+  test -f client/index.html || (echo "ERROR: client/index.html is not a file" && ls -la client/ && exit 1) && \
+  echo "=== File check passed ===" && \
+  echo "=== Verifying index.html content ===" && \
+  head -5 client/index.html
 
 # Build the application
 RUN npm run build
