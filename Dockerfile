@@ -37,10 +37,15 @@ RUN echo "=== Checking file structure ===" && \
   chmod 644 client/index.html && \
   ls -la client/index.html && \
   echo "=== Checking for any conflicting directories ===" && \
-  (test ! -d dist/client/index.html || (echo "WARNING: dist/client/index.html exists as directory" && rm -rf dist/client/index.html)) && \
-  echo "=== All checks passed ==="
+  (test ! -d client/index.html || (echo "ERROR: client/index.html exists as directory!" && rm -rf client/index.html && exit 1)) && \
+  (test ! -d /app/client/index.html || (echo "ERROR: /app/client/index.html exists as directory!" && rm -rf /app/client/index.html && exit 1)) && \
+  echo "=== All checks passed ===" && \
+  echo "=== Current working directory ===" && \
+  pwd && \
+  echo "=== Vite config location ===" && \
+  ls -la vite.config.ts
 
-# Build the application
+# Build the application with explicit config
 RUN npm run build
 
 # Production stage
