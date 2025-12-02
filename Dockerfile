@@ -29,11 +29,16 @@ RUN rm -rf dist || true
 RUN echo "=== Checking file structure ===" && \
   ls -la client/ && \
   echo "=== Checking index.html ===" && \
-  file client/index.html && \
-  test -f client/index.html || (echo "ERROR: client/index.html is not a file" && ls -la client/ && exit 1) && \
+  test -f client/index.html && \
   echo "=== File check passed ===" && \
   echo "=== Verifying index.html content ===" && \
-  head -5 client/index.html
+  head -5 client/index.html && \
+  echo "=== Ensuring file is readable ===" && \
+  chmod 644 client/index.html && \
+  ls -la client/index.html && \
+  echo "=== Checking for any conflicting directories ===" && \
+  (test ! -d dist/client/index.html || (echo "WARNING: dist/client/index.html exists as directory" && rm -rf dist/client/index.html)) && \
+  echo "=== All checks passed ==="
 
 # Build the application
 RUN npm run build

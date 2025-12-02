@@ -7,6 +7,10 @@ import { metaImagesPlugin } from "./vite-plugin-meta-images";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Resolve paths relative to the config file location
+const clientRoot = path.resolve(__dirname, "client");
+const distRoot = path.resolve(__dirname, "dist", "public");
+
 export default defineConfig({
   plugins: [
     react(),
@@ -15,7 +19,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "client", "src"),
+      "@": path.resolve(clientRoot, "src"),
       "@shared": path.resolve(__dirname, "shared"),
     },
   },
@@ -24,9 +28,9 @@ export default defineConfig({
       plugins: [],
     },
   },
-  root: path.resolve(__dirname, "client"),
+  root: clientRoot,
   build: {
-    outDir: path.resolve(__dirname, "dist/public"),
+    outDir: distRoot,
     emptyOutDir: true,
   },
   server: {

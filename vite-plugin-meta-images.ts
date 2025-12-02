@@ -17,7 +17,10 @@ export function metaImagesPlugin(): Plugin {
       }
 
       // Check if opengraph image exists in public directory
-      const publicDir = path.resolve(process.cwd(), 'client', 'public');
+      // In Vite, the root is set to client/, so public is at ./public relative to root
+      // But we need to resolve from the project root, so use process.cwd()
+      const projectRoot = process.cwd();
+      const publicDir = path.resolve(projectRoot, 'client', 'public');
       const opengraphPngPath = path.join(publicDir, 'opengraph.png');
       const opengraphJpgPath = path.join(publicDir, 'opengraph.jpg');
       const opengraphJpegPath = path.join(publicDir, 'opengraph.jpeg');
