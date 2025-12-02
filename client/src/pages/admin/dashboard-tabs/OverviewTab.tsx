@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PenTool, FolderGit2 } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const visitorData = [
   { name: 'Mon', visits: 1240 },
@@ -65,7 +65,7 @@ export function OverviewTab({
                     tickFormatter={(value) => `${value}`}
                     dx={-10}
                   />
-                  <RechartsTooltip 
+                  <Tooltip 
                     contentStyle={{ 
                       borderRadius: 'var(--radius)', 
                       border: '1px solid hsl(var(--border))', 
