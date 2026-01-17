@@ -245,10 +245,10 @@ export function WorldMap({ travelHistory }: WorldMapProps) {
 
   return (
     <MapErrorBoundary>
-      <div className="relative w-full">
+      <div className="relative w-full flex-1 min-h-0">
         <div 
           ref={containerRef}
-          className="w-full h-[500px] md:h-[600px] border border-border rounded-lg overflow-hidden shadow-lg relative"
+          className="w-full h-full min-h-[280px] border border-border rounded-lg overflow-hidden shadow-lg relative"
           style={{ backgroundColor: theme === 'dark' ? 'hsl(240, 10%, 3.9%)' : 'hsl(240, 5%, 92%)' }}
         >
           <ComposableMap
