@@ -95,7 +95,7 @@ export const isAdmin: RequestHandler = async (req, res, next) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const allowedEmail = "art9793@gmail.com";
+  const allowedEmail = process.env.ADMIN_EMAIL || "art9793@gmail.com";
 
   if (user.email !== allowedEmail) {
     return res.status(403).json({ 

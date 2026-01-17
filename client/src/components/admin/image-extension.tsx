@@ -182,7 +182,7 @@ export const Image = Node.create<ImageOptions>({
 
   renderHTML({ node, HTMLAttributes }) {
     const { caption, align } = node.attrs
-    const imgElement = ['img', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)]
+    const imgElement: [string, Record<string, any>] = ['img', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)]
     
     if (caption) {
       return [
@@ -190,7 +190,7 @@ export const Image = Node.create<ImageOptions>({
         { 'data-align': align || 'center' },
         imgElement,
         ['figcaption', { 'data-caption': true }, caption],
-      ]
+      ] as const
     }
     
     return imgElement

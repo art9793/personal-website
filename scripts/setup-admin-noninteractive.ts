@@ -4,7 +4,7 @@ import { users } from "../shared/schema";
 import { eq } from "drizzle-orm";
 
 const SALT_ROUNDS = 10;
-const ADMIN_EMAIL = "art9793@gmail.com";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "art9793@gmail.com";
 
 async function setupAdmin() {
   try {

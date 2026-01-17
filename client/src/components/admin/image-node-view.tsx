@@ -24,7 +24,7 @@ export function ImageNodeViewComponent({
 }: ImageNodeViewProps) {
   const [isResizing, setIsResizing] = useState(false)
   const [showToolbar, setShowToolbar] = useState(false)
-  const imageRef = useRef<HTMLImageElement>(null)
+  const imageRef = useRef<HTMLImageElement | null>(null)
   const { toast } = useToast()
 
   const { src, alt, width, height, align, caption } = node.attrs

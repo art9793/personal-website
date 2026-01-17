@@ -802,8 +802,8 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
       return null
     }
 
+    const fileId = `${file.name}-${Date.now()}`
     try {
-      const fileId = `${file.name}-${Date.now()}`
       const { objectPath } = await uploadImage(file, {
         onProgress: (progress) => {
           if (onProgress) {

@@ -11,7 +11,7 @@ interface ImageResizerProps {
   isResizing: boolean
   onResizeStart: () => void
   onResizeEnd: (width: number, height: number) => void
-  imageRef?: React.RefObject<HTMLImageElement>
+  imageRef?: React.RefObject<HTMLImageElement | null>
 }
 
 type ResizeHandle = 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'e' | 'w'
@@ -93,47 +93,50 @@ export function ImageResizer({
     if (!isDragging || !activeHandle || !startPosRef.current || !startSizeRef.current || !imageDimensions) return
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!containerRef.current || !imageDimensions) return
+      if (!containerRef.current || !imageDimensions || !startPosRef.current || !startSizeRef.current) return
 
-      const deltaX = e.clientX - startPosRef.current!.x
-      const deltaY = e.clientY - startPosRef.current!.y
+      const deltaX = e.clientX - startPosRef.current.x
+      const deltaY = e.clientY - startPosRef.current.y
 
       const aspectRatio = imageDimensions.width / imageDimensions.height
       let newWidth = startSizeRef.current.width
       let newHeight = startSizeRef.current.height
 
       // Calculate new size based on handle
+      const startWidth = startSizeRef.current.width
+      const startHeight = startSizeRef.current.height
+      
       switch (activeHandle) {
         case 'se': // Bottom-right
-          newWidth = Math.max(100, startSizeRef.current.width + deltaX)
+          newWidth = Math.max(100, startWidth + deltaX)
           newHeight = newWidth / aspectRatio
           break
         case 'sw': // Bottom-left
-          newWidth = Math.max(100, startSizeRef.current.width - deltaX)
+          newWidth = Math.max(100, startWidth - deltaX)
           newHeight = newWidth / aspectRatio
           break
         case 'ne': // Top-right
-          newWidth = Math.max(100, startSizeRef.current.width + deltaX)
+          newWidth = Math.max(100, startWidth + deltaX)
           newHeight = newWidth / aspectRatio
           break
         case 'nw': // Top-left
-          newWidth = Math.max(100, startSizeRef.current.width - deltaX)
+          newWidth = Math.max(100, startWidth - deltaX)
           newHeight = newWidth / aspectRatio
           break
         case 'e': // Right
-          newWidth = Math.max(100, startSizeRef.current.width + deltaX)
+          newWidth = Math.max(100, startWidth + deltaX)
           newHeight = newWidth / aspectRatio
           break
         case 'w': // Left
-          newWidth = Math.max(100, startSizeRef.current.width - deltaX)
+          newWidth = Math.max(100, startWidth - deltaX)
           newHeight = newWidth / aspectRatio
           break
         case 's': // Bottom
-          newHeight = Math.max(100, startSizeRef.current.height + deltaY)
+          newHeight = Math.max(100, startHeight + deltaY)
           newWidth = newHeight * aspectRatio
           break
         case 'n': // Top
-          newHeight = Math.max(100, startSizeRef.current.height - deltaY)
+          newHeight = Math.max(100, startHeight - deltaY)
           newWidth = newHeight * aspectRatio
           break
       }

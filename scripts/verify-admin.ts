@@ -4,7 +4,7 @@ import { db } from "../server/db";
 import { users } from "../shared/schema";
 import { eq } from "drizzle-orm";
 
-const ADMIN_EMAIL = "art9793@gmail.com";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "art9793@gmail.com";
 
 async function verifyAdmin() {
   try {

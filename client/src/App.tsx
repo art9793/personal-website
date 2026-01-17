@@ -55,7 +55,8 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   }
 
   // Check if user's email is authorized for admin access
-  const authorizedEmail = "art9793@gmail.com";
+  // Note: This is a client-side check for UX only. Server enforces via ADMIN_EMAIL env var.
+  const authorizedEmail = import.meta.env.VITE_ADMIN_EMAIL || "art9793@gmail.com";
   if (user && user.email !== authorizedEmail) {
     return (
       <div className="flex items-center justify-center min-h-screen px-4">

@@ -75,7 +75,7 @@ export function WorldMap({ travelHistory }: WorldMapProps) {
     y: number;
   } | null>(null);
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
-  const [position, setPosition] = useState({ coordinates: [0, 0], zoom: 1 });
+  const [position, setPosition] = useState<{ coordinates: [number, number]; zoom: number }>({ coordinates: [0, 0], zoom: 1 });
   const [showScrollHint, setShowScrollHint] = useState(false);
   const mapRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -264,14 +264,14 @@ export function WorldMap({ travelHistory }: WorldMapProps) {
               zoom={position.zoom}
               center={position.coordinates}
               onMoveStart={() => {}}
-              onMoveEnd={(position) => {
-                setPosition(position);
+              onMoveEnd={(pos: { coordinates: [number, number]; zoom: number }) => {
+                setPosition(pos);
               }}
               minZoom={1}
               maxZoom={8}
             >
               <Geographies geography={geoUrl}>
-                {({ geographies }) =>
+                {({ geographies }: { geographies: Array<{ rsmKey: string; properties: Record<string, unknown>; geometry: unknown }> }) =>
                   geographies.map((geo) => {
                     const countryCode = getCountryCode(geo.properties);
                     const isVisited = countryCode ? countryCode in visitedCountriesMap : false;
@@ -280,8 +280,8 @@ export function WorldMap({ travelHistory }: WorldMapProps) {
                       <Geography
                         key={geo.rsmKey}
                         geography={geo}
-                        onMouseEnter={(e) => handleMouseEnter(geo, e)}
-                        onMouseMove={(e) => handleMouseMove(geo, e)}
+                        onMouseEnter={(e: React.MouseEvent) => handleMouseEnter(geo, e)}
+                        onMouseMove={(e: React.MouseEvent) => handleMouseMove(geo, e)}
                         onMouseLeave={handleMouseLeave}
                         style={{
                           default: {

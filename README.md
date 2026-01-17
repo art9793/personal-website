@@ -53,7 +53,10 @@ npm start
 
 ## 🔐 Admin Access
 
-Default admin email: `art9793@gmail.com`
+The admin email is configured via the `ADMIN_EMAIL` environment variable.
+Default: `art9793@gmail.com`
+
+For client-side authorization UI, set `VITE_ADMIN_EMAIL` in your `.env` file.
 
 To set up admin account:
 
