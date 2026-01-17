@@ -8,7 +8,7 @@ export default function Work() {
 
   if (isLoading || !profile) {
     return (
-      <div className="flex items-center justify-center min-h-[50vh]">
+      <div className="flex items-center justify-center min-h-[calc(100vh-theme(spacing.24)-theme(spacing.20))] md:min-h-[calc(100vh-theme(spacing.40))]">
         <div className="text-muted-foreground">Loading...</div>
       </div>
     );
@@ -27,26 +27,26 @@ export default function Work() {
   });
 
   return (
-    <div className="space-y-12">
-      <div className="space-y-4">
+    <div className="flex flex-col min-h-[calc(100vh-theme(spacing.24)-theme(spacing.20))] md:min-h-[calc(100vh-theme(spacing.40))]">
+      <div className="space-y-2 flex-shrink-0">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Work</h1>
         <p className="text-muted-foreground text-lg">
           My career journey and the teams I've been lucky to work with.
         </p>
       </div>
 
-      <div className="space-y-8 md:space-y-12">
+      <div className="space-y-6 md:space-y-8 mt-8 flex-1">
         {sortedWorkHistory.length === 0 ? (
           <p className="text-muted-foreground text-center py-12">
             No work experience added yet.
           </p>
         ) : (
           sortedWorkHistory.map((item) => (
-            <div key={item.id} className="grid sm:grid-cols-[180px_minmax(0,1fr)] gap-4 sm:gap-x-4 items-start sm:items-baseline" data-testid={`work-${item.id}`}>
+            <div key={item.id} className="grid sm:grid-cols-[180px_minmax(0,1fr)] gap-3 sm:gap-x-4 items-start sm:items-baseline" data-testid={`work-${item.id}`}>
               <div className="text-sm text-muted-foreground/70 font-mono uppercase tracking-wider whitespace-nowrap">
                 {formatYearRange(item.startDate, item.endDate)}
               </div>
-              <div className="flex flex-col gap-3 sm:self-baseline">
+              <div className="flex flex-col gap-2 sm:self-baseline">
                 <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                   <h3 className="text-lg md:text-xl font-medium text-primary tracking-tight">
                     {item.company}
@@ -56,7 +56,7 @@ export default function Work() {
                     {item.role}
                   </div>
                 </div>
-                <p className="text-muted-foreground leading-7 text-[15px] whitespace-pre-line">
+                <p className="text-muted-foreground leading-relaxed text-[15px] whitespace-pre-line">
                   {item.description}
                 </p>
               </div>
@@ -66,8 +66,8 @@ export default function Work() {
       </div>
       
       {profile.email && profile.showEmail && (
-        <div className="pt-8 border-t">
-          <h2 className="text-lg font-semibold mb-4">Contact</h2>
+        <div className="pt-6 border-t mt-auto flex-shrink-0">
+          <h2 className="text-lg font-semibold mb-3">Contact</h2>
           <p className="text-muted-foreground mb-4">
             I'm occasionally open to consulting work or speaking engagements.
           </p>
