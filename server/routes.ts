@@ -13,7 +13,8 @@ import {
   insertProjectSchema,
   insertWorkExperienceSchema,
   insertReadingListSchema,
-  insertSeoSettingsSchema
+  insertSeoSettingsSchema,
+  insertTravelHistorySchema
 } from "@shared/schema";
 
 // Rate limiting for auth endpoints
@@ -200,6 +201,12 @@ async function generateSitemap(): Promise<string> {
     <lastmod>${profileLastmod}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/travel</loc>
+    <lastmod>${profileLastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 `;
 
@@ -754,6 +761,67 @@ Sitemap: ${baseUrl}/sitemap.xml
     } catch (error) {
       console.error("Error deleting reading list item:", error);
       res.status(500).json({ message: "Failed to delete reading list item" });
+    }
+  });
+
+  // Travel History routes
+  app.get('/api/travel-history', async (req, res) => {
+    try {
+      const entries = await storage.getTravelHistory();
+      // Cache travel history for 5 minutes (stale-while-revalidate)
+      res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching travel history:", error);
+      res.status(500).json({ message: "Failed to fetch travel history" });
+    }
+  });
+
+  app.get('/api/travel-history/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const entry = await storage.getTravelHistoryEntry(id);
+      if (!entry) {
+        return res.status(404).json({ message: "Travel history entry not found" });
+      }
+      res.json(entry);
+    } catch (error) {
+      console.error("Error fetching travel history entry:", error);
+      res.status(500).json({ message: "Failed to fetch travel history entry" });
+    }
+  });
+
+  app.post('/api/travel-history', isAdmin, async (req, res) => {
+    try {
+      const validated = insertTravelHistorySchema.parse(req.body);
+      const entry = await storage.createTravelHistoryEntry(validated);
+      res.status(201).json(entry);
+    } catch (error) {
+      console.error("Error creating travel history entry:", error);
+      res.status(400).json({ message: "Failed to create travel history entry" });
+    }
+  });
+
+  app.put('/api/travel-history/:id', isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validated = insertTravelHistorySchema.partial().parse(req.body);
+      const entry = await storage.updateTravelHistoryEntry(id, validated);
+      res.json(entry);
+    } catch (error) {
+      console.error("Error updating travel history entry:", error);
+      res.status(400).json({ message: "Failed to update travel history entry" });
+    }
+  });
+
+  app.delete('/api/travel-history/:id', isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteTravelHistoryEntry(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting travel history entry:", error);
+      res.status(500).json({ message: "Failed to delete travel history entry" });
     }
   });
 

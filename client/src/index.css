@@ -1,5 +1,16 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+/* MapLibre Popup styling to match design system */
+.maplibregl-popup-content {
+  @apply bg-popover border border-border rounded-md shadow-lg;
+  padding: 0;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: hsl(var(--popover)) !important;
+}
 
 @custom-variant dark (&:is(.dark *));
 

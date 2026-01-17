@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { Home, PenTool, FolderGit2, BookOpen, Briefcase, Menu, X, Lock, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Home, PenTool, FolderGit2, BookOpen, Briefcase, Menu, X, Lock, ChevronsLeft, ChevronsRight, Plane } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -35,6 +35,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { href: "/", label: "Home", icon: Home },
     { href: "/writing", label: "Writing", icon: PenTool },
     { href: "/projects", label: "Projects", icon: FolderGit2 },
+    { href: "/travel", label: "Travel", icon: Plane },
     { href: "/work", label: "Work", icon: Briefcase },
   ];
 
@@ -77,17 +78,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     </nav>
   );
 
-  // Check if we're on writing, article, projects, or work pages for breadcrumbs
+  // Check if we're on writing, article, projects, travel, or work pages for breadcrumbs
   const isWritingPage = location === "/writing";
   const isArticlePage = location.startsWith("/article/");
   const isProjectsPage = location === "/projects";
+  const isTravelPage = location === "/travel";
   const isWorkPage = location === "/work";
 
   return (
     <div className="min-h-screen bg-background font-sans flex flex-col md:flex-row overflow-x-hidden">
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between px-6 py-4 border-b bg-background/80 backdrop-blur-xl sticky top-0 z-50">
-        {isWritingPage || isArticlePage || isProjectsPage || isWorkPage ? (
+        {isWritingPage || isArticlePage || isProjectsPage || isTravelPage || isWorkPage ? (
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -105,6 +107,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </BreadcrumbLink>
                 ) : isProjectsPage ? (
                   <BreadcrumbPage>Projects</BreadcrumbPage>
+                ) : isTravelPage ? (
+                  <BreadcrumbPage>Travel</BreadcrumbPage>
                 ) : isWorkPage ? (
                   <BreadcrumbPage>Work</BreadcrumbPage>
                 ) : null}

@@ -194,3 +194,24 @@ export const insertReadingListSchema = createInsertSchema(readingList).omit({
 
 export type InsertReadingList = z.infer<typeof insertReadingListSchema>;
 export type ReadingListItem = typeof readingList.$inferSelect;
+
+// Travel History table
+export const travelHistory = pgTable("travel_history", {
+  id: serial("id").primaryKey(),
+  countryCode: varchar("country_code", { length: 2 }).notNull(),
+  countryName: varchar("country_name", { length: 255 }).notNull(),
+  visitDate: varchar("visit_date", { length: 7 }), // "YYYY-MM" format, null for home country
+  notes: text("notes"),
+  isHomeCountry: boolean("is_home_country").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertTravelHistorySchema = createInsertSchema(travelHistory).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertTravelHistory = z.infer<typeof insertTravelHistorySchema>;
+export type TravelHistoryEntry = typeof travelHistory.$inferSelect;

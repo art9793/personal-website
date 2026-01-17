@@ -89,6 +89,17 @@ export interface ReadingListItem {
   updatedAt?: Date;
 }
 
+export interface TravelHistoryEntry {
+  id: number;
+  countryCode: string;
+  countryName: string;
+  visitDate?: string; // "YYYY-MM" format, null for home country
+  notes?: string;
+  isHomeCountry?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 // Shared error handler
 function handleUnauthorized(error: Error, toast: ReturnType<typeof useToast>["toast"]) {
   if (isUnauthorizedError(error)) {
@@ -472,6 +483,73 @@ export function useReadingList() {
     addReadingListItem: (data: Partial<ReadingListItem>) => addReadingListItemMutation.mutateAsync(data),
     updateReadingListItem: (id: number, data: Partial<ReadingListItem>) => updateReadingListItemMutation.mutateAsync({ id, data }),
     deleteReadingListItem: (id: number) => deleteReadingListItemMutation.mutateAsync(id),
+  };
+}
+
+// Travel History hook
+export function useTravelHistory() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const { data: travelHistory = [], isLoading } = useQuery<TravelHistoryEntry[]>({
+    queryKey: ["/api/travel-history"],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const addTravelHistoryMutation = useMutation({
+    mutationFn: async (data: Partial<TravelHistoryEntry>) => {
+      const res = await fetch("/api/travel-history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/travel-history"] });
+    },
+    onError: (error: Error) => handleUnauthorized(error, toast),
+  });
+
+  const updateTravelHistoryMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<TravelHistoryEntry> }) => {
+      const res = await fetch(`/api/travel-history/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/travel-history"] });
+    },
+    onError: (error: Error) => handleUnauthorized(error, toast),
+  });
+
+  const deleteTravelHistoryMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/travel-history/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/travel-history"] });
+    },
+    onError: (error: Error) => handleUnauthorized(error, toast),
+  });
+
+  return {
+    travelHistory,
+    isLoading,
+    addTravelHistory: (data: Partial<TravelHistoryEntry>) => addTravelHistoryMutation.mutateAsync(data),
+    updateTravelHistory: (id: number, data: Partial<TravelHistoryEntry>) => updateTravelHistoryMutation.mutateAsync({ id, data }),
+    deleteTravelHistory: (id: number) => deleteTravelHistoryMutation.mutateAsync(id),
   };
 }
 

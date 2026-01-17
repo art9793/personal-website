@@ -14,6 +14,7 @@ const Writing = lazy(() => import("@/pages/writing"));
 const Article = lazy(() => import("@/pages/article"));
 const Projects = lazy(() => import("@/pages/projects"));
 const Reading = lazy(() => import("@/pages/reading"));
+const Travel = lazy(() => import("@/pages/travel"));
 const Work = lazy(() => import("@/pages/work"));
 const AdminDashboard = lazy(() => import("@/pages/admin/dashboard"));
 const AdminLogin = lazy(() => import("@/pages/admin/login"));
@@ -139,6 +140,11 @@ function Router() {
         <Route path="/reading">
           <Suspense fallback={<LoadingFallback />}>
             <Reading />
+          </Suspense>
+        </Route>
+        <Route path="/travel">
+          <Suspense fallback={<LoadingFallback />}>
+            <Travel />
           </Suspense>
         </Route>
         <Route path="/work">

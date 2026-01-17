@@ -6,6 +6,7 @@ import {
   workExperiences,
   readingList,
   seoSettings,
+  travelHistory,
   type User,
   type UpsertUser,
   type Profile,
@@ -20,6 +21,8 @@ import {
   type InsertReadingList,
   type SeoSettings,
   type InsertSeoSettings,
+  type TravelHistoryEntry,
+  type InsertTravelHistory,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
@@ -66,6 +69,13 @@ export interface IStorage {
   createReadingListItem(data: InsertReadingList): Promise<ReadingListItem>;
   updateReadingListItem(id: number, data: Partial<InsertReadingList>): Promise<ReadingListItem>;
   deleteReadingListItem(id: number): Promise<void>;
+
+  // Travel History operations
+  getTravelHistory(): Promise<TravelHistoryEntry[]>;
+  getTravelHistoryEntry(id: number): Promise<TravelHistoryEntry | undefined>;
+  createTravelHistoryEntry(data: InsertTravelHistory): Promise<TravelHistoryEntry>;
+  updateTravelHistoryEntry(id: number, data: Partial<InsertTravelHistory>): Promise<TravelHistoryEntry>;
+  deleteTravelHistoryEntry(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -260,6 +270,34 @@ export class DatabaseStorage implements IStorage {
 
   async deleteReadingListItem(id: number): Promise<void> {
     await db.delete(readingList).where(eq(readingList.id, id));
+  }
+
+  // Travel History operations
+  async getTravelHistory(): Promise<TravelHistoryEntry[]> {
+    return await db.select().from(travelHistory).orderBy(desc(travelHistory.visitDate));
+  }
+
+  async getTravelHistoryEntry(id: number): Promise<TravelHistoryEntry | undefined> {
+    const [entry] = await db.select().from(travelHistory).where(eq(travelHistory.id, id));
+    return entry;
+  }
+
+  async createTravelHistoryEntry(data: InsertTravelHistory): Promise<TravelHistoryEntry> {
+    const [entry] = await db.insert(travelHistory).values(data).returning();
+    return entry;
+  }
+
+  async updateTravelHistoryEntry(id: number, data: Partial<InsertTravelHistory>): Promise<TravelHistoryEntry> {
+    const [updated] = await db
+      .update(travelHistory)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(travelHistory.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteTravelHistoryEntry(id: number): Promise<void> {
+    await db.delete(travelHistory).where(eq(travelHistory.id, id));
   }
 }
 
