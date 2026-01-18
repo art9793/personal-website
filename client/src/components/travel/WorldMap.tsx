@@ -1,13 +1,10 @@
-import { useState, useMemo, useRef, useEffect } from "react";
-import {
-  ComposableMap,
-  Geographies,
-  Geography,
-  ZoomableGroup,
-} from "react-simple-maps";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
 import { useTheme } from "next-themes";
 import { TravelTooltip } from "./TravelTooltip";
 import { MapErrorBoundary } from "./MapErrorBoundary";
+import type { FeatureCollection, Feature, Geometry } from "geojson";
+import type { Layer, PathOptions, LeafletMouseEvent } from "leaflet";
 
 interface TravelEntry {
   countryCode: string;
@@ -19,9 +16,13 @@ interface WorldMapProps {
   travelHistory: TravelEntry[];
 }
 
-// World GeoJSON URL - react-simple-maps can handle both TopoJSON and GeoJSON
-// Using a source with reliable ISO_A2 codes
-const geoUrl = "https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson";
+// GeoJSON URL for country boundaries with reliable ISO codes
+const geoUrl = "https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson";
+
+// Tile layer URL for dark mode (light mode uses no tiles - white background)
+const DARK_TILE_URL = "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png";
+
+const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 
 // Fallback name-to-code mapping for countries that might not have ISO codes
 const nameToCodeMap: Record<string, string> = {
@@ -43,19 +44,19 @@ const nameToCodeMap: Record<string, string> = {
 };
 
 // Helper function to get country code from geo properties
-const getCountryCode = (props: any): string | null => {
+const getCountryCode = (properties: Record<string, unknown>): string | null => {
   let countryCode = 
-    props.ISO_A2 || 
-    props.ISO_A2_EH || 
-    props.iso_a2 || 
-    props.iso_a2_eh ||
-    props.ISO2 ||
-    props.iso2 ||
+    (properties.ISO_A2 as string) || 
+    (properties.ISO_A2_EH as string) || 
+    (properties.iso_a2 as string) || 
+    (properties.iso_a2_eh as string) ||
+    (properties.ISO2 as string) ||
+    (properties.iso2 as string) ||
     null;
   
   // Fallback: try to match by country name
   if (!countryCode) {
-    const countryName = props.NAME || props.name || props.NAME_LONG || props.NAME_EN;
+    const countryName = (properties.ADMIN as string) || (properties.NAME as string) || (properties.name as string);
     if (countryName && nameToCodeMap[countryName]) {
       countryCode = nameToCodeMap[countryName];
     }
@@ -64,115 +65,56 @@ const getCountryCode = (props: any): string | null => {
   return countryCode ? countryCode.toUpperCase() : null;
 };
 
-// Detect if user is on Mac for correct modifier key hint
-const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+// Component to handle theme changes and update tile layer
+// Light mode: no tiles (pure white background with GeoJSON only) - Cloudflare style
+// Dark mode: CartoDB Dark Matter tiles for context
+function TileLayerWithTheme({ theme }: { theme: string | undefined }) {
+  // Light mode: no tiles, just render GeoJSON on white background like Cloudflare
+  if (theme !== "dark") {
+    return null;
+  }
+  return <TileLayer attribution={TILE_ATTRIBUTION} url={DARK_TILE_URL} />;
+}
+
+// Component to invalidate map size when container resizes
+function MapResizeHandler() {
+  const map = useMap();
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [map]);
+  
+  return null;
+}
 
 export function WorldMap({ travelHistory }: WorldMapProps) {
+  const [geoData, setGeoData] = useState<FeatureCollection | null>(null);
   const [tooltipContent, setTooltipContent] = useState<{
     countryName: string;
     visits: string[];
     x: number;
     y: number;
   } | null>(null);
-  const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
-  const [position, setPosition] = useState<{ coordinates: [number, number]; zoom: number }>({ coordinates: [0, 0], zoom: 1 });
-  const [showScrollHint, setShowScrollHint] = useState(false);
-  const mapRef = useRef<SVGSVGElement>(null);
+  const [hoveredCountryCode, setHoveredCountryCode] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const geoJsonRef = useRef<L.GeoJSON | null>(null);
   const { theme } = useTheme();
 
-  // Auto-hide scroll hint after 1.5 seconds (like Google Maps)
+  // Fetch GeoJSON data
   useEffect(() => {
-    if (showScrollHint) {
-      const timer = setTimeout(() => setShowScrollHint(false), 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [showScrollHint]);
-
-  // Intercept wheel events to require Cmd/Ctrl for zoom (native listener needed to prevent ZoomableGroup's built-in zoom)
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const handleNativeWheel = (e: WheelEvent) => {
-      // Only allow zoom if Cmd (Mac) or Ctrl (Windows) is pressed
-      if (!e.metaKey && !e.ctrlKey) {
-        // Show hint and allow normal page scroll
-        setShowScrollHint(true);
-        // Don't prevent default - let page scroll normally
-        return;
-      }
-      
-      // Cmd/Ctrl is pressed - prevent default and handle zoom
-      e.preventDefault();
-      e.stopPropagation();
-      
-      const delta = e.deltaY;
-      const zoomFactor = delta > 0 ? 0.92 : 1.08;
-      
-      setPosition(prev => {
-        const newZoom = Math.max(1, Math.min(8, prev.zoom * zoomFactor));
-        
-        // Calculate zoom point relative to map container
-        const rect = container.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width;
-        const y = (e.clientY - rect.top) / rect.height;
-        
-        // Zoom towards the mouse position
-        const scale = newZoom / prev.zoom;
-        const dx = (x - 0.5) * (1 - scale);
-        const dy = (y - 0.5) * (1 - scale);
-        
-        return {
-          coordinates: [
-            prev.coordinates[0] - dx * 400,
-            prev.coordinates[1] - dy * 300,
-          ] as [number, number],
-          zoom: newZoom,
-        };
-      });
-    };
-
-    // Use capture phase to intercept before ZoomableGroup
-    container.addEventListener('wheel', handleNativeWheel, { passive: false, capture: true });
-    
-    return () => {
-      container.removeEventListener('wheel', handleNativeWheel, { capture: true });
-    };
+    fetch(geoUrl)
+      .then((res) => res.json())
+      .then((data: FeatureCollection) => setGeoData(data))
+      .catch((err) => console.error("Failed to load GeoJSON:", err));
   }, []);
-
-  // Theme-aware color palettes for the map
-  const mapColors = useMemo(() => {
-    const isDark = theme === 'dark';
-    
-    if (isDark) {
-      // Dark mode: dark grey non-visited, white visited (current behavior)
-      return {
-        nonVisitedFill: 'hsl(240, 3.7%, 15.9%)',
-        nonVisitedStroke: 'hsl(240, 3.7%, 20%)',
-        nonVisitedHoverFill: 'hsl(240, 3.7%, 22%)',
-        visitedFill: '#ffffff',
-        visitedHoverFill: '#f5f5f5',
-        visitedPressedFill: '#e5e5e5',
-        visitedStroke: 'hsl(240, 3.7%, 25%)',
-      };
-    }
-    
-    // Light mode: soft greys with off-black visited countries
-    return {
-      nonVisitedFill: 'hsl(240, 5%, 85%)',        // light grey land
-      nonVisitedStroke: 'hsl(240, 5%, 70%)',      // visible border between countries
-      nonVisitedHoverFill: 'hsl(240, 5%, 80%)',   // slightly darker on hover
-      visitedFill: 'hsl(240, 10%, 20%)',          // off-black (not jarring)
-      visitedHoverFill: 'hsl(240, 10%, 25%)',     // slightly lighter on hover
-      visitedPressedFill: 'hsl(240, 10%, 30%)',   // pressed state
-      visitedStroke: 'hsl(240, 5%, 50%)',         // medium grey border to differentiate neighbors
-    };
-  }, [theme]);
 
   // Transform travel history into a map for quick lookup
   const visitedCountriesMap = useMemo(() => {
-    const map = travelHistory.reduce(
+    return travelHistory.reduce(
       (acc, entry) => {
         acc[entry.countryCode.toUpperCase()] = {
           countryName: entry.countryName,
@@ -182,66 +124,112 @@ export function WorldMap({ travelHistory }: WorldMapProps) {
       },
       {} as Record<string, { countryName: string; visits: string[] }>
     );
-    return map;
   }, [travelHistory]);
 
-  const handleMouseEnter = (geo: any, event: React.MouseEvent) => {
-    const countryCode = getCountryCode(geo.properties);
+  // Theme-aware color palettes for the map (Cloudflare-style)
+  const mapColors = useMemo(() => {
+    const isDark = theme === "dark";
     
-    if (countryCode) {
-      const visited = visitedCountriesMap[countryCode];
-      if (visited && containerRef.current) {
-        setHoveredCountry(countryCode);
-        const rect = containerRef.current.getBoundingClientRect();
-        setTooltipContent({
-          countryName: visited.countryName,
-          visits: visited.visits,
-          x: event.clientX - rect.left,
-          y: event.clientY - rect.top,
-        });
-      } else {
-        // Non-visited country - clear tooltip
-        setHoveredCountry(null);
-        setTooltipContent(null);
-      }
+    if (isDark) {
+      // Dark mode: white visited countries
+      return {
+        nonVisitedFill: "#374151", // gray-700
+        nonVisitedStroke: "#3f4a5c", // very subtle, close to fill
+        visitedFill: "#f9fafb", // gray-50 - white/near-white
+        visitedStroke: "#4b5563", // subtle border
+        hoverFill: "#e5e7eb", // gray-200 - slightly darker on hover
+      };
     }
+    
+    // Light mode: black visited countries (theme color)
+    return {
+      nonVisitedFill: "#e5e7eb", // gray-200 - lighter gray
+      nonVisitedStroke: "#d1d5db", // gray-300 - barely visible border
+      visitedFill: "#1f2937", // gray-800 - black/dark
+      visitedStroke: "#d1d5db", // same subtle border
+      hoverFill: "#374151", // gray-700 - slightly lighter on hover
+    };
+  }, [theme]);
+
+  // Style function for GeoJSON features
+  const getCountryStyle = (feature: Feature<Geometry, Record<string, unknown>> | undefined): PathOptions => {
+    if (!feature) return {};
+    
+    const countryCode = getCountryCode(feature.properties || {});
+    const isVisited = countryCode ? countryCode in visitedCountriesMap : false;
+    const isHovered = countryCode === hoveredCountryCode;
+
+    return {
+      fillColor: isHovered && isVisited 
+        ? mapColors.hoverFill 
+        : isVisited 
+          ? mapColors.visitedFill 
+          : mapColors.nonVisitedFill,
+      fillOpacity: isVisited ? 0.85 : 1,
+      color: isVisited ? mapColors.visitedStroke : mapColors.nonVisitedStroke,
+      weight: isHovered ? 1.5 : 0.5,
+    };
   };
 
-  const handleMouseMove = (geo: any, event: React.MouseEvent) => {
-    if (!containerRef.current) return;
-    
-    const countryCode = getCountryCode(geo.properties);
-    const rect = containerRef.current.getBoundingClientRect();
-    
-    // Check if we've moved to a different country
-    if (countryCode && countryCode !== hoveredCountry) {
-      const visited = visitedCountriesMap[countryCode];
-      if (visited) {
-        setHoveredCountry(countryCode);
-        setTooltipContent({
-          countryName: visited.countryName,
-          visits: visited.visits,
-          x: event.clientX - rect.left,
-          y: event.clientY - rect.top,
-        });
-      } else {
-        setHoveredCountry(null);
-        setTooltipContent(null);
-      }
-    } else if (tooltipContent) {
-      // Same country - just update position
-      setTooltipContent({
-        ...tooltipContent,
-        x: event.clientX - rect.left,
-        y: event.clientY - rect.top,
-      });
-    }
+  // Helper to get country name from GeoJSON properties
+  const getCountryName = (properties: Record<string, unknown>): string => {
+    return (
+      (properties.ADMIN as string) ||
+      (properties.NAME as string) ||
+      (properties.name as string) ||
+      "Unknown"
+    );
   };
 
-  const handleMouseLeave = () => {
-    setHoveredCountry(null);
-    setTooltipContent(null);
+  // Event handlers for each feature
+  const onEachFeature = (feature: Feature<Geometry, Record<string, unknown>>, layer: Layer) => {
+    layer.on({
+      mouseover: (e: LeafletMouseEvent) => {
+        const countryCode = getCountryCode(feature.properties || {});
+        const geoCountryName = getCountryName(feature.properties || {});
+        
+        if (countryCode) {
+          setHoveredCountryCode(countryCode);
+        }
+        
+        // Show tooltip for ALL countries (visited and non-visited)
+        if (containerRef.current) {
+          const rect = containerRef.current.getBoundingClientRect();
+          const visited = countryCode ? visitedCountriesMap[countryCode] : null;
+          
+          setTooltipContent({
+            countryName: visited?.countryName || geoCountryName,
+            visits: visited?.visits || [], // empty array = not visited
+            x: e.originalEvent.clientX - rect.left,
+            y: e.originalEvent.clientY - rect.top,
+          });
+        }
+      },
+      mousemove: (e: LeafletMouseEvent) => {
+        if (tooltipContent && containerRef.current) {
+          const rect = containerRef.current.getBoundingClientRect();
+          setTooltipContent({
+            ...tooltipContent,
+            x: e.originalEvent.clientX - rect.left,
+            y: e.originalEvent.clientY - rect.top,
+          });
+        }
+      },
+      mouseout: () => {
+        setHoveredCountryCode(null);
+        setTooltipContent(null);
+      },
+    });
   };
+
+  // Update GeoJSON styles when hover state or theme changes
+  useEffect(() => {
+    if (geoJsonRef.current) {
+      geoJsonRef.current.setStyle((feature) => 
+        getCountryStyle(feature as Feature<Geometry, Record<string, unknown>>)
+      );
+    }
+  }, [hoveredCountryCode, theme, mapColors, visitedCountriesMap]);
 
   return (
     <MapErrorBoundary>
@@ -249,99 +237,48 @@ export function WorldMap({ travelHistory }: WorldMapProps) {
         <div 
           ref={containerRef}
           className="w-full h-full min-h-[280px] border border-border rounded-lg overflow-hidden shadow-lg relative"
-          style={{ backgroundColor: theme === 'dark' ? 'hsl(240, 10%, 3.9%)' : 'hsl(240, 5%, 92%)' }}
         >
-          <ComposableMap
-            projection="geoMercator"
-            projectionConfig={{
-              scale: 147,
-              center: [0, 20],
-            }}
+          <MapContainer
+            key={theme || "light"}
+            center={[20, 0]}
+            zoom={2}
+            minZoom={2}
+            maxZoom={8}
+            scrollWheelZoom={true}
             className="w-full h-full"
-            style={{ width: "100%", height: "100%" }}
+            style={{ width: "100%", height: "100%", background: theme === "dark" ? "#1f2937" : "#ffffff" }}
+            worldCopyJump={true}
           >
-            <ZoomableGroup
-              zoom={position.zoom}
-              center={position.coordinates}
-              onMoveStart={() => {}}
-              onMoveEnd={(pos: { coordinates: [number, number]; zoom: number }) => {
-                setPosition(pos);
-              }}
-              minZoom={1}
-              maxZoom={8}
-            >
-              <Geographies geography={geoUrl}>
-                {({ geographies }: { geographies: Array<{ rsmKey: string; properties: Record<string, unknown>; geometry: unknown }> }) =>
-                  geographies.map((geo) => {
-                    const countryCode = getCountryCode(geo.properties);
-                    const isVisited = countryCode ? countryCode in visitedCountriesMap : false;
+            <TileLayerWithTheme theme={theme || "light"} />
+            <MapResizeHandler />
+            
+            {geoData && (
+              <GeoJSON
+                ref={geoJsonRef as React.RefObject<L.GeoJSON>}
+                data={geoData}
+                style={getCountryStyle}
+                onEachFeature={onEachFeature}
+              />
+            )}
+          </MapContainer>
 
-                    return (
-                      <Geography
-                        key={geo.rsmKey}
-                        geography={geo}
-                        onMouseEnter={(e: React.MouseEvent) => handleMouseEnter(geo, e)}
-                        onMouseMove={(e: React.MouseEvent) => handleMouseMove(geo, e)}
-                        onMouseLeave={handleMouseLeave}
-                        style={{
-                          default: {
-                            fill: isVisited ? mapColors.visitedFill : mapColors.nonVisitedFill,
-                            stroke: isVisited ? mapColors.visitedStroke : mapColors.nonVisitedStroke,
-                            strokeWidth: 0.75,
-                            outline: "none",
-                            cursor: "grab",
-                          },
-                          hover: {
-                            fill: isVisited ? mapColors.visitedHoverFill : mapColors.nonVisitedHoverFill,
-                            stroke: isVisited ? mapColors.visitedStroke : mapColors.nonVisitedStroke,
-                            strokeWidth: 1,
-                            outline: "none",
-                            cursor: isVisited ? "pointer" : "grab",
-                          },
-                          pressed: {
-                            fill: isVisited ? mapColors.visitedPressedFill : mapColors.nonVisitedHoverFill,
-                            stroke: isVisited ? mapColors.visitedStroke : mapColors.nonVisitedStroke,
-                            strokeWidth: 1,
-                            outline: "none",
-                            cursor: "grabbing",
-                          },
-                        }}
-                      />
-                    );
-                  })
-                }
-              </Geographies>
-            </ZoomableGroup>
-          </ComposableMap>
-
-          {/* Tooltip */}
+          {/* Tooltip - centered above cursor with arrow pointing down */}
           {tooltipContent && (
             <div
-              className="absolute z-50 pointer-events-none"
+              className="absolute z-[1000] pointer-events-none"
               style={{
-                left: `${Math.max(10, Math.min(tooltipContent.x + 15, (containerRef.current?.offsetWidth || 800) - 200))}px`,
-                top: `${Math.max(10, Math.min(tooltipContent.y - 10, (containerRef.current?.offsetHeight || 600) - 150))}px`,
-                transform: tooltipContent.y < 100 ? "translateY(0)" : "translateY(-100%)",
+                left: `${tooltipContent.x}px`,
+                top: `${tooltipContent.y - 16}px`,
+                transform: "translate(-50%, -100%)",
               }}
             >
               <TravelTooltip
                 countryName={tooltipContent.countryName}
                 visits={tooltipContent.visits}
-                position={{ x: 0, y: 0 }}
               />
             </div>
           )}
-
-          {/* Scroll hint overlay (Google Maps style) */}
-          {showScrollHint && (
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-40 pointer-events-none transition-opacity duration-200">
-              <div className="bg-background/95 backdrop-blur-sm px-4 py-2.5 rounded-lg text-sm font-medium shadow-lg border border-border">
-                Use {isMac ? '⌘' : 'Ctrl'} + scroll to zoom
-              </div>
-            </div>
-          )}
         </div>
-
       </div>
     </MapErrorBoundary>
   );

@@ -1,60 +1,55 @@
-import { format } from "date-fns";
-
 interface TravelTooltipProps {
   countryName: string;
   visits: string[];
-  position?: { x: number; y: number };
 }
 
-export function TravelTooltip({ countryName, visits, position }: TravelTooltipProps) {
-  const formatVisitDate = (dateStr: string) => {
-    try {
-      const [year, month] = dateStr.split("-");
-      const date = new Date(parseInt(year), parseInt(month) - 1);
-      return format(date, "MMM yyyy");
-    } catch {
-      return dateStr;
+export function TravelTooltip({ countryName, visits }: TravelTooltipProps) {
+  // Get display value: "n/a" or comma-separated years (e.g., "2019, 2024")
+  const getDisplayValue = (): string => {
+    if (visits.length === 0) {
+      return "n/a";
     }
+    
+    // Extract unique years from visits, sorted chronologically
+    const years = visits
+      .map(visit => {
+        const year = visit.split("-")[0];
+        return parseInt(year, 10);
+      })
+      .filter(y => !isNaN(y));
+    
+    if (years.length === 0) return "n/a";
+    
+    // Get unique years and sort them
+    const uniqueYears = [...new Set(years)].sort((a, b) => a - b);
+    
+    // Return comma-separated full years
+    return uniqueYears.join(", ");
   };
 
-  const formattedVisits = visits.map(formatVisitDate);
+  const displayValue = getDisplayValue();
+  const isVisited = visits.length > 0;
 
   return (
-    <div className="px-4 py-3 min-w-[160px] bg-popover border border-border rounded-md shadow-lg backdrop-blur-sm animate-in fade-in-0 zoom-in-95 duration-200">
-      <div className="font-medium text-sm text-foreground mb-2 tracking-tight">
-        {countryName}
+    <div className="relative">
+      {/* Tooltip box */}
+      <div className="flex items-center justify-center px-2.5 py-1.5 bg-gray-800 rounded-md shadow-lg whitespace-nowrap">
+        <span className="text-xs text-white font-medium">
+          {countryName}:{" "}
+          <span className={isVisited ? "text-white" : "text-gray-400"}>
+            {displayValue}
+          </span>
+        </span>
       </div>
-      <div className="text-xs text-muted-foreground leading-relaxed space-y-1">
-        {visits.length === 0 ? (
-          <span className="italic text-muted-foreground/80">Home country</span>
-        ) : visits.length === 1 ? (
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary/60"></span>
-            <span>{formattedVisits[0]}</span>
-          </div>
-        ) : visits.length <= 3 ? (
-          <div className="space-y-1.5">
-            {formattedVisits.map((date, idx) => (
-              <div key={idx} className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary/60 flex-shrink-0"></span>
-                <span>{date}</span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-1.5">
-            {formattedVisits.slice(0, 3).map((date, idx) => (
-              <div key={idx} className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary/60 flex-shrink-0"></span>
-                <span>{date}</span>
-              </div>
-            ))}
-            <div className="text-muted-foreground/70 mt-1 pt-1 border-t border-border/50">
-              +{visits.length - 3} more visit{visits.length - 3 > 1 ? 's' : ''}
-            </div>
-          </div>
-        )}
-      </div>
+      {/* Arrow pointing down */}
+      <div 
+        className="absolute left-1/2 -translate-x-1/2 -bottom-1.5 w-0 h-0"
+        style={{
+          borderLeft: "5px solid transparent",
+          borderRight: "5px solid transparent",
+          borderTop: "6px solid rgb(31, 41, 55)", // gray-800
+        }}
+      />
     </div>
   );
 }
