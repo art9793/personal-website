@@ -32,7 +32,10 @@ export default function Travel() {
   // Transform API data (individual entries) to grouped format for WorldMap
   const groupedTravelData = useMemo(() => {
     const grouped = travelHistory.reduce((acc, entry) => {
-      const code = entry.countryCode;
+      // Normalize country code to uppercase to ensure uniqueness
+      const code = entry.countryCode?.toUpperCase()?.trim() || '';
+      if (!code) return acc; // Skip entries without country code
+      
       if (!acc[code]) {
         acc[code] = {
           countryCode: code,
@@ -40,6 +43,11 @@ export default function Travel() {
           visits: [],
           isHomeCountry: entry.isHomeCountry || false,
         };
+      } else {
+        // If country already exists, preserve isHomeCountry flag if it's true
+        if (entry.isHomeCountry) {
+          acc[code].isHomeCountry = true;
+        }
       }
       // Add visit date if it exists (home country has null visitDate)
       if (entry.visitDate) {
@@ -58,11 +66,21 @@ export default function Travel() {
 
   // Calculate stats from real data
   const stats = useMemo(() => {
-    const visitedCountries = groupedTravelData.filter(v => v.visits.length > 0);
-    const totalCountries = visitedCountries.length;
+    // Count only visited countries (exclude home country from count)
+    // Use Set to ensure we're counting unique country codes
+    const countriesToCount = groupedTravelData.filter(v => v.visits.length > 0 && !v.isHomeCountry);
     
+    const uniqueCountryCodes = new Set(
+      countriesToCount.map(v => v.countryCode.toUpperCase())
+    );
+    const totalCountries = uniqueCountryCodes.size;
+    
+    // For continents, include all countries (including home country)
+    const allCountriesForContinents = groupedTravelData.filter(v => v.visits.length > 0 || v.isHomeCountry);
     const continentsVisited = new Set(
-      visitedCountries.map(v => continentMap[v.countryCode]).filter(Boolean)
+      allCountriesForContinents
+        .map(v => continentMap[v.countryCode.toUpperCase()])
+        .filter(Boolean)
     ).size;
     
     const worldPercentage = Math.round((totalCountries / 195) * 100);
