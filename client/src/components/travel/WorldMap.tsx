@@ -10,6 +10,7 @@ interface TravelEntry {
   countryCode: string;
   countryName: string;
   visits: string[];
+  isHomeCountry?: boolean;
 }
 
 interface WorldMapProps {
@@ -96,6 +97,7 @@ export function WorldMap({ travelHistory }: WorldMapProps) {
   const [tooltipContent, setTooltipContent] = useState<{
     countryName: string;
     visits: string[];
+    isHomeCountry?: boolean;
     x: number;
     y: number;
   } | null>(null);
@@ -119,10 +121,11 @@ export function WorldMap({ travelHistory }: WorldMapProps) {
         acc[entry.countryCode.toUpperCase()] = {
           countryName: entry.countryName,
           visits: entry.visits,
+          isHomeCountry: entry.isHomeCountry || false,
         };
         return acc;
       },
-      {} as Record<string, { countryName: string; visits: string[] }>
+      {} as Record<string, { countryName: string; visits: string[]; isHomeCountry: boolean }>
     );
   }, [travelHistory]);
 
@@ -200,6 +203,7 @@ export function WorldMap({ travelHistory }: WorldMapProps) {
           setTooltipContent({
             countryName: visited?.countryName || geoCountryName,
             visits: visited?.visits || [], // empty array = not visited
+            isHomeCountry: visited?.isHomeCountry || false,
             x: e.originalEvent.clientX - rect.left,
             y: e.originalEvent.clientY - rect.top,
           });
@@ -275,6 +279,7 @@ export function WorldMap({ travelHistory }: WorldMapProps) {
               <TravelTooltip
                 countryName={tooltipContent.countryName}
                 visits={tooltipContent.visits}
+                isHomeCountry={tooltipContent.isHomeCountry}
               />
             </div>
           )}

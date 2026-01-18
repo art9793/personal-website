@@ -1,11 +1,17 @@
 interface TravelTooltipProps {
   countryName: string;
   visits: string[];
+  isHomeCountry?: boolean;
 }
 
-export function TravelTooltip({ countryName, visits }: TravelTooltipProps) {
-  // Get display value: "n/a" or comma-separated years (e.g., "2019, 2024")
+export function TravelTooltip({ countryName, visits, isHomeCountry = false }: TravelTooltipProps) {
+  // Get display value: "Home", "n/a", or comma-separated years (e.g., "2019, 2024")
   const getDisplayValue = (): string => {
+    // Home country always shows "Home"
+    if (isHomeCountry) {
+      return "Home";
+    }
+    
     if (visits.length === 0) {
       return "n/a";
     }
@@ -28,7 +34,7 @@ export function TravelTooltip({ countryName, visits }: TravelTooltipProps) {
   };
 
   const displayValue = getDisplayValue();
-  const isVisited = visits.length > 0;
+  const isVisited = visits.length > 0 || isHomeCountry;
 
   return (
     <div className="relative">
