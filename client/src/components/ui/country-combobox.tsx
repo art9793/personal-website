@@ -56,10 +56,10 @@ export function CountryCombobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0" align="start">
+      <PopoverContent className="w-[300px] p-0 max-h-[400px]" align="start">
         <Command>
           <CommandInput placeholder="Search country..." />
-          <CommandList>
+          <CommandList className="max-h-[350px] overflow-y-auto">
             <CommandEmpty>No country found.</CommandEmpty>
             {continents.map((continent) => (
               <CommandGroup key={continent} heading={continent}>

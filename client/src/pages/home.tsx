@@ -62,25 +62,25 @@ export default function Home() {
               {profile.bio}
             </p>
           </div>
-          
+
           <div className="flex items-center gap-2.5 pt-2">
             {profile.twitter && (profile.showTwitter ?? true) && (
-              <a 
-                href={profile.twitter} 
-                target="_blank" 
+              <a
+                href={profile.twitter}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-background hover:bg-black dark:hover:bg-white hover:border-black dark:hover:border-white transition-all duration-200 hover:scale-105 hover:shadow-md"
                 data-testid="link-twitter"
               >
                 <svg className="h-3.5 w-3.5 text-foreground group-hover:text-white dark:group-hover:text-black transition-colors" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                 </svg>
               </a>
             )}
             {profile.linkedin && (profile.showLinkedin ?? true) && (
-              <a 
-                href={profile.linkedin} 
-                target="_blank" 
+              <a
+                href={profile.linkedin}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-background hover:bg-[#0A66C2] hover:border-[#0A66C2] transition-all duration-200 hover:scale-105 hover:shadow-md"
                 data-testid="link-linkedin"
@@ -89,9 +89,9 @@ export default function Home() {
               </a>
             )}
             {profile.github && (profile.showGithub ?? true) && (
-              <a 
-                href={profile.github} 
-                target="_blank" 
+              <a
+                href={profile.github}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-background hover:bg-[#24292e] dark:hover:bg-white hover:border-[#24292e] dark:hover:border-white transition-all duration-200 hover:scale-105 hover:shadow-md"
                 data-testid="link-github"
@@ -100,7 +100,7 @@ export default function Home() {
               </a>
             )}
             {profile.email && (profile.showEmail ?? true) && (
-              <a 
+              <a
                 href={`mailto:${profile.email}`}
                 className="group flex items-center justify-center h-9 w-9 rounded-lg border border-border bg-background hover:bg-primary hover:border-primary transition-all duration-200 hover:scale-105 hover:shadow-md"
                 data-testid="link-email"
@@ -128,13 +128,13 @@ export default function Home() {
               View all <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          
+
           <div className="space-y-2">
             {featuredProjects.map((project) => (
-              <a 
-                key={project.id} 
-                href={project.link} 
-                target="_blank" 
+              <a
+                key={project.id}
+                href={project.link}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="block group"
               >

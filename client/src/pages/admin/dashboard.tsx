@@ -125,8 +125,11 @@ export default function AdminDashboard() {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isProjectSheetOpen, setIsProjectSheetOpen] = useState(false);
+  const [isSavingProject, setIsSavingProject] = useState(false);
   const [isWorkSheetOpen, setIsWorkSheetOpen] = useState(false);
+  const [isSavingWork, setIsSavingWork] = useState(false);
   const [isTravelSheetOpen, setIsTravelSheetOpen] = useState(false);
+  const [isSavingTravel, setIsSavingTravel] = useState(false);
   const [editingTravel, setEditingTravel] = useState<{
     id?: number;
     countryCode: string;
@@ -231,6 +234,11 @@ export default function AdminDashboard() {
       setTimeout(() => setProfileSaveStatus("idle"), 2000);
     } catch (error) {
       setProfileSaveStatus("idle");
+      toast({
+        title: "Error",
+        description: "Failed to save profile. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -444,8 +452,14 @@ export default function AdminDashboard() {
     }
 
     const newStatus = article.status === "Published" ? "Draft" : "Published";
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:toggleArticleStatus:before',message:'Before updateArticle call',data:{articleId:article.id,oldStatus:article.status,newStatus},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     try {
       await updateArticle(article.id, { status: newStatus });
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:toggleArticleStatus:after',message:'After updateArticle resolved',data:{articleId:article.id,newStatus,articlesLength:articles.length},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       toast({
         title: `Article ${newStatus}`,
         description: `"${article.title}" is now ${newStatus.toLowerCase()}.`,
@@ -461,20 +475,32 @@ export default function AdminDashboard() {
   };
 
   const handleSaveProject = async () => {
-    if (!editingProject) return;
+    if (!editingProject || isSavingProject) return;
 
-    if (editingProject.id && projects.some(p => p.id === editingProject.id)) {
-      await updateProject(editingProject.id, editingProject);
-    } else {
-      await addProject(editingProject);
+    setIsSavingProject(true);
+    try {
+      if (editingProject.id && projects.some(p => p.id === editingProject.id)) {
+        await updateProject(editingProject.id, editingProject);
+      } else {
+        await addProject(editingProject);
+      }
+
+      toast({
+        title: "Project Saved",
+        description: `"${editingProject.title || 'Untitled'}" has been saved successfully.`,
+      });
+      setIsProjectSheetOpen(false);
+      setEditingProject(null);
+    } catch (error) {
+      console.error("Error saving project:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save project. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSavingProject(false);
     }
-
-    toast({
-      title: "Project Saved",
-      description: `"${editingProject.title || 'Untitled'}" has been saved successfully.`,
-    });
-    setIsProjectSheetOpen(false);
-    setEditingProject(null);
   };
 
   const handleNewProject = () => {
@@ -526,7 +552,7 @@ export default function AdminDashboard() {
   };
 
   const handleSaveWork = async () => {
-    if (!editingWork) return;
+    if (!editingWork || isSavingWork) return;
 
     // Validation
     if (!editingWork.company?.trim()) {
@@ -566,18 +592,30 @@ export default function AdminDashboard() {
       return;
     }
 
-    if (editingWork.id && workHistory.some(w => w.id === editingWork.id)) {
-      await updateWork(editingWork.id, editingWork);
-    } else {
-      await addWork(editingWork);
-    }
+    setIsSavingWork(true);
+    try {
+      if (editingWork.id && workHistory.some(w => w.id === editingWork.id)) {
+        await updateWork(editingWork.id, editingWork);
+      } else {
+        await addWork(editingWork);
+      }
 
-    toast({
-      title: "Work Experience Saved",
-      description: `"${editingWork.company}" has been saved successfully.`,
-    });
-    setIsWorkSheetOpen(false);
-    setEditingWork(null);
+      toast({
+        title: "Work Experience Saved",
+        description: `"${editingWork.company}" has been saved successfully.`,
+      });
+      setIsWorkSheetOpen(false);
+      setEditingWork(null);
+    } catch (error) {
+      console.error("Error saving work experience:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save work experience. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSavingWork(false);
+    }
   };
 
   const handleDeleteWork = async (id: number, e: React.MouseEvent) => {
@@ -606,6 +644,9 @@ export default function AdminDashboard() {
   };
 
   const handleEditTravel = (entry: TravelHistoryEntry) => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:handleEditTravel',message:'Edit travel called',data:{entryId:entry.id,countryCode:entry.countryCode},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'G'})}).catch(()=>{});
+    // #endregion
     const country = getCountryByCode(entry.countryCode);
     setEditingTravel({
       id: entry.id,
@@ -620,7 +661,10 @@ export default function AdminDashboard() {
   };
 
   const handleSaveTravel = async () => {
-    if (!editingTravel) return;
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:handleSaveTravel:start',message:'handleSaveTravel called',data:{editingTravel},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'F'})}).catch(()=>{});
+    // #endregion
+    if (!editingTravel || isSavingTravel) return;
 
     // Validation
     if (!editingTravel.countryCode) {
@@ -641,37 +685,79 @@ export default function AdminDashboard() {
       return;
     }
 
+    // Convert visitDate from "YYYY-MM-DD" to "YYYY-MM" format (schema expects max 7 chars)
+    const visitDateFormatted = editingTravel.visitDate 
+      ? editingTravel.visitDate.substring(0, 7) // "YYYY-MM-DD" -> "YYYY-MM"
+      : undefined;
+    
     const data = {
       countryCode: editingTravel.countryCode,
       countryName: editingTravel.countryName,
-      visitDate: editingTravel.isHomeCountry ? undefined : editingTravel.visitDate,
+      visitDate: editingTravel.isHomeCountry ? undefined : visitDateFormatted,
       notes: editingTravel.notes || undefined,
       isHomeCountry: editingTravel.isHomeCountry
     };
 
-    if (editingTravel.id) {
-      await updateTravelHistory(editingTravel.id, data);
-    } else {
-      await addTravelHistory(data);
-    }
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:handleSaveTravel:beforeAPI',message:'About to call API',data:{data,isUpdate:!!editingTravel.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'F'})}).catch(()=>{});
+    // #endregion
 
-    toast({
-      title: editingTravel.id ? "Visit Updated" : "Visit Added",
-      description: `${editingTravel.countryName} has been saved successfully.`,
-    });
-    setIsTravelSheetOpen(false);
-    setEditingTravel(null);
+    setIsSavingTravel(true);
+    try {
+      if (editingTravel.id) {
+        await updateTravelHistory(editingTravel.id, data);
+      } else {
+        await addTravelHistory(data);
+      }
+
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:handleSaveTravel:success',message:'API call succeeded',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'F'})}).catch(()=>{});
+      // #endregion
+
+      toast({
+        title: editingTravel.id ? "Visit Updated" : "Visit Added",
+        description: `${editingTravel.countryName} has been saved successfully.`,
+      });
+      setIsTravelSheetOpen(false);
+      setEditingTravel(null);
+    } catch (error) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:handleSaveTravel:error',message:'API call failed',data:{error:String(error)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'F'})}).catch(()=>{});
+      // #endregion
+      console.error("Error saving travel entry:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save travel entry. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSavingTravel(false);
+    }
   };
 
   const handleDeleteTravel = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:handleDeleteTravel',message:'Delete travel called',data:{id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H'})}).catch(()=>{});
+    // #endregion
     if (confirm("Are you sure you want to delete this travel entry?")) {
-      await deleteTravelHistory(id);
-      toast({
-        title: "Travel Entry Deleted",
-        description: "The entry has been permanently removed.",
-        variant: "destructive"
-      });
+      try {
+        await deleteTravelHistory(id);
+        toast({
+          title: "Travel Entry Deleted",
+          description: "The entry has been permanently removed.",
+          variant: "destructive"
+        });
+      } catch (error) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:handleDeleteTravel:error',message:'Delete failed',data:{error:String(error)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H'})}).catch(()=>{});
+        // #endregion
+        toast({
+          title: "Error",
+          description: "Failed to delete travel entry.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -710,6 +796,10 @@ export default function AdminDashboard() {
   }, [projects, filterQuery, sortConfig]);
 
   const filteredArticles = useMemo(() => {
+    // #region agent log
+    const articleStatuses = articles.slice(0, 5).map(a => ({ id: a.id, status: a.status }));
+    fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:filteredArticles:memo',message:'Computing filteredArticles',data:{articlesCount:articles.length,sampleStatuses:articleStatuses},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
     let result = [...articles];
 
     // Filter by status
@@ -1185,7 +1275,14 @@ export default function AdminDashboard() {
                                         <SheetClose asChild>
                                             <Button variant="outline">Cancel</Button>
                                         </SheetClose>
-                                        <Button onClick={handleSaveProject}>Save Project</Button>
+                                        <Button onClick={handleSaveProject} disabled={isSavingProject || !editingProject?.title?.trim()}>
+                                            {isSavingProject ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Saving...
+                                                </>
+                                            ) : 'Save Project'}
+                                        </Button>
                                     </SheetFooter>
                                 </div>
                             )}
@@ -1275,12 +1372,21 @@ export default function AdminDashboard() {
                                     <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                                         <Switch 
                                             checked={project.status === "Active"}
-                                            onCheckedChange={(checked) => {
-                                                updateProject(project.id, { status: checked ? "Active" : "Archived" });
-                                                toast({
-                                                    title: `Project ${checked ? 'Activated' : 'Archived'}`,
-                                                    description: `"${project.title}" is now ${checked ? 'active' : 'archived'}.`,
-                                                });
+                                            onCheckedChange={async (checked) => {
+                                                try {
+                                                    await updateProject(project.id, { status: checked ? "Active" : "Archived" });
+                                                    toast({
+                                                        title: `Project ${checked ? 'Activated' : 'Archived'}`,
+                                                        description: `"${project.title}" is now ${checked ? 'active' : 'archived'}.`,
+                                                    });
+                                                } catch (error) {
+                                                    console.error("Error updating project status:", error);
+                                                    toast({
+                                                        title: "Error",
+                                                        description: "Failed to update project status.",
+                                                        variant: "destructive"
+                                                    });
+                                                }
                                             }}
                                         />
                                     </TableCell>
@@ -1629,8 +1735,15 @@ export default function AdminDashboard() {
 
                                     {/* Actions */}
                                     <div className="pt-4 flex justify-end gap-2 border-t">
-                                        <Button variant="outline" onClick={() => setIsWorkSheetOpen(false)}>Cancel</Button>
-                                        <Button onClick={handleSaveWork}>Save Experience</Button>
+                                        <Button variant="outline" onClick={() => setIsWorkSheetOpen(false)} disabled={isSavingWork}>Cancel</Button>
+                                        <Button onClick={handleSaveWork} disabled={isSavingWork || !editingWork?.company?.trim() || !editingWork?.role?.trim()}>
+                                            {isSavingWork ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Saving...
+                                                </>
+                                            ) : 'Save Experience'}
+                                        </Button>
                                     </div>
                                 </div>
                             )}
@@ -1921,7 +2034,7 @@ export default function AdminDashboard() {
                                 <div className="space-y-6">
                                     {/* Country Selection */}
                                     <div className="space-y-2">
-                                        <Label>Country</Label>
+                                        <Label>Country <span className="text-destructive">*</span></Label>
                                         <CountryCombobox
                                             value={editingTravel.countryCode}
                                             onSelect={(country) => {
@@ -1933,6 +2046,9 @@ export default function AdminDashboard() {
                                                 });
                                             }}
                                         />
+                                        {!editingTravel.countryCode && (
+                                            <p className="text-xs text-muted-foreground">Please select a country</p>
+                                        )}
                                     </div>
 
                                     {/* Auto-populated Continent */}
@@ -1975,7 +2091,7 @@ export default function AdminDashboard() {
                                     {/* Visit Date (hidden for home country) */}
                                     {!editingTravel.isHomeCountry && (
                                         <div className="space-y-2">
-                                            <Label>Visit Date</Label>
+                                            <Label>Visit Date <span className="text-destructive">*</span></Label>
                                             <div className="p-4 bg-muted/30 border border-border/50 rounded-lg">
                                                 <MonthYearPicker
                                                     label=""
@@ -1983,6 +2099,9 @@ export default function AdminDashboard() {
                                                     onChange={(date) => setEditingTravel({...editingTravel, visitDate: date})}
                                                 />
                                             </div>
+                                            {!editingTravel.visitDate && (
+                                                <p className="text-xs text-muted-foreground">Please select a visit date or mark as home country</p>
+                                            )}
                                         </div>
                                     )}
 
@@ -2000,9 +2119,19 @@ export default function AdminDashboard() {
 
                                     {/* Actions */}
                                     <div className="pt-4 flex justify-end gap-2 border-t">
-                                        <Button variant="outline" onClick={() => setIsTravelSheetOpen(false)}>Cancel</Button>
-                                        <Button onClick={handleSaveTravel}>
-                                            {editingTravel.id ? 'Save Changes' : 'Add Visit'}
+                                        <Button variant="outline" onClick={() => setIsTravelSheetOpen(false)} disabled={isSavingTravel}>Cancel</Button>
+                                        <Button 
+                                            onClick={handleSaveTravel}
+                                            disabled={isSavingTravel || !editingTravel.countryCode || (!editingTravel.isHomeCountry && !editingTravel.visitDate)}
+                                        >
+                                            {isSavingTravel ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Saving...
+                                                </>
+                                            ) : (
+                                                editingTravel.id ? 'Save Changes' : 'Add Visit'
+                                            )}
                                         </Button>
                                     </div>
                                 </div>

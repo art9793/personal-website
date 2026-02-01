@@ -99,10 +99,10 @@ export default function AdminLogin() {
               </div>
             </div>
 
-            <Button 
+            <Button
               type="submit"
-              size="lg" 
-              className="w-full h-12 text-base font-medium shadow-lg hover:shadow-xl transition-all" 
+              size="lg"
+              className="w-full h-12 text-base font-medium shadow-lg hover:shadow-xl transition-all"
               disabled={isLoading}
               data-testid="button-login"
             >

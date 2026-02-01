@@ -35,7 +35,7 @@ export default function Travel() {
       // Normalize country code to uppercase to ensure uniqueness
       const code = entry.countryCode?.toUpperCase()?.trim() || '';
       if (!code) return acc; // Skip entries without country code
-      
+
       if (!acc[code]) {
         acc[code] = {
           countryCode: code,
@@ -69,12 +69,12 @@ export default function Travel() {
     // Count only visited countries (exclude home country from count)
     // Use Set to ensure we're counting unique country codes
     const countriesToCount = groupedTravelData.filter(v => v.visits.length > 0 && !v.isHomeCountry);
-    
+
     const uniqueCountryCodes = new Set(
       countriesToCount.map(v => v.countryCode.toUpperCase())
     );
     const totalCountries = uniqueCountryCodes.size;
-    
+
     // For continents, include all countries (including home country)
     const allCountriesForContinents = groupedTravelData.filter(v => v.visits.length > 0 || v.isHomeCountry);
     const continentsVisited = new Set(
@@ -82,7 +82,7 @@ export default function Travel() {
         .map(v => continentMap[v.countryCode.toUpperCase()])
         .filter(Boolean)
     ).size;
-    
+
     const worldPercentage = Math.round((totalCountries / 195) * 100);
 
     return { totalCountries, continentsVisited, worldPercentage };

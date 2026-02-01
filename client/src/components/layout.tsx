@@ -24,6 +24,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [isExpanded, setIsExpanded] = useState(true);
   const { profile } = useContent();
 
+
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
@@ -43,7 +44,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <nav className={cn("flex flex-col gap-2", collapsed ? "items-center" : "")}>
       {navItems.map((item) => {
         const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
-        
+
         if (collapsed) {
           return (
             <Tooltip key={item.href} delayDuration={0}>
@@ -128,11 +129,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-full sm:w-80 p-6 pt-12">
+            <SheetContent
+              side="right"
+              className="w-full sm:w-80 p-6 pt-12"
+            >
               <div className="flex flex-col h-full">
                 <div className="mb-8">
-                   <div className="font-bold text-2xl tracking-tight mb-2">Arshad Teli</div>
-                   <p className="text-muted-foreground">{profile?.title || "Product Manager & Designer"}</p>
+                  <div className="font-bold text-2xl tracking-tight mb-2">Arshad Teli</div>
+                  <p className="text-muted-foreground">{profile?.title || "Product Manager & Designer"}</p>
                 </div>
                 <nav className="flex flex-col gap-1">
                   {navItems.map((item) => {
@@ -169,42 +173,42 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         isExpanded ? "w-64" : "w-[80px] items-center px-2"
       )}>
         <div className={cn("flex items-center mb-8 py-2 relative", isExpanded ? "justify-between px-3" : "justify-center flex-col gap-4")}>
-           {isExpanded ? (
-             <Link href="/" className="font-semibold text-lg tracking-tight">
-               Arshad Teli
-             </Link>
-           ) : (
-             <Link href="/" className="font-bold text-xl tracking-tight">
-               AT
-             </Link>
-           )}
-           <Button 
-             variant="ghost" 
-             size="icon" 
-             className={cn(
-               "h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-secondary",
-               isExpanded ? "absolute -right-4" : ""
-             )} 
-             onClick={() => setIsExpanded(!isExpanded)}
-           >
-             {isExpanded ? <ChevronsLeft className="h-4 w-4" /> : <ChevronsRight className="h-4 w-4" />}
-           </Button>
+          {isExpanded ? (
+            <Link href="/" className="font-semibold text-lg tracking-tight">
+              Arshad Teli
+            </Link>
+          ) : (
+            <Link href="/" className="font-bold text-xl tracking-tight">
+              AT
+            </Link>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-secondary",
+              isExpanded ? "absolute -right-4" : ""
+            )}
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            {isExpanded ? <ChevronsLeft className="h-4 w-4" /> : <ChevronsRight className="h-4 w-4" />}
+          </Button>
         </div>
-        
+
         <div className="flex-1 w-full">
           <NavContent collapsed={!isExpanded} />
         </div>
 
         <div className={cn("border-t mt-auto", isExpanded ? "pl-3 pt-4" : "pt-4 w-full flex flex-col items-center")}>
-           <div className={cn("flex items-center", isExpanded ? "justify-between" : "flex-col gap-4")}>
-             {isExpanded && <span className="text-xs text-muted-foreground">© {new Date().getFullYear()}</span>}
-             <div className={cn("flex items-center", isExpanded ? "gap-2" : "flex-col gap-4")}>
-                <Link href="/admin" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Admin Access">
-                  <Lock className="h-3 w-3" />
-                </Link>
-                <ThemeToggle />
-             </div>
-           </div>
+          <div className={cn("flex items-center", isExpanded ? "justify-between" : "flex-col gap-4")}>
+            {isExpanded && <span className="text-xs text-muted-foreground">© {new Date().getFullYear()}</span>}
+            <div className={cn("flex items-center", isExpanded ? "gap-2" : "flex-col gap-4")}>
+              <Link href="/admin" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Admin Access">
+                <Lock className="h-3 w-3" />
+              </Link>
+              <ThemeToggle />
+            </div>
+          </div>
         </div>
       </aside>
 
@@ -219,7 +223,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           >
             {children}
           </motion.div>
-          
+
           {/* Mobile Footer */}
           <footer className="md:hidden mt-24 border-t pt-8 text-sm text-muted-foreground">
             <div className="flex justify-between items-center">

@@ -20,7 +20,7 @@ export default function Work() {
       const date = new Date(endDate);
       return isNaN(date.getTime()) ? new Date(0) : date;
     };
-    
+
     const endDateA = getEndDateForSort(a.endDate);
     const endDateB = getEndDateForSort(b.endDate);
     return endDateB.getTime() - endDateA.getTime();
@@ -64,7 +64,7 @@ export default function Work() {
           ))
         )}
       </div>
-      
+
       {profile.email && profile.showEmail && (
         <div className="pt-6 border-t mt-auto flex-shrink-0">
           <h2 className="text-lg font-semibold mb-3">Contact</h2>

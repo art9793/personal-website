@@ -243,6 +243,9 @@ export function useArticles() {
 
   const updateArticleMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<Article> }) => {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'content-hooks.tsx:updateArticleMutation:start',message:'Starting PUT request',data:{id,data},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
       const res = await fetch(`/api/articles/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -250,14 +253,27 @@ export function useArticles() {
         credentials: "include",
       });
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
-      return res.json();
+      const result = await res.json();
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'content-hooks.tsx:updateArticleMutation:response',message:'API response received',data:{id,responseStatus:result?.status,responseId:result?.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
+      return result;
     },
     onSuccess: (updatedArticle) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/articles"] });
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'content-hooks.tsx:updateArticleMutation:onSuccess',message:'Updating cache directly',data:{updatedArticleStatus:updatedArticle?.status,updatedArticleId:updatedArticle?.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
+      // Directly update the cache to bypass browser HTTP caching
+      queryClient.setQueryData<Article[]>(["/api/articles"], (oldArticles) => {
+        if (!oldArticles) return oldArticles;
+        return oldArticles.map(article => 
+          article.id === updatedArticle.id ? updatedArticle : article
+        );
+      });
+      // Invalidate individual article queries (these don't have HTTP caching issues)
       if (updatedArticle?.slug) {
         queryClient.invalidateQueries({ queryKey: ["article", updatedArticle.slug] });
       }
-      queryClient.invalidateQueries({ queryKey: ["article"] });
     },
     onError: (error: Error) => handleUnauthorized(error, toast),
   });
@@ -306,8 +322,13 @@ export function useProjects() {
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
       return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+    onSuccess: (newProject) => {
+      // Directly add to cache for immediate UI update
+      queryClient.setQueryData<Project[]>(["/api/projects"], (oldProjects) => {
+        if (!oldProjects) return [newProject];
+        return [newProject, ...oldProjects];
+      });
+      // Don't invalidate - setQueryData already updated the cache
     },
     onError: (error: Error) => handleUnauthorized(error, toast),
   });
@@ -323,8 +344,16 @@ export function useProjects() {
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
       return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+    onSuccess: (updatedProject) => {
+      // Directly update the cache to bypass browser HTTP caching
+      queryClient.setQueryData<Project[]>(["/api/projects"], (oldProjects) => {
+        if (!oldProjects) return oldProjects;
+        return oldProjects.map(project => 
+          project.id === updatedProject.id ? updatedProject : project
+        );
+      });
+      // Don't invalidate - setQueryData already updated the cache
+      // invalidateQueries would refetch stale browser-cached data
     },
     onError: (error: Error) => handleUnauthorized(error, toast),
   });
@@ -336,9 +365,14 @@ export function useProjects() {
         credentials: "include",
       });
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return id;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+    onSuccess: (deletedId) => {
+      // Directly remove from cache to bypass browser HTTP caching
+      queryClient.setQueryData<Project[]>(["/api/projects"], (oldProjects) => {
+        if (!oldProjects) return oldProjects;
+        return oldProjects.filter(project => project.id !== deletedId);
+      });
     },
     onError: (error: Error) => handleUnauthorized(error, toast),
   });
@@ -373,8 +407,13 @@ export function useWorkExperiences() {
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
       return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/work-experiences"] });
+    onSuccess: (newWork) => {
+      // Directly add to cache for immediate UI update
+      queryClient.setQueryData<WorkExperience[]>(["/api/work-experiences"], (oldWork) => {
+        if (!oldWork) return [newWork];
+        return [newWork, ...oldWork];
+      });
+      // Don't invalidate - setQueryData already updated the cache
     },
     onError: (error: Error) => handleUnauthorized(error, toast),
   });
@@ -390,8 +429,15 @@ export function useWorkExperiences() {
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
       return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/work-experiences"] });
+    onSuccess: (updatedWork) => {
+      // Directly update the cache to bypass browser HTTP caching
+      queryClient.setQueryData<WorkExperience[]>(["/api/work-experiences"], (oldWork) => {
+        if (!oldWork) return oldWork;
+        return oldWork.map(work => 
+          work.id === updatedWork.id ? updatedWork : work
+        );
+      });
+      // Don't invalidate - setQueryData already updated the cache
     },
     onError: (error: Error) => handleUnauthorized(error, toast),
   });
@@ -403,9 +449,14 @@ export function useWorkExperiences() {
         credentials: "include",
       });
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return id;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/work-experiences"] });
+    onSuccess: (deletedId) => {
+      // Directly remove from cache to bypass browser HTTP caching
+      queryClient.setQueryData<WorkExperience[]>(["/api/work-experiences"], (oldWork) => {
+        if (!oldWork) return oldWork;
+        return oldWork.filter(work => work.id !== deletedId);
+      });
     },
     onError: (error: Error) => handleUnauthorized(error, toast),
   });
@@ -507,8 +558,13 @@ export function useTravelHistory() {
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
       return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/travel-history"] });
+    onSuccess: (newTravel) => {
+      // Directly add to cache for immediate UI update
+      queryClient.setQueryData<TravelHistoryEntry[]>(["/api/travel-history"], (oldTravel) => {
+        if (!oldTravel) return [newTravel];
+        return [newTravel, ...oldTravel];
+      });
+      // Don't invalidate - setQueryData already updated the cache
     },
     onError: (error: Error) => handleUnauthorized(error, toast),
   });
@@ -524,8 +580,15 @@ export function useTravelHistory() {
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
       return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/travel-history"] });
+    onSuccess: (updatedTravel) => {
+      // Directly update the cache to bypass browser HTTP caching
+      queryClient.setQueryData<TravelHistoryEntry[]>(["/api/travel-history"], (oldTravel) => {
+        if (!oldTravel) return oldTravel;
+        return oldTravel.map(entry => 
+          entry.id === updatedTravel.id ? updatedTravel : entry
+        );
+      });
+      // Don't invalidate - setQueryData already updated the cache
     },
     onError: (error: Error) => handleUnauthorized(error, toast),
   });
@@ -537,9 +600,14 @@ export function useTravelHistory() {
         credentials: "include",
       });
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return id; // Return the deleted id
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/travel-history"] });
+    onSuccess: (deletedId) => {
+      // Directly remove from cache to bypass browser HTTP caching
+      queryClient.setQueryData<TravelHistoryEntry[]>(["/api/travel-history"], (oldTravel) => {
+        if (!oldTravel) return oldTravel;
+        return oldTravel.filter(entry => entry.id !== deletedId);
+      });
     },
     onError: (error: Error) => handleUnauthorized(error, toast),
   });
