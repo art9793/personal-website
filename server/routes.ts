@@ -764,82 +764,29 @@ Sitemap: ${baseUrl}/sitemap.xml
     }
   });
 
-  // Analytics routes (Cloudflare)
+  // Analytics routes (Database-based)
   app.get('/api/analytics', isAdmin, async (req, res) => {
     try {
-      const zoneId = process.env.CLOUDFLARE_ZONE_ID;
-      const apiToken = process.env.CLOUDFLARE_API_TOKEN;
-
-      if (!zoneId || !apiToken) {
-        return res.status(500).json({ message: "Cloudflare credentials not configured" });
-      }
-
-      // Get data for the last 7 days
-      const endDate = new Date().toISOString().split('T')[0];
-      const startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
-      const response = await fetch("https://api.cloudflare.com/client/v4/graphql", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiToken}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          query: `{
-            viewer {
-              zones(filter: {zoneTag: "${zoneId}"}) {
-                httpRequests1dGroups(
-                  limit: 7
-                  filter: {date_geq: "${startDate}", date_leq: "${endDate}"}
-                  orderBy: [date_ASC]
-                ) {
-                  dimensions { date }
-                  sum { pageViews requests }
-                  uniq { uniques }
-                }
-              }
-            }
-          }`
-        })
+      const stats = await storage.getArticleStats();
+      res.json({ 
+        totalViews: stats.totalViews,
+        publishedCount: stats.publishedCount
       });
-
-      const data = await response.json() as any;
-      
-      if (data.errors) {
-        console.error("Cloudflare API error:", JSON.stringify(data.errors, null, 2));
-        return res.status(500).json({ message: "Cloudflare API error", details: data.errors[0]?.message });
-      }
-
-      if (!data.data) {
-        console.error("Cloudflare API returned no data:", JSON.stringify(data, null, 2));
-        return res.status(500).json({ message: "No data from Cloudflare" });
-      }
-
-      const zones = data.data?.viewer?.zones;
-      if (!zones || zones.length === 0) {
-        console.log("Cloudflare returned empty zones - returning empty analytics");
-        return res.json({ dailyData: [], totalViews: 0, totalUniques: 0 });
-      }
-
-      const httpData = zones[0].httpRequests1dGroups || [];
-      
-      // Format data for the chart
-      const dailyData = httpData.map((day: any) => ({
-        date: day.dimensions.date,
-        name: new Date(day.dimensions.date).toLocaleDateString('en-US', { weekday: 'short' }),
-        visits: day.uniq.uniques,
-        pageViews: day.sum.pageViews,
-        requests: day.sum.requests
-      }));
-
-      // Calculate totals
-      const totalViews = httpData.reduce((acc: number, day: any) => acc + day.sum.pageViews, 0);
-      const totalUniques = httpData.reduce((acc: number, day: any) => acc + day.uniq.uniques, 0);
-
-      res.json({ dailyData, totalViews, totalUniques });
     } catch (error) {
       console.error("Error fetching analytics:", error);
       res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
+
+  // Track article view (public endpoint)
+  app.post('/api/articles/:slug/view', async (req, res) => {
+    try {
+      const { slug } = req.params;
+      await storage.incrementArticleViews(slug);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error tracking view:", error);
+      res.status(500).json({ message: "Failed to track view" });
     }
   });
 

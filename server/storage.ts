@@ -25,7 +25,7 @@ import {
   type InsertTravelHistory,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -186,6 +186,22 @@ export class DatabaseStorage implements IStorage {
 
   async deleteArticle(id: number): Promise<void> {
     await db.delete(articles).where(eq(articles.id, id));
+  }
+
+  async incrementArticleViews(slug: string): Promise<void> {
+    await db
+      .update(articles)
+      .set({ 
+        views: sql`CAST(CAST(${articles.views} AS INTEGER) + 1 AS VARCHAR)` 
+      })
+      .where(eq(articles.slug, slug));
+  }
+
+  async getArticleStats(): Promise<{ totalViews: number; publishedCount: number }> {
+    const allArticles = await db.select().from(articles);
+    const totalViews = allArticles.reduce((sum, a) => sum + parseInt(a.views || "0", 10), 0);
+    const publishedCount = allArticles.filter(a => a.status === "Published").length;
+    return { totalViews, publishedCount };
   }
 
   // Project operations

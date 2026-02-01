@@ -1,10 +1,12 @@
 import { Link, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { useEffect, useRef } from "react";
 
 export default function Article() {
   const [, params] = useRoute("/article/:slug");
   const slug = params?.slug;
+  const viewTracked = useRef(false);
 
   const { data: article, isLoading, error } = useQuery({
     queryKey: ["article", slug],
@@ -17,6 +19,14 @@ export default function Article() {
     },
     enabled: !!slug,
   });
+
+  // Track view once when article loads
+  useEffect(() => {
+    if (article && slug && !viewTracked.current) {
+      viewTracked.current = true;
+      fetch(`/api/articles/${slug}/view`, { method: "POST" }).catch(() => {});
+    }
+  }, [article, slug]);
 
   if (isLoading) {
     return (
