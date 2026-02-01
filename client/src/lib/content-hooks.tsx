@@ -275,9 +275,14 @@ export function useArticles() {
         credentials: "include",
       });
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return id;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/articles"] });
+    onSuccess: (deletedId) => {
+      // Directly remove from cache to bypass browser HTTP caching
+      queryClient.setQueryData<Article[]>(["/api/articles"], (oldArticles) => {
+        if (!oldArticles) return oldArticles;
+        return oldArticles.filter(article => article.id !== deletedId);
+      });
     },
     onError: (error: Error) => handleUnauthorized(error, toast),
   });
@@ -481,8 +486,12 @@ export function useReadingList() {
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
       return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/reading-list"] });
+    onSuccess: (newItem) => {
+      // Directly add to cache for immediate UI update
+      queryClient.setQueryData<ReadingListItem[]>(["/api/reading-list"], (oldList) => {
+        if (!oldList) return [newItem];
+        return [newItem, ...oldList];
+      });
     },
     onError: (error: Error) => handleUnauthorized(error, toast),
   });
@@ -498,8 +507,14 @@ export function useReadingList() {
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
       return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/reading-list"] });
+    onSuccess: (updatedItem) => {
+      // Directly update the cache to bypass browser HTTP caching
+      queryClient.setQueryData<ReadingListItem[]>(["/api/reading-list"], (oldList) => {
+        if (!oldList) return oldList;
+        return oldList.map(item => 
+          item.id === updatedItem.id ? updatedItem : item
+        );
+      });
     },
     onError: (error: Error) => handleUnauthorized(error, toast),
   });
@@ -511,9 +526,14 @@ export function useReadingList() {
         credentials: "include",
       });
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return id;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/reading-list"] });
+    onSuccess: (deletedId) => {
+      // Directly remove from cache to bypass browser HTTP caching
+      queryClient.setQueryData<ReadingListItem[]>(["/api/reading-list"], (oldList) => {
+        if (!oldList) return oldList;
+        return oldList.filter(item => item.id !== deletedId);
+      });
     },
     onError: (error: Error) => handleUnauthorized(error, toast),
   });

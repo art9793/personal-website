@@ -432,6 +432,11 @@ export default function AdminDashboard() {
         });
       } catch (error) {
         console.error("Error deleting article:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete article. Please try again.",
+          variant: "destructive"
+        });
       }
     }
   };
@@ -518,12 +523,21 @@ export default function AdminDashboard() {
   const handleDeleteProject = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm("Are you sure you want to delete this project?")) {
-      await deleteProject(id);
-      toast({
-        title: "Project Deleted",
-        description: "The project has been permanently removed.",
-        variant: "destructive"
-      });
+      try {
+        await deleteProject(id);
+        toast({
+          title: "Project Deleted",
+          description: "The project has been permanently removed.",
+          variant: "destructive"
+        });
+      } catch (error) {
+        console.error("Error deleting project:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete project. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -615,12 +629,21 @@ export default function AdminDashboard() {
   const handleDeleteWork = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm("Are you sure you want to delete this work experience?")) {
-      await deleteWork(id);
-      toast({
-        title: "Work Experience Deleted",
-        description: "The entry has been permanently removed.",
-        variant: "destructive"
-      });
+      try {
+        await deleteWork(id);
+        toast({
+          title: "Work Experience Deleted",
+          description: "The entry has been permanently removed.",
+          variant: "destructive"
+        });
+      } catch (error) {
+        console.error("Error deleting work experience:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete work experience. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
