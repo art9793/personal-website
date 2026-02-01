@@ -28,6 +28,24 @@ export default defineConfig({
   build: {
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes("node_modules/leaflet") || id.includes("node_modules/react-leaflet")) {
+            return "leaflet";
+          }
+          if (id.includes("node_modules/@tiptap")) {
+            return "tiptap";
+          }
+          if (id.includes("node_modules/framer-motion")) {
+            return "framer-motion";
+          }
+          if (id.includes("node_modules/recharts")) {
+            return "recharts";
+          }
+        },
+      },
+    },
   },
   server: {
     host: "0.0.0.0",

@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useContent } from "@/lib/content-context";
+import { useProfile } from "@/lib/content-hooks";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -22,7 +22,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [isMobile, setIsMobile] = useState(false);
   const [open, setOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
-  const { profile } = useContent();
+  const { profile } = useProfile();
 
 
   useEffect(() => {

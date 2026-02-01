@@ -86,32 +86,34 @@ function Router() {
 
   if (isAdmin) {
     return (
-      <Switch>
-        <Route path="/admin/login">
-          <Suspense fallback={<LoadingFallback />}>
-            <AdminLogin />
-          </Suspense>
-        </Route>
-        <Route path="/admin/article/:id">
-          {() => (
+      <ContentProvider>
+        <Switch>
+          <Route path="/admin/login">
             <Suspense fallback={<LoadingFallback />}>
-              <ProtectedRoute component={ArticleEditor} />
+              <AdminLogin />
             </Suspense>
-          )}
-        </Route>
-        <Route path="/admin">
-          {() => (
+          </Route>
+          <Route path="/admin/article/:id">
+            {() => (
+              <Suspense fallback={<LoadingFallback />}>
+                <ProtectedRoute component={ArticleEditor} />
+              </Suspense>
+            )}
+          </Route>
+          <Route path="/admin">
+            {() => (
+              <Suspense fallback={<LoadingFallback />}>
+                <ProtectedRoute component={AdminDashboard} />
+              </Suspense>
+            )}
+          </Route>
+          <Route>
             <Suspense fallback={<LoadingFallback />}>
-              <ProtectedRoute component={AdminDashboard} />
+              <NotFound />
             </Suspense>
-          )}
-        </Route>
-        <Route>
-          <Suspense fallback={<LoadingFallback />}>
-            <NotFound />
-          </Suspense>
-        </Route>
-      </Switch>
+          </Route>
+        </Switch>
+      </ContentProvider>
     );
   }
 
@@ -166,12 +168,10 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ContentProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ContentProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Router />
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }
