@@ -28,13 +28,15 @@ export function OverviewTab({
   onChangeTab,
   onNewPost,
 }: OverviewTabProps) {
-  const { data: analytics, isLoading: analyticsLoading } = useQuery<AnalyticsData>({
+  const { data: analytics, isLoading: analyticsLoading, isError, error } = useQuery<AnalyticsData>({
     queryKey: ["/api/analytics"],
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    retry: 1,
   });
 
   const visitorData = analytics?.dailyData || [];
   const totalViews = analytics?.totalViews || 0;
+  const analyticsUnavailable = isError || (!analyticsLoading && !analytics);
 
   return (
     <div className="space-y-4 md:space-y-8 animate-in fade-in-50 duration-500">
@@ -57,9 +59,9 @@ export function OverviewTab({
                 <div className="h-full flex items-center justify-center">
                   <Skeleton className="h-[250px] w-full" />
                 </div>
-              ) : visitorData.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-muted-foreground">
-                  No analytics data available
+              ) : analyticsUnavailable || visitorData.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
+                  {isError ? "Analytics unavailable" : "No data yet"}
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
@@ -113,6 +115,8 @@ export function OverviewTab({
             <CardContent>
               {analyticsLoading ? (
                 <Skeleton className="h-8 w-20" />
+              ) : analyticsUnavailable ? (
+                <div className="text-3xl font-bold tracking-tight text-muted-foreground">—</div>
               ) : (
                 <div className="text-3xl font-bold tracking-tight">
                   {totalViews.toLocaleString()}

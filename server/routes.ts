@@ -806,12 +806,18 @@ Sitemap: ${baseUrl}/sitemap.xml
       const data = await response.json() as any;
       
       if (data.errors) {
-        console.error("Cloudflare API error:", data.errors);
-        return res.status(500).json({ message: "Failed to fetch analytics" });
+        console.error("Cloudflare API error:", JSON.stringify(data.errors, null, 2));
+        return res.status(500).json({ message: "Cloudflare API error", details: data.errors[0]?.message });
+      }
+
+      if (!data.data) {
+        console.error("Cloudflare API returned no data:", JSON.stringify(data, null, 2));
+        return res.status(500).json({ message: "No data from Cloudflare" });
       }
 
       const zones = data.data?.viewer?.zones;
       if (!zones || zones.length === 0) {
+        console.log("Cloudflare returned empty zones - returning empty analytics");
         return res.json({ dailyData: [], totalViews: 0, totalUniques: 0 });
       }
 
