@@ -243,9 +243,6 @@ export function useArticles() {
 
   const updateArticleMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<Article> }) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'content-hooks.tsx:updateArticleMutation:start',message:'Starting PUT request',data:{id,data},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
       const res = await fetch(`/api/articles/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -253,16 +250,9 @@ export function useArticles() {
         credentials: "include",
       });
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
-      const result = await res.json();
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'content-hooks.tsx:updateArticleMutation:response',message:'API response received',data:{id,responseStatus:result?.status,responseId:result?.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
-      return result;
+      return await res.json();
     },
     onSuccess: (updatedArticle) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'content-hooks.tsx:updateArticleMutation:onSuccess',message:'Updating cache directly',data:{updatedArticleStatus:updatedArticle?.status,updatedArticleId:updatedArticle?.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
-      // #endregion
       // Directly update the cache to bypass browser HTTP caching
       queryClient.setQueryData<Article[]>(["/api/articles"], (oldArticles) => {
         if (!oldArticles) return oldArticles;

@@ -452,14 +452,8 @@ export default function AdminDashboard() {
     }
 
     const newStatus = article.status === "Published" ? "Draft" : "Published";
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:toggleArticleStatus:before',message:'Before updateArticle call',data:{articleId:article.id,oldStatus:article.status,newStatus},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     try {
       await updateArticle(article.id, { status: newStatus });
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:toggleArticleStatus:after',message:'After updateArticle resolved',data:{articleId:article.id,newStatus,articlesLength:articles.length},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       toast({
         title: `Article ${newStatus}`,
         description: `"${article.title}" is now ${newStatus.toLowerCase()}.`,
@@ -644,9 +638,6 @@ export default function AdminDashboard() {
   };
 
   const handleEditTravel = (entry: TravelHistoryEntry) => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:handleEditTravel',message:'Edit travel called',data:{entryId:entry.id,countryCode:entry.countryCode},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'G'})}).catch(()=>{});
-    // #endregion
     const country = getCountryByCode(entry.countryCode);
     setEditingTravel({
       id: entry.id,
@@ -661,9 +652,6 @@ export default function AdminDashboard() {
   };
 
   const handleSaveTravel = async () => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:handleSaveTravel:start',message:'handleSaveTravel called',data:{editingTravel},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'F'})}).catch(()=>{});
-    // #endregion
     if (!editingTravel || isSavingTravel) return;
 
     // Validation
@@ -698,10 +686,6 @@ export default function AdminDashboard() {
       isHomeCountry: editingTravel.isHomeCountry
     };
 
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:handleSaveTravel:beforeAPI',message:'About to call API',data:{data,isUpdate:!!editingTravel.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'F'})}).catch(()=>{});
-    // #endregion
-
     setIsSavingTravel(true);
     try {
       if (editingTravel.id) {
@@ -710,10 +694,6 @@ export default function AdminDashboard() {
         await addTravelHistory(data);
       }
 
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:handleSaveTravel:success',message:'API call succeeded',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'F'})}).catch(()=>{});
-      // #endregion
-
       toast({
         title: editingTravel.id ? "Visit Updated" : "Visit Added",
         description: `${editingTravel.countryName} has been saved successfully.`,
@@ -721,9 +701,6 @@ export default function AdminDashboard() {
       setIsTravelSheetOpen(false);
       setEditingTravel(null);
     } catch (error) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:handleSaveTravel:error',message:'API call failed',data:{error:String(error)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'F'})}).catch(()=>{});
-      // #endregion
       console.error("Error saving travel entry:", error);
       toast({
         title: "Error",
@@ -737,9 +714,6 @@ export default function AdminDashboard() {
 
   const handleDeleteTravel = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:handleDeleteTravel',message:'Delete travel called',data:{id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H'})}).catch(()=>{});
-    // #endregion
     if (confirm("Are you sure you want to delete this travel entry?")) {
       try {
         await deleteTravelHistory(id);
@@ -749,9 +723,6 @@ export default function AdminDashboard() {
           variant: "destructive"
         });
       } catch (error) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:handleDeleteTravel:error',message:'Delete failed',data:{error:String(error)},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H'})}).catch(()=>{});
-        // #endregion
         toast({
           title: "Error",
           description: "Failed to delete travel entry.",
@@ -796,10 +767,6 @@ export default function AdminDashboard() {
   }, [projects, filterQuery, sortConfig]);
 
   const filteredArticles = useMemo(() => {
-    // #region agent log
-    const articleStatuses = articles.slice(0, 5).map(a => ({ id: a.id, status: a.status }));
-    fetch('http://127.0.0.1:7242/ingest/a0d8ac7f-fc1b-4040-89a7-71b54e0c5c30',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'dashboard.tsx:filteredArticles:memo',message:'Computing filteredArticles',data:{articlesCount:articles.length,sampleStatuses:articleStatuses},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
     let result = [...articles];
 
     // Filter by status

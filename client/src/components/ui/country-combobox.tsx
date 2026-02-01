@@ -36,7 +36,7 @@ export function CountryCombobox({
   const selectedCountry = value ? getCountryByCode(value) : undefined;
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={false}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -56,42 +56,52 @@ export function CountryCombobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0 max-h-[400px]" align="start">
+      <PopoverContent className="w-[300px] p-0" align="start">
         <Command>
           <CommandInput placeholder="Search country..." />
-          <CommandList className="max-h-[350px] overflow-y-auto">
-            <CommandEmpty>No country found.</CommandEmpty>
-            {continents.map((continent) => (
-              <CommandGroup key={continent} heading={continent}>
-                {countries
-                  .filter((country) => country.continent === continent)
-                  .map((country) => (
-                    <CommandItem
-                      key={country.code}
-                      value={`${country.name} ${country.code}`}
-                      onSelect={() => {
-                        onSelect({
-                          code: country.code,
-                          name: country.name,
-                          continent: country.continent,
-                          flag: country.flag,
-                        });
-                        setOpen(false);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          value === country.code ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      <span className="mr-2 text-base">{country.flag}</span>
-                      <span>{country.name}</span>
-                    </CommandItem>
-                  ))}
-              </CommandGroup>
-            ))}
-          </CommandList>
+          <div 
+            className="max-h-[300px] overflow-y-auto"
+            onWheel={(e) => {
+              // Ensure wheel events scroll this container
+              e.stopPropagation();
+              const target = e.currentTarget;
+              target.scrollTop += e.deltaY;
+            }}
+          >
+            <CommandList>
+              <CommandEmpty>No country found.</CommandEmpty>
+              {continents.map((continent) => (
+                <CommandGroup key={continent} heading={continent}>
+                  {countries
+                    .filter((country) => country.continent === continent)
+                    .map((country) => (
+                      <CommandItem
+                        key={country.code}
+                        value={`${country.name} ${country.code}`}
+                        onSelect={() => {
+                          onSelect({
+                            code: country.code,
+                            name: country.name,
+                            continent: country.continent,
+                            flag: country.flag,
+                          });
+                          setOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            value === country.code ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        <span className="mr-2 text-base">{country.flag}</span>
+                        <span>{country.name}</span>
+                      </CommandItem>
+                    ))}
+                </CommandGroup>
+              ))}
+            </CommandList>
+          </div>
         </Command>
       </PopoverContent>
     </Popover>
