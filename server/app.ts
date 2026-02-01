@@ -2,6 +2,7 @@ import { type Server } from "node:http";
 
 import express, { type Express, type Request, Response, NextFunction } from "express";
 import compression from "compression";
+import helmet from "helmet";
 import { registerRoutes } from "./routes";
 
 export function log(message: string, source = "express") {
@@ -33,6 +34,11 @@ export function logError(message: string, error: unknown, source = "express") {
 }
 
 export const app = express();
+
+app.use(helmet({
+  contentSecurityPolicy: false, // Disabled to avoid breaking inline styles/scripts from CMS content
+  crossOriginEmbedderPolicy: false, // Disabled for external image/resource loading
+}));
 
 app.use(compression({
   level: 6,

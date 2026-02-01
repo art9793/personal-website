@@ -77,7 +77,12 @@ function csrfProtection(req: any, res: any, next: any) {
     return next();
   }
 
-  // Default: allow (can be made stricter if needed)
+  // In production, reject requests that don't match any allowed origin
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({ message: "CSRF validation failed" });
+  }
+
+  // Default: allow in non-production environments
   next();
 }
 

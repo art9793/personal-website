@@ -2,6 +2,7 @@ import { Link, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useEffect, useRef } from "react";
+import DOMPurify from "dompurify";
 
 export default function Article() {
   const [, params] = useRoute("/article/:slug");
@@ -67,7 +68,7 @@ export default function Article() {
 
       <div
         className="prose prose-sm sm:prose max-w-none prose-headings:text-primary prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground prose-img:rounded-lg prose-img:border"
-        dangerouslySetInnerHTML={{ __html: article.content }}
+        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content, { ADD_TAGS: ['iframe'], ADD_ATTR: ['target', 'rel', 'allow', 'allowfullscreen', 'frameborder'] }) }}
       />
     </article>
   );
