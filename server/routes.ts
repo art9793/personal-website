@@ -26,6 +26,14 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Rate limiting for view tracking (prevent inflation)
+const viewLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 10, // 10 view tracks per minute per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // General API rate limiter (more lenient)
 const apiLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
@@ -783,8 +791,8 @@ Sitemap: ${baseUrl}/sitemap.xml
     }
   });
 
-  // Track article view (public endpoint)
-  app.post('/api/articles/:slug/view', async (req, res) => {
+  // Track article view (public endpoint, rate limited)
+  app.post('/api/articles/:slug/view', viewLimiter, async (req, res) => {
     try {
       const { slug } = req.params;
       await storage.incrementArticleViews(slug);
