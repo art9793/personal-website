@@ -43,6 +43,7 @@ export interface IStorage {
 
   // Article operations
   getArticles(): Promise<Article[]>;
+  getPublishedArticles(): Promise<Article[]>;
   getArticle(id: number): Promise<Article | undefined>;
   getArticleBySlug(slug: string): Promise<Article | undefined>;
   createArticle(data: InsertArticle): Promise<Article>;
@@ -51,6 +52,7 @@ export interface IStorage {
 
   // Project operations
   getProjects(): Promise<Project[]>;
+  getActiveProjects(): Promise<Project[]>;
   getProject(id: number): Promise<Project | undefined>;
   createProject(data: InsertProject): Promise<Project>;
   updateProject(id: number, data: Partial<InsertProject>): Promise<Project>;
@@ -112,22 +114,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateProfile(data: Partial<InsertProfile>): Promise<Profile> {
-    const existingProfile = await this.getProfile();
-    
-    if (existingProfile) {
-      const [updated] = await db
-        .update(profiles)
-        .set({ ...data, updatedAt: new Date() })
-        .where(eq(profiles.id, existingProfile.id))
-        .returning();
-      return updated;
-    } else {
-      const [created] = await db
-        .insert(profiles)
-        .values(data as InsertProfile)
-        .returning();
-      return created;
+    // Try update first (most common case), then insert if no rows exist
+    const updated = await db
+      .update(profiles)
+      .set({ ...data, updatedAt: new Date() })
+      .returning();
+
+    if (updated.length > 0) {
+      return updated[0];
     }
+
+    // No profile exists, create one
+    const [created] = await db
+      .insert(profiles)
+      .values({
+        name: data.name || "Your Name",
+        title: data.title || "Your Title",
+        bio: data.bio || "Your bio here",
+        ...data,
+      } as InsertProfile)
+      .returning();
+    return created;
   }
 
   // SEO Settings operations
@@ -137,27 +144,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateSeoSettings(data: Partial<InsertSeoSettings>): Promise<SeoSettings> {
-    const existingSettings = await this.getSeoSettings();
-    
-    if (existingSettings) {
-      const [updated] = await db
-        .update(seoSettings)
-        .set({ ...data, updatedAt: new Date() })
-        .where(eq(seoSettings.id, existingSettings.id))
-        .returning();
-      return updated;
-    } else {
-      const [created] = await db
-        .insert(seoSettings)
-        .values(data as InsertSeoSettings)
-        .returning();
-      return created;
+    // Try update first (most common case), then insert if no rows exist
+    const updated = await db
+      .update(seoSettings)
+      .set({ ...data, updatedAt: new Date() })
+      .returning();
+
+    if (updated.length > 0) {
+      return updated[0];
     }
+
+    // No settings exist, create them
+    const [created] = await db
+      .insert(seoSettings)
+      .values(data as InsertSeoSettings)
+      .returning();
+    return created;
   }
 
   // Article operations
   async getArticles(): Promise<Article[]> {
     return await db.select().from(articles).orderBy(desc(articles.createdAt));
+  }
+
+  async getPublishedArticles(): Promise<Article[]> {
+    return await db
+      .select()
+      .from(articles)
+      .where(eq(articles.status, "Published"))
+      .orderBy(desc(articles.createdAt));
   }
 
   async getArticle(id: number): Promise<Article | undefined> {
@@ -198,15 +213,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getArticleStats(): Promise<{ totalViews: number; publishedCount: number }> {
-    const allArticles = await db.select().from(articles);
-    const totalViews = allArticles.reduce((sum, a) => sum + parseInt(a.views || "0", 10), 0);
-    const publishedCount = allArticles.filter(a => a.status === "Published").length;
-    return { totalViews, publishedCount };
+    const [result] = await db
+      .select({
+        totalViews: sql<number>`COALESCE(SUM(CAST(${articles.views} AS INTEGER)), 0)`,
+        publishedCount: sql<number>`COUNT(*) FILTER (WHERE ${articles.status} = 'Published')`,
+      })
+      .from(articles);
+    return {
+      totalViews: Number(result?.totalViews) || 0,
+      publishedCount: Number(result?.publishedCount) || 0,
+    };
   }
 
   // Project operations
   async getProjects(): Promise<Project[]> {
     return await db.select().from(projects).orderBy(desc(projects.createdAt));
+  }
+
+  async getActiveProjects(): Promise<Project[]> {
+    return await db
+      .select()
+      .from(projects)
+      .where(eq(projects.status, "Active"))
+      .orderBy(desc(projects.createdAt));
   }
 
   async getProject(id: number): Promise<Project | undefined> {

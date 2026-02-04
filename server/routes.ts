@@ -145,10 +145,9 @@ export function invalidateSitemapCache() {
 async function generateSitemap(): Promise<string> {
   const baseUrl = getDeploymentUrl();
   
-  // Get all published articles
-  const allArticles = await storage.getArticles();
-  const publishedArticles = allArticles
-    .filter(a => a.status === 'Published' && a.slug)
+  // Get published articles directly from DB (filtered query, not N+1)
+  const publishedArticles = (await storage.getPublishedArticles())
+    .filter(a => a.slug) // Only include articles with slugs
     .sort((a, b) => {
       const dateA = a.updatedAt || a.publishedAt || a.createdAt;
       const dateB = b.updatedAt || b.publishedAt || b.createdAt;
@@ -156,11 +155,9 @@ async function generateSitemap(): Promise<string> {
       const timeB = dateB ? new Date(dateB).getTime() : 0;
       return timeB - timeA; // Most recent first
     });
-  
-  // Get all active projects
-  const allProjects = await storage.getProjects();
-  const activeProjects = allProjects
-    .filter(p => p.status === 'Active')
+
+  // Get active projects directly from DB (filtered query, not N+1)
+  const activeProjects = (await storage.getActiveProjects())
     .sort((a, b) => {
       const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
       const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;

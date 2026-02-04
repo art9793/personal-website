@@ -112,7 +112,11 @@ export const articles = pgTable("articles", {
   lastPublishedAt: timestamp("last_published_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_articles_slug").on(table.slug),
+  index("idx_articles_status").on(table.status),
+  index("idx_articles_created_at").on(table.createdAt),
+]);
 
 export const insertArticleSchema = createInsertSchema(articles, {
   slug: z.string().nullable().optional(),
@@ -139,7 +143,9 @@ export const projects = pgTable("projects", {
   featured: boolean("featured").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_projects_status").on(table.status),
+]);
 
 export const insertProjectSchema = createInsertSchema(projects).omit({
   id: true,
