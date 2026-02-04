@@ -4,6 +4,7 @@ import { ArrowRight, Github, Linkedin, Mail, ExternalLink } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useProfile, useProjects, useArticles } from "@/lib/content-hooks";
 import { format } from "date-fns";
+import { HomeSkeleton } from "@/components/skeletons/PageSkeletons";
 
 export default function Home() {
   const { profile, isLoading: profileLoading } = useProfile();
@@ -29,11 +30,7 @@ export default function Home() {
   }, [articles]);
 
   if (isLoading || !profile) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    );
+    return <HomeSkeleton />;
   }
 
 

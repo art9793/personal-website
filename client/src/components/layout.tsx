@@ -1,8 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
-import { Home, PenTool, FolderGit2, BookOpen, Briefcase, Menu, X, Lock, ChevronsLeft, ChevronsRight, Plane } from "lucide-react";
+import { Home, PenTool, FolderGit2, Briefcase, Menu, Lock, ChevronsLeft, ChevronsRight, Plane } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -215,14 +214,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Main Content */}
       <main className={cn("flex-1 transition-all duration-300", isExpanded ? "md:pl-64" : "md:pl-[80px]")}>
         <div className="mx-auto max-w-3xl px-6 py-12 md:py-20">
-          <motion.div
+          <div
             key={location}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
           >
             {children}
-          </motion.div>
+          </div>
 
           {/* Mobile Footer */}
           <footer className="md:hidden mt-24 border-t pt-8 text-sm text-muted-foreground">

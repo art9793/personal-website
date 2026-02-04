@@ -6,6 +6,10 @@ import { MapErrorBoundary } from "./MapErrorBoundary";
 import type { FeatureCollection, Feature, Geometry } from "geojson";
 import type { Layer, PathOptions, LeafletMouseEvent } from "leaflet";
 
+// Import Leaflet CSS only when this component is loaded
+import "leaflet/dist/leaflet.css";
+import "./leaflet-styles.css";
+
 interface TravelEntry {
   countryCode: string;
   countryName: string;

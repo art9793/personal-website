@@ -7,6 +7,15 @@ import Layout from "@/components/layout";
 import { ContentProvider } from "@/lib/content-context";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, lazy, Suspense } from "react";
+import {
+  HomeSkeleton,
+  WritingSkeleton,
+  ProjectsSkeleton,
+  ArticleSkeleton,
+  TravelSkeleton,
+  WorkSkeleton,
+  GenericSkeleton,
+} from "@/components/skeletons/PageSkeletons";
 
 const NotFound = lazy(() => import("@/pages/not-found"));
 const Home = lazy(() => import("@/pages/home"));
@@ -19,14 +28,6 @@ const Work = lazy(() => import("@/pages/work"));
 const AdminDashboard = lazy(() => import("@/pages/admin/dashboard"));
 const AdminLogin = lazy(() => import("@/pages/admin/login"));
 const ArticleEditor = lazy(() => import("@/pages/admin/article-editor"));
-
-function LoadingFallback() {
-  return (
-    <div className="flex items-center justify-center min-h-[50vh]">
-      <div className="text-muted-foreground">Loading...</div>
-    </div>
-  );
-}
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -98,42 +99,42 @@ function Router() {
     <Layout>
       <Switch>
         <Route path="/">
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<HomeSkeleton />}>
             <Home />
           </Suspense>
         </Route>
         <Route path="/writing">
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<WritingSkeleton />}>
             <Writing />
           </Suspense>
         </Route>
         <Route path="/article/:slug">
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<ArticleSkeleton />}>
             <Article />
           </Suspense>
         </Route>
         <Route path="/projects">
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<ProjectsSkeleton />}>
             <Projects />
           </Suspense>
         </Route>
         <Route path="/reading">
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<GenericSkeleton />}>
             <Reading />
           </Suspense>
         </Route>
         <Route path="/travel">
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<TravelSkeleton />}>
             <Travel />
           </Suspense>
         </Route>
         <Route path="/work">
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<WorkSkeleton />}>
             <Work />
           </Suspense>
         </Route>
         <Route>
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<GenericSkeleton />}>
             <NotFound />
           </Suspense>
         </Route>
