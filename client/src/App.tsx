@@ -68,26 +68,26 @@ function Router() {
       <ContentProvider>
         <Switch>
           <Route path="/admin/login">
-            <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={<GenericSkeleton />}>
               <AdminLogin />
             </Suspense>
           </Route>
           <Route path="/admin/article/:id">
             {() => (
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<GenericSkeleton />}>
                 <ProtectedRoute component={ArticleEditor} />
               </Suspense>
             )}
           </Route>
           <Route path="/admin">
             {() => (
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<GenericSkeleton />}>
                 <ProtectedRoute component={AdminDashboard} />
               </Suspense>
             )}
           </Route>
           <Route>
-            <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={<GenericSkeleton />}>
               <NotFound />
             </Suspense>
           </Route>

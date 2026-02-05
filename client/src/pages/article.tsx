@@ -5,6 +5,33 @@ import { useEffect, useRef } from "react";
 import DOMPurify from "dompurify";
 import { ArticleSkeleton } from "@/components/skeletons/PageSkeletons";
 
+// Allowlist of domains permitted in iframe src
+const ALLOWED_IFRAME_HOSTS = [
+  "www.youtube.com",
+  "youtube.com",
+  "www.youtube-nocookie.com",
+  "player.vimeo.com",
+  "open.spotify.com",
+  "codepen.io",
+  "codesandbox.io",
+];
+
+// Hook: remove iframes whose src doesn't match the allowlist
+DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+  if (node.tagName === "IFRAME") {
+    const src = node.getAttribute("src") || "";
+    try {
+      const url = new URL(src);
+      if (!ALLOWED_IFRAME_HOSTS.includes(url.hostname)) {
+        node.remove();
+      }
+    } catch {
+      // Invalid URL — remove the iframe
+      node.remove();
+    }
+  }
+});
+
 export default function Article() {
   const [, params] = useRoute("/article/:slug");
   const slug = params?.slug;
