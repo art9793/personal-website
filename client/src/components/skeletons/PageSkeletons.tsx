@@ -123,21 +123,18 @@ export function ProjectsSkeleton() {
 
 export function ArticleSkeleton() {
   return (
-    <div className="space-y-6 animate-in fade-in-50 duration-300">
-      {/* Back link */}
-      <Skeleton className="h-4 w-20" />
-
-      {/* Title */}
-      <Skeleton className="h-9 md:h-10 w-3/4" />
-
-      {/* Meta */}
-      <div className="flex items-center gap-3">
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-4 w-20" />
+    <div className="max-w-none animate-in fade-in-50 duration-300">
+      {/* Title + date */}
+      <div className="mb-8">
+        <Skeleton className="h-7 md:h-9 w-3/4 mb-4" />
+        <Skeleton className="h-4 w-32" />
       </div>
 
+      {/* Excerpt */}
+      <Skeleton className="h-6 w-full max-w-xl mb-8" />
+
       {/* Content lines */}
-      <div className="space-y-4 pt-4">
+      <div className="space-y-4">
         <Skeleton className="h-5 w-full" />
         <Skeleton className="h-5 w-full" />
         <Skeleton className="h-5 w-11/12" />
@@ -187,6 +184,45 @@ export function WorkSkeleton() {
               </div>
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-11/12" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function ReadingSkeleton() {
+  return (
+    <div className="space-y-12 animate-in fade-in-50 duration-300">
+      {/* Header */}
+      <div className="space-y-4">
+        <Skeleton className="h-9 w-28" />
+        <Skeleton className="h-6 w-80" />
+      </div>
+
+      {/* Timeline - matches reading.tsx */}
+      <div className="relative border-l border-border ml-2 sm:ml-3 space-y-12">
+        {[1, 2].map((group) => (
+          <div key={group} className="relative pl-6 sm:pl-8">
+            <span className="absolute -left-[5px] top-2 h-2.5 w-2.5 rounded-full border-2 border-background bg-muted-foreground/30 ring-4 ring-background" />
+            <div className="mb-6">
+              <Skeleton className="h-4 w-12" />
+            </div>
+            <div className="space-y-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 p-2 -mx-2">
+                  <div className="flex-1">
+                    <Skeleton className="h-5 w-48 mb-1" />
+                    <Skeleton className="h-4 w-28" />
+                  </div>
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Skeleton key={s} className="h-3 w-3" />
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         ))}

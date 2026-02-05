@@ -14,6 +14,7 @@ import {
   ArticleSkeleton,
   TravelSkeleton,
   WorkSkeleton,
+  ReadingSkeleton,
   GenericSkeleton,
 } from "@/components/skeletons/PageSkeletons";
 
@@ -119,7 +120,7 @@ function Router() {
           </Suspense>
         </Route>
         <Route path="/reading">
-          <Suspense fallback={<GenericSkeleton />}>
+          <Suspense fallback={<ReadingSkeleton />}>
             <Reading />
           </Suspense>
         </Route>

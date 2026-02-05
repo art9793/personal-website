@@ -1,6 +1,7 @@
 import { Star } from "lucide-react";
 import { useReadingList } from "@/lib/content-hooks";
 import { useMemo } from "react";
+import { ReadingSkeleton } from "@/components/skeletons/PageSkeletons";
 
 export default function Reading() {
   const { readingList, isLoading } = useReadingList();
@@ -17,11 +18,7 @@ export default function Reading() {
   }, [readingList]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    );
+    return <ReadingSkeleton />;
   }
 
   return (

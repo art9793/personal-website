@@ -1,5 +1,6 @@
 import { useWorkExperiences, useProfile } from "@/lib/content-hooks";
 import { formatYearRange } from "@/lib/utils";
+import { WorkSkeleton } from "@/components/skeletons/PageSkeletons";
 
 export default function Work() {
   const { workHistory, isLoading: workLoading } = useWorkExperiences();
@@ -7,11 +8,7 @@ export default function Work() {
   const isLoading = workLoading || profileLoading;
 
   if (isLoading || !profile) {
-    return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-theme(spacing.24)-theme(spacing.20))] md:min-h-[calc(100vh-theme(spacing.40))]">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    );
+    return <WorkSkeleton />;
   }
 
   const sortedWorkHistory = [...workHistory].sort((a, b) => {

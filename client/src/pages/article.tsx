@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useEffect, useRef } from "react";
 import DOMPurify from "dompurify";
+import { ArticleSkeleton } from "@/components/skeletons/PageSkeletons";
 
 export default function Article() {
   const [, params] = useRoute("/article/:slug");
@@ -30,11 +31,7 @@ export default function Article() {
   }, [article, slug]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    );
+    return <ArticleSkeleton />;
   }
 
   if (error || !article) {
