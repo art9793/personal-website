@@ -40,11 +40,11 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
+      scriptSrc: ["'self'", "https://cloud.umami.is"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "blob:", "https://storage.googleapis.com"],
-      connectSrc: ["'self'", "https://storage.googleapis.com"],
+      connectSrc: ["'self'", "https://storage.googleapis.com", "https://cloud.umami.is"],
       frameSrc: [
         "'self'",
         "https://www.youtube.com",
