@@ -51,17 +51,31 @@ function csrfProtection(req: any, res: any, next: any) {
 
   // For same-origin requests, check Origin header
   const origin = req.headers.origin;
-  const host = req.headers.host;
+  const host = req.headers.host?.split(':')[0]; // Strip port for comparison
   const referer = req.headers.referer;
 
-  // Allow requests from same origin
-  if (origin && host && origin.includes(host)) {
-    return next();
+  // Allow requests from same origin (use URL parsing, not string matching)
+  if (origin && host) {
+    try {
+      const originHost = new URL(origin).hostname;
+      if (originHost === host) {
+        return next();
+      }
+    } catch {
+      // Invalid origin URL — fall through to rejection
+    }
   }
 
   // Allow requests with referer from same origin
-  if (referer && host && referer.includes(`https://${host}`)) {
-    return next();
+  if (referer && host) {
+    try {
+      const refererHost = new URL(referer).hostname;
+      if (refererHost === host) {
+        return next();
+      }
+    } catch {
+      // Invalid referer URL — fall through
+    }
   }
 
   // In production, be more strict
@@ -73,9 +87,16 @@ function csrfProtection(req: any, res: any, next: any) {
         `https://${host}`,
         `http://${host}`,
       ].filter(Boolean);
-      
-      if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
-        return next();
+
+      try {
+        const originHost = new URL(origin).hostname;
+        if (allowedOrigins.some(allowed => {
+          try { return new URL(allowed!).hostname === originHost; } catch { return false; }
+        })) {
+          return next();
+        }
+      } catch {
+        // Invalid origin — fall through to rejection
       }
     }
   }
@@ -92,6 +113,13 @@ function csrfProtection(req: any, res: any, next: any) {
 
   // Default: allow in non-production environments
   next();
+}
+
+// Parse and validate a numeric ID from route params. Returns null if invalid.
+function parseId(raw: string): number | null {
+  const id = parseInt(raw, 10);
+  if (isNaN(id) || id <= 0) return null;
+  return id;
 }
 
 // Helper function to get deployment URL
@@ -525,7 +553,8 @@ Sitemap: ${baseUrl}/sitemap.xml
 
   app.get('/api/articles/:id', async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseId(req.params.id);
+      if (!id) return res.status(400).json({ message: "Invalid ID" });
       const article = await storage.getArticle(id);
       if (!article) {
         return res.status(404).json({ message: "Article not found" });
@@ -565,7 +594,8 @@ Sitemap: ${baseUrl}/sitemap.xml
 
   app.put('/api/articles/:id', isAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseId(req.params.id);
+      if (!id) return res.status(400).json({ message: "Invalid ID" });
       const validated = insertArticleSchema.partial().parse(req.body);
       const article = await storage.updateArticle(id, validated);
       invalidateSitemapCache(); // Invalidate cache when article is updated
@@ -578,7 +608,8 @@ Sitemap: ${baseUrl}/sitemap.xml
 
   app.delete('/api/articles/:id', isAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseId(req.params.id);
+      if (!id) return res.status(400).json({ message: "Invalid ID" });
       await storage.deleteArticle(id);
       invalidateSitemapCache(); // Invalidate cache when article is deleted
       res.status(204).send();
@@ -603,7 +634,8 @@ Sitemap: ${baseUrl}/sitemap.xml
 
   app.get('/api/projects/:id', async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseId(req.params.id);
+      if (!id) return res.status(400).json({ message: "Invalid ID" });
       const project = await storage.getProject(id);
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -629,7 +661,8 @@ Sitemap: ${baseUrl}/sitemap.xml
 
   app.put('/api/projects/:id', isAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseId(req.params.id);
+      if (!id) return res.status(400).json({ message: "Invalid ID" });
       const validated = insertProjectSchema.partial().parse(req.body);
       const project = await storage.updateProject(id, validated);
       invalidateSitemapCache(); // Invalidate cache when project is updated
@@ -642,7 +675,8 @@ Sitemap: ${baseUrl}/sitemap.xml
 
   app.delete('/api/projects/:id', isAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseId(req.params.id);
+      if (!id) return res.status(400).json({ message: "Invalid ID" });
       await storage.deleteProject(id);
       invalidateSitemapCache(); // Invalidate cache when project is deleted
       res.status(204).send();
@@ -667,7 +701,8 @@ Sitemap: ${baseUrl}/sitemap.xml
 
   app.get('/api/work-experiences/:id', async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseId(req.params.id);
+      if (!id) return res.status(400).json({ message: "Invalid ID" });
       const work = await storage.getWorkExperience(id);
       if (!work) {
         return res.status(404).json({ message: "Work experience not found" });
@@ -692,7 +727,8 @@ Sitemap: ${baseUrl}/sitemap.xml
 
   app.put('/api/work-experiences/:id', isAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseId(req.params.id);
+      if (!id) return res.status(400).json({ message: "Invalid ID" });
       const validated = insertWorkExperienceSchema.partial().parse(req.body);
       const work = await storage.updateWorkExperience(id, validated);
       res.json(work);
@@ -704,7 +740,8 @@ Sitemap: ${baseUrl}/sitemap.xml
 
   app.delete('/api/work-experiences/:id', isAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseId(req.params.id);
+      if (!id) return res.status(400).json({ message: "Invalid ID" });
       await storage.deleteWorkExperience(id);
       res.status(204).send();
     } catch (error) {
@@ -728,7 +765,8 @@ Sitemap: ${baseUrl}/sitemap.xml
 
   app.get('/api/reading-list/:id', async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseId(req.params.id);
+      if (!id) return res.status(400).json({ message: "Invalid ID" });
       const item = await storage.getReadingListItem(id);
       if (!item) {
         return res.status(404).json({ message: "Reading list item not found" });
@@ -753,7 +791,8 @@ Sitemap: ${baseUrl}/sitemap.xml
 
   app.put('/api/reading-list/:id', isAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseId(req.params.id);
+      if (!id) return res.status(400).json({ message: "Invalid ID" });
       const validated = insertReadingListSchema.partial().parse(req.body);
       const item = await storage.updateReadingListItem(id, validated);
       res.json(item);
@@ -765,7 +804,8 @@ Sitemap: ${baseUrl}/sitemap.xml
 
   app.delete('/api/reading-list/:id', isAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseId(req.params.id);
+      if (!id) return res.status(400).json({ message: "Invalid ID" });
       await storage.deleteReadingListItem(id);
       res.status(204).send();
     } catch (error) {
@@ -815,7 +855,8 @@ Sitemap: ${baseUrl}/sitemap.xml
 
   app.get('/api/travel-history/:id', async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseId(req.params.id);
+      if (!id) return res.status(400).json({ message: "Invalid ID" });
       const entry = await storage.getTravelHistoryEntry(id);
       if (!entry) {
         return res.status(404).json({ message: "Travel history entry not found" });
@@ -840,7 +881,8 @@ Sitemap: ${baseUrl}/sitemap.xml
 
   app.put('/api/travel-history/:id', isAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseId(req.params.id);
+      if (!id) return res.status(400).json({ message: "Invalid ID" });
       const validated = insertTravelHistorySchema.partial().parse(req.body);
       const entry = await storage.updateTravelHistoryEntry(id, validated);
       res.json(entry);
@@ -852,7 +894,8 @@ Sitemap: ${baseUrl}/sitemap.xml
 
   app.delete('/api/travel-history/:id', isAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseId(req.params.id);
+      if (!id) return res.status(400).json({ message: "Invalid ID" });
       await storage.deleteTravelHistoryEntry(id);
       res.status(204).send();
     } catch (error) {
