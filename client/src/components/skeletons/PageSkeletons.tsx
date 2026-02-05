@@ -11,12 +11,12 @@ export function HomeSkeleton() {
             <Skeleton className="h-24 w-24 rounded-full" />
           </div>
           {/* Name and title */}
-          <div className="space-y-3">
-            <Skeleton className="h-12 w-64" />
-            <Skeleton className="h-6 w-48" />
+          <div className="space-y-1.5">
+            <Skeleton className="h-10 md:h-12 w-48 md:w-64" />
+            <Skeleton className="h-6 w-40" />
           </div>
           {/* Bio */}
-          <div className="space-y-3 max-w-xl">
+          <div className="space-y-2 max-w-xl">
             <Skeleton className="h-5 w-full" />
             <Skeleton className="h-5 w-full" />
             <Skeleton className="h-5 w-3/4" />
@@ -29,43 +29,62 @@ export function HomeSkeleton() {
           </div>
         </div>
         {/* Desktop avatar */}
-        <div className="hidden md:block">
-          <Skeleton className="h-40 w-40 rounded-full" />
+        <div className="hidden md:block flex-shrink-0">
+          <Skeleton className="h-32 w-32 rounded-full" />
         </div>
       </div>
 
-      {/* Featured projects */}
-      <section className="space-y-6">
-        <Skeleton className="h-6 w-32" />
-        <div className="grid gap-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
-              <Skeleton className="h-10 w-10 rounded" />
-              <div className="flex-1 space-y-2">
-                <Skeleton className="h-5 w-40" />
-                <Skeleton className="h-4 w-64" />
-              </div>
+      {/* Selected Projects - matches home.tsx list style */}
+      <div className="space-y-6">
+        <Skeleton className="h-5 w-32" />
+        <div className="space-y-2">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="py-3 border-b border-border/50">
+              <Skeleton className="h-5 w-48 mb-1.5" />
+              <Skeleton className="h-4 w-full max-w-md" />
             </div>
           ))}
         </div>
-      </section>
+      </div>
+
+      {/* Recent Writing - matches home.tsx list style */}
+      <div className="space-y-6">
+        <Skeleton className="h-5 w-28" />
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-baseline justify-between py-3 border-b border-border/50">
+              <Skeleton className="h-5 w-56" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
 
 export function WritingSkeleton() {
   return (
-    <div className="space-y-8 animate-in fade-in-50 duration-300">
-      <div className="space-y-2">
-        <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-5 w-72" />
+    <div className="space-y-12 animate-in fade-in-50 duration-300">
+      {/* Header */}
+      <div className="space-y-4">
+        <Skeleton className="h-8 md:h-9 w-32" />
+        <Skeleton className="h-6 w-80" />
       </div>
-      <div className="space-y-6">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="space-y-2 pb-6 border-b">
-            <Skeleton className="h-6 w-3/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-24" />
+
+      {/* Year sections - matches writing.tsx */}
+      <div className="space-y-10">
+        {[2024, 2023].map((year) => (
+          <div key={year} className="space-y-4">
+            <Skeleton className="h-4 w-12 ml-1" />
+            <div className="space-y-1">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-baseline justify-between py-3 border-b border-border/40">
+                  <Skeleton className="h-5 w-64" />
+                  <Skeleton className="h-4 w-14 ml-4" />
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>
@@ -75,20 +94,25 @@ export function WritingSkeleton() {
 
 export function ProjectsSkeleton() {
   return (
-    <div className="space-y-8 animate-in fade-in-50 duration-300">
-      <div className="space-y-2">
-        <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-5 w-64" />
+    <div className="space-y-12 animate-in fade-in-50 duration-300">
+      {/* Header */}
+      <div className="space-y-4">
+        <Skeleton className="h-8 md:h-9 w-32" />
+        <Skeleton className="h-6 w-96" />
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="p-6 border rounded-lg space-y-3">
-            <Skeleton className="h-6 w-40" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-            <div className="flex gap-2 pt-2">
-              <Skeleton className="h-5 w-16 rounded-full" />
-              <Skeleton className="h-5 w-16 rounded-full" />
+
+      {/* Project list - matches projects.tsx simple list */}
+      <div className="space-y-1">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="py-4 border-b border-border/40">
+            <div className="space-y-1.5">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-4 w-full max-w-lg" />
+              <div className="flex gap-3 pt-1">
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-3 w-12" />
+                <Skeleton className="h-3 w-20" />
+              </div>
             </div>
           </div>
         ))}
@@ -99,21 +123,26 @@ export function ProjectsSkeleton() {
 
 export function ArticleSkeleton() {
   return (
-    <div className="space-y-8 animate-in fade-in-50 duration-300">
-      <Skeleton className="h-10 w-3/4" />
-      <div className="flex items-center gap-4">
+    <div className="space-y-6 animate-in fade-in-50 duration-300">
+      {/* Back link */}
+      <Skeleton className="h-4 w-20" />
+
+      {/* Title */}
+      <Skeleton className="h-9 md:h-10 w-3/4" />
+
+      {/* Meta */}
+      <div className="flex items-center gap-3">
         <Skeleton className="h-4 w-24" />
         <Skeleton className="h-4 w-20" />
       </div>
-      <div className="space-y-4">
+
+      {/* Content lines */}
+      <div className="space-y-4 pt-4">
         <Skeleton className="h-5 w-full" />
         <Skeleton className="h-5 w-full" />
+        <Skeleton className="h-5 w-11/12" />
         <Skeleton className="h-5 w-full" />
         <Skeleton className="h-5 w-3/4" />
-        <Skeleton className="h-64 w-full rounded-lg" />
-        <Skeleton className="h-5 w-full" />
-        <Skeleton className="h-5 w-full" />
-        <Skeleton className="h-5 w-2/3" />
       </div>
     </div>
   );
@@ -121,18 +150,17 @@ export function ArticleSkeleton() {
 
 export function TravelSkeleton() {
   return (
-    <div className="space-y-8 animate-in fade-in-50 duration-300">
-      <div className="space-y-2">
-        <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-5 w-64" />
+    <div className="flex flex-col h-[calc(100vh-theme(spacing.24)-theme(spacing.20))] md:h-[calc(100vh-theme(spacing.40))] animate-in fade-in-50 duration-300">
+      {/* Header */}
+      <div className="space-y-2 flex-shrink-0">
+        <Skeleton className="h-9 w-24" />
+        <Skeleton className="h-6 w-80" />
       </div>
+
       {/* Map placeholder */}
-      <Skeleton className="h-[400px] w-full rounded-lg" />
-      {/* Stats */}
-      <div className="flex gap-8">
-        <Skeleton className="h-20 w-32 rounded-lg" />
-        <Skeleton className="h-20 w-32 rounded-lg" />
-        <Skeleton className="h-20 w-32 rounded-lg" />
+      <div className="flex-1 min-h-0 mt-6 flex flex-col">
+        <Skeleton className="flex-1 min-h-[280px] rounded-lg" />
+        <Skeleton className="h-4 w-64 mt-4" />
       </div>
     </div>
   );
@@ -140,20 +168,25 @@ export function TravelSkeleton() {
 
 export function WorkSkeleton() {
   return (
-    <div className="space-y-8 animate-in fade-in-50 duration-300">
-      <div className="space-y-2">
-        <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-5 w-64" />
+    <div className="flex flex-col min-h-[calc(100vh-theme(spacing.24)-theme(spacing.20))] md:min-h-[calc(100vh-theme(spacing.40))] animate-in fade-in-50 duration-300">
+      {/* Header */}
+      <div className="space-y-2 flex-shrink-0">
+        <Skeleton className="h-8 md:h-9 w-20" />
+        <Skeleton className="h-6 w-80" />
       </div>
-      <div className="space-y-6">
+
+      {/* Work entries - matches work.tsx grid layout */}
+      <div className="space-y-6 md:space-y-8 mt-8 flex-1">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="flex gap-4 p-4 border rounded-lg">
-            <Skeleton className="h-12 w-12 rounded" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-5 w-48" />
-              <Skeleton className="h-4 w-32" />
+          <div key={i} className="grid sm:grid-cols-[180px_minmax(0,1fr)] gap-3 sm:gap-x-4 items-start">
+            <Skeleton className="h-4 w-28" />
+            <div className="space-y-2">
+              <div className="flex items-baseline gap-3">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-4 w-24" />
+              </div>
               <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-11/12" />
             </div>
           </div>
         ))}
@@ -164,8 +197,11 @@ export function WorkSkeleton() {
 
 export function GenericSkeleton() {
   return (
-    <div className="space-y-6 animate-in fade-in-50 duration-300">
-      <Skeleton className="h-10 w-48" />
+    <div className="space-y-8 animate-in fade-in-50 duration-300">
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="h-5 w-64" />
+      </div>
       <div className="space-y-3">
         <Skeleton className="h-5 w-full" />
         <Skeleton className="h-5 w-full" />
