@@ -37,7 +37,28 @@ export function logError(message: string, error: unknown, source = "express") {
 export const app = express();
 
 app.use(helmet({
-  contentSecurityPolicy: false, // Disabled to avoid breaking inline styles/scripts from CMS content
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https://storage.googleapis.com"],
+      connectSrc: ["'self'", "https://storage.googleapis.com"],
+      frameSrc: [
+        "'self'",
+        "https://www.youtube.com",
+        "https://www.youtube-nocookie.com",
+        "https://player.vimeo.com",
+        "https://open.spotify.com",
+        "https://codepen.io",
+        "https://codesandbox.io",
+      ],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+    },
+  },
   crossOriginEmbedderPolicy: false, // Disabled for external image/resource loading
 }));
 

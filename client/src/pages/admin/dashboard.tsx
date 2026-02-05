@@ -26,7 +26,35 @@ import { format } from "date-fns";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, Component, type ReactNode, type ErrorInfo } from "react";
+
+// Error boundary for dashboard tabs — catches render errors without crashing the whole dashboard
+class TabErrorBoundary extends Component<
+  { children: ReactNode; onRetry?: () => void },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("Dashboard tab error:", error, info.componentStack);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <p className="text-sm text-muted-foreground mb-4">Something went wrong loading this tab.</p>
+          <button
+            className="text-sm text-primary underline underline-offset-4"
+            onClick={() => this.setState({ hasError: false })}
+          >
+            Try again
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // Lazy load dashboard tabs for code splitting
 const OverviewTab = lazy(() => import("./dashboard-tabs/OverviewTab").then(m => ({ default: m.OverviewTab })));
@@ -397,34 +425,42 @@ export default function AdminDashboard() {
       <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background pt-14 md:pt-0">
         <div className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-4 md:space-y-8">
           {activeTab === "overview" && (
-            <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
-              <OverviewTab
-                profileName={profile?.name}
-                articlesCount={articles.length}
-                draftArticlesCount={draftArticlesCount}
-                projectsCount={projects.length}
-                onChangeTab={changeTab}
-                onNewPost={handleNewPost}
-              />
-            </Suspense>
+            <TabErrorBoundary>
+              <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
+                <OverviewTab
+                  profileName={profile?.name}
+                  articlesCount={articles.length}
+                  draftArticlesCount={draftArticlesCount}
+                  projectsCount={projects.length}
+                  onChangeTab={changeTab}
+                  onNewPost={handleNewPost}
+                />
+              </Suspense>
+            </TabErrorBoundary>
           )}
 
           {activeTab === "projects" && (
-            <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
-              <ProjectsTab />
-            </Suspense>
+            <TabErrorBoundary>
+              <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
+                <ProjectsTab />
+              </Suspense>
+            </TabErrorBoundary>
           )}
 
           {activeTab === "writing" && !isWriting && (
-            <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
-              <WritingTab />
-            </Suspense>
+            <TabErrorBoundary>
+              <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
+                <WritingTab />
+              </Suspense>
+            </TabErrorBoundary>
           )}
 
           {activeTab === "work" && (
-            <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
-              <WorkTab />
-            </Suspense>
+            <TabErrorBoundary>
+              <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
+                <WorkTab />
+              </Suspense>
+            </TabErrorBoundary>
           )}
 
           {activeTab === "writing" && isWriting && editingArticle && (
@@ -597,33 +633,43 @@ export default function AdminDashboard() {
           )}
 
           {activeTab === "travel" && (
-            <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
-              <TravelTab />
-            </Suspense>
+            <TabErrorBoundary>
+              <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
+                <TravelTab />
+              </Suspense>
+            </TabErrorBoundary>
           )}
 
           {!isWriting && activeTab === "reading" && (
-            <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
-              <ReadingTab />
-            </Suspense>
+            <TabErrorBoundary>
+              <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
+                <ReadingTab />
+              </Suspense>
+            </TabErrorBoundary>
           )}
 
           {!isWriting && activeTab === "media" && (
-            <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
-              <MediaTab />
-            </Suspense>
+            <TabErrorBoundary>
+              <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
+                <MediaTab />
+              </Suspense>
+            </TabErrorBoundary>
           )}
 
           {!isWriting && activeTab === "seo" && (
-            <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
-              <SEOTab />
-            </Suspense>
+            <TabErrorBoundary>
+              <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
+                <SEOTab />
+              </Suspense>
+            </TabErrorBoundary>
           )}
 
           {activeTab === "settings" && (
-            <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
-              <SettingsTab />
-            </Suspense>
+            <TabErrorBoundary>
+              <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
+                <SettingsTab />
+              </Suspense>
+            </TabErrorBoundary>
           )}
         </div>
       </main>

@@ -238,7 +238,11 @@ export function useArticles() {
       }
       queryClient.invalidateQueries({ queryKey: ["article"] });
     },
-    onError: (error: Error) => handleUnauthorized(error, toast),
+    onError: (error: Error) => {
+      if (!handleUnauthorized(error, toast)) {
+        toast({ title: "Error", description: "Failed to create article", variant: "destructive" });
+      }
+    },
   });
 
   const updateArticleMutation = useMutation({
@@ -265,7 +269,11 @@ export function useArticles() {
         queryClient.invalidateQueries({ queryKey: ["article", updatedArticle.slug] });
       }
     },
-    onError: (error: Error) => handleUnauthorized(error, toast),
+    onError: (error: Error) => {
+      if (!handleUnauthorized(error, toast)) {
+        toast({ title: "Error", description: "Failed to update article", variant: "destructive" });
+      }
+    },
   });
 
   const deleteArticleMutation = useMutation({
@@ -284,7 +292,11 @@ export function useArticles() {
         return oldArticles.filter(article => article.id !== deletedId);
       });
     },
-    onError: (error: Error) => handleUnauthorized(error, toast),
+    onError: (error: Error) => {
+      if (!handleUnauthorized(error, toast)) {
+        toast({ title: "Error", description: "Failed to delete article", variant: "destructive" });
+      }
+    },
   });
 
   return {
@@ -325,7 +337,11 @@ export function useProjects() {
       });
       // Don't invalidate - setQueryData already updated the cache
     },
-    onError: (error: Error) => handleUnauthorized(error, toast),
+    onError: (error: Error) => {
+      if (!handleUnauthorized(error, toast)) {
+        toast({ title: "Error", description: "Failed to create project", variant: "destructive" });
+      }
+    },
   });
 
   const updateProjectMutation = useMutation({
@@ -350,7 +366,11 @@ export function useProjects() {
       // Don't invalidate - setQueryData already updated the cache
       // invalidateQueries would refetch stale browser-cached data
     },
-    onError: (error: Error) => handleUnauthorized(error, toast),
+    onError: (error: Error) => {
+      if (!handleUnauthorized(error, toast)) {
+        toast({ title: "Error", description: "Failed to update project", variant: "destructive" });
+      }
+    },
   });
 
   const deleteProjectMutation = useMutation({
@@ -369,7 +389,11 @@ export function useProjects() {
         return oldProjects.filter(project => project.id !== deletedId);
       });
     },
-    onError: (error: Error) => handleUnauthorized(error, toast),
+    onError: (error: Error) => {
+      if (!handleUnauthorized(error, toast)) {
+        toast({ title: "Error", description: "Failed to delete project", variant: "destructive" });
+      }
+    },
   });
 
   return {
@@ -410,7 +434,11 @@ export function useWorkExperiences() {
       });
       // Don't invalidate - setQueryData already updated the cache
     },
-    onError: (error: Error) => handleUnauthorized(error, toast),
+    onError: (error: Error) => {
+      if (!handleUnauthorized(error, toast)) {
+        toast({ title: "Error", description: "Failed to add work experience", variant: "destructive" });
+      }
+    },
   });
 
   const updateWorkMutation = useMutation({
@@ -434,7 +462,11 @@ export function useWorkExperiences() {
       });
       // Don't invalidate - setQueryData already updated the cache
     },
-    onError: (error: Error) => handleUnauthorized(error, toast),
+    onError: (error: Error) => {
+      if (!handleUnauthorized(error, toast)) {
+        toast({ title: "Error", description: "Failed to update work experience", variant: "destructive" });
+      }
+    },
   });
 
   const deleteWorkMutation = useMutation({
@@ -453,7 +485,11 @@ export function useWorkExperiences() {
         return oldWork.filter(work => work.id !== deletedId);
       });
     },
-    onError: (error: Error) => handleUnauthorized(error, toast),
+    onError: (error: Error) => {
+      if (!handleUnauthorized(error, toast)) {
+        toast({ title: "Error", description: "Failed to delete work experience", variant: "destructive" });
+      }
+    },
   });
 
   return {
@@ -493,7 +529,11 @@ export function useReadingList() {
         return [newItem, ...oldList];
       });
     },
-    onError: (error: Error) => handleUnauthorized(error, toast),
+    onError: (error: Error) => {
+      if (!handleUnauthorized(error, toast)) {
+        toast({ title: "Error", description: "Failed to add reading list item", variant: "destructive" });
+      }
+    },
   });
 
   const updateReadingListItemMutation = useMutation({
@@ -516,7 +556,11 @@ export function useReadingList() {
         );
       });
     },
-    onError: (error: Error) => handleUnauthorized(error, toast),
+    onError: (error: Error) => {
+      if (!handleUnauthorized(error, toast)) {
+        toast({ title: "Error", description: "Failed to update reading list item", variant: "destructive" });
+      }
+    },
   });
 
   const deleteReadingListItemMutation = useMutation({
@@ -535,7 +579,11 @@ export function useReadingList() {
         return oldList.filter(item => item.id !== deletedId);
       });
     },
-    onError: (error: Error) => handleUnauthorized(error, toast),
+    onError: (error: Error) => {
+      if (!handleUnauthorized(error, toast)) {
+        toast({ title: "Error", description: "Failed to delete reading list item", variant: "destructive" });
+      }
+    },
   });
 
   return {
@@ -576,7 +624,11 @@ export function useTravelHistory() {
       });
       // Don't invalidate - setQueryData already updated the cache
     },
-    onError: (error: Error) => handleUnauthorized(error, toast),
+    onError: (error: Error) => {
+      if (!handleUnauthorized(error, toast)) {
+        toast({ title: "Error", description: "Failed to add travel entry", variant: "destructive" });
+      }
+    },
   });
 
   const updateTravelHistoryMutation = useMutation({
@@ -600,7 +652,11 @@ export function useTravelHistory() {
       });
       // Don't invalidate - setQueryData already updated the cache
     },
-    onError: (error: Error) => handleUnauthorized(error, toast),
+    onError: (error: Error) => {
+      if (!handleUnauthorized(error, toast)) {
+        toast({ title: "Error", description: "Failed to update travel entry", variant: "destructive" });
+      }
+    },
   });
 
   const deleteTravelHistoryMutation = useMutation({
@@ -619,7 +675,11 @@ export function useTravelHistory() {
         return oldTravel.filter(entry => entry.id !== deletedId);
       });
     },
-    onError: (error: Error) => handleUnauthorized(error, toast),
+    onError: (error: Error) => {
+      if (!handleUnauthorized(error, toast)) {
+        toast({ title: "Error", description: "Failed to delete travel entry", variant: "destructive" });
+      }
+    },
   });
 
   return {
