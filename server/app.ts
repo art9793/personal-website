@@ -44,7 +44,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "blob:", "https://storage.googleapis.com"],
-      connectSrc: ["'self'", "https://storage.googleapis.com", "https://cloud.umami.is"],
+      connectSrc: ["'self'", "https://storage.googleapis.com", "https://cloud.umami.is", "https://api-gateway.umami.dev"],
       frameSrc: [
         "'self'",
         "https://www.youtube.com",
