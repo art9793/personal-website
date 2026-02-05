@@ -1,4 +1,5 @@
 import { type Server } from "node:http";
+import { createHash } from "node:crypto";
 
 import express, { type Express, type Request, Response, NextFunction } from "express";
 import compression from "compression";
@@ -90,6 +91,32 @@ app.use((req, res, next) => {
       log(logLine);
     }
   });
+
+  next();
+});
+
+// ETag support for public GET API routes - enables 304 Not Modified responses
+app.use((req, res, next) => {
+  if (req.method !== 'GET' || !req.path.startsWith('/api')) {
+    return next();
+  }
+
+  const originalJson = res.json;
+  res.json = function (body: any, ...args: any[]) {
+    const content = JSON.stringify(body);
+    const hash = createHash('md5').update(content).digest('hex').slice(0, 16);
+    const etag = `W/"${hash}"`;
+
+    res.setHeader('ETag', etag);
+
+    const ifNoneMatch = req.headers['if-none-match'];
+    if (ifNoneMatch === etag) {
+      res.status(304).end();
+      return res;
+    }
+
+    return originalJson.apply(res, [body, ...args]);
+  };
 
   next();
 });
