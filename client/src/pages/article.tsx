@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { useEffect, useRef } from "react";
 import DOMPurify from "dompurify";
 import { ArticleSkeleton } from "@/components/skeletons/PageSkeletons";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 // Allowlist of domains permitted in iframe src
 const ALLOWED_IFRAME_HOSTS = [
@@ -48,6 +49,8 @@ export default function Article() {
     },
     enabled: !!slug,
   });
+
+  useDocumentTitle(article?.title);
 
   // Track view once when article loads
   useEffect(() => {

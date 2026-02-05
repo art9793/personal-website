@@ -2,8 +2,10 @@ import { useMemo } from "react";
 import { Link } from "wouter";
 import { useArticles } from "@/lib/content-hooks";
 import { format } from "date-fns";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export default function Writing() {
+  useDocumentTitle("Writing");
   const { articles } = useArticles();
 
   // Filter for Published status only and sort by date descending

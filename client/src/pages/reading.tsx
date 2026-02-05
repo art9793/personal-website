@@ -2,8 +2,10 @@ import { Star } from "lucide-react";
 import { useReadingList } from "@/lib/content-hooks";
 import { useMemo } from "react";
 import { ReadingSkeleton } from "@/components/skeletons/PageSkeletons";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export default function Reading() {
+  useDocumentTitle("Reading");
   const { readingList, isLoading } = useReadingList();
 
   const groupedBooks = useMemo(() => {

@@ -5,12 +5,51 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useProfile, useProjects, useArticles } from "@/lib/content-hooks";
 import { format } from "date-fns";
 import { HomeSkeleton } from "@/components/skeletons/PageSkeletons";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+
+function ProjectsSectionSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="h-5 w-36 bg-muted rounded animate-pulse" />
+        <div className="h-4 w-16 bg-muted rounded animate-pulse" />
+      </div>
+      <div className="space-y-2">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="py-3 border-b border-border/50">
+            <div className="h-4 w-48 bg-muted rounded animate-pulse mb-2" />
+            <div className="h-3 w-72 bg-muted rounded animate-pulse" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WritingSectionSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="h-5 w-32 bg-muted rounded animate-pulse" />
+        <div className="h-4 w-20 bg-muted rounded animate-pulse" />
+      </div>
+      <div className="space-y-2">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="py-3 border-b border-border/50 flex justify-between">
+            <div className="h-4 w-56 bg-muted rounded animate-pulse" />
+            <div className="h-4 w-16 bg-muted rounded animate-pulse" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
   const { profile, isLoading: profileLoading } = useProfile();
   const { projects, isLoading: projectsLoading } = useProjects();
   const { articles, isLoading: articlesLoading } = useArticles();
-  const isLoading = profileLoading || projectsLoading || articlesLoading;
+  useDocumentTitle();
 
   const featuredProjects = useMemo(() => {
     return projects
@@ -29,10 +68,10 @@ export default function Home() {
       .slice(0, 3);
   }, [articles]);
 
-  if (isLoading || !profile) {
+  // Only block on profile — the hero section needs it
+  if (profileLoading || !profile) {
     return <HomeSkeleton />;
   }
-
 
   return (
     <div className="space-y-12 animate-in fade-in-50 duration-500">
@@ -117,7 +156,9 @@ export default function Home() {
         )}
       </div>
 
-      {featuredProjects.length > 0 && (
+      {projectsLoading ? (
+        <ProjectsSectionSkeleton />
+      ) : featuredProjects.length > 0 ? (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-primary tracking-tight">Selected Projects</h2>
@@ -150,9 +191,11 @@ export default function Home() {
             ))}
           </div>
         </div>
-      )}
+      ) : null}
 
-      {recentPosts.length > 0 && (
+      {articlesLoading ? (
+        <WritingSectionSkeleton />
+      ) : recentPosts.length > 0 ? (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-primary tracking-tight">Recent Writing</h2>
@@ -176,7 +219,7 @@ export default function Home() {
             ))}
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { WorldMap } from "@/components/travel/WorldMap";
 import { useTravelHistory } from "@/lib/content-hooks";
 import { Loader2, AlertCircle } from "lucide-react";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 // Continent mapping for country codes
 const continentMap: Record<string, string> = {
@@ -27,6 +28,7 @@ const continentMap: Record<string, string> = {
 };
 
 export default function Travel() {
+  useDocumentTitle("Travel");
   const { travelHistory, isLoading } = useTravelHistory();
 
   // Transform API data (individual entries) to grouped format for WorldMap

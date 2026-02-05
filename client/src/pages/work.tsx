@@ -1,8 +1,10 @@
 import { useWorkExperiences, useProfile } from "@/lib/content-hooks";
 import { formatYearRange } from "@/lib/utils";
 import { WorkSkeleton } from "@/components/skeletons/PageSkeletons";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export default function Work() {
+  useDocumentTitle("Work");
   const { workHistory, isLoading: workLoading } = useWorkExperiences();
   const { profile, isLoading: profileLoading } = useProfile();
   const isLoading = workLoading || profileLoading;

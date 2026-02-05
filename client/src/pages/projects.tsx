@@ -1,8 +1,10 @@
 import { useMemo } from "react";
 import { ExternalLink } from "lucide-react";
 import { useProjects } from "@/lib/content-hooks";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export default function Projects() {
+  useDocumentTitle("Projects");
   const { projects } = useProjects();
 
   const activeProjects = useMemo(() => {
