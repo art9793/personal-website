@@ -123,7 +123,7 @@ export function useProfile() {
 
   const { data: profile, isLoading } = useQuery<Profile>({
     queryKey: ["/api/profile"],
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 30 * 60 * 1000, // 30 minutes - rarely changes
   });
 
   const updateProfileMutation = useMutation({
@@ -171,7 +171,7 @@ export function useSeoSettings() {
 
   const { data: seoSettings, isLoading } = useQuery<SeoSettings>({
     queryKey: ["/api/seo-settings"],
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 60 * 60 * 1000, // 1 hour - very rarely changes
   });
 
   const updateSeoSettingsMutation = useMutation({
@@ -388,7 +388,7 @@ export function useWorkExperiences() {
 
   const { data: workHistory = [], isLoading } = useQuery<WorkExperience[]>({
     queryKey: ["/api/work-experiences"],
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 30 * 60 * 1000, // 30 minutes - rarely changes
   });
 
   const addWorkMutation = useMutation({

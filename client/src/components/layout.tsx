@@ -7,6 +7,7 @@ import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useProfile } from "@/lib/content-hooks";
+import { PrefetchLink } from "./PrefetchLink";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -48,7 +49,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           return (
             <Tooltip key={item.href} delayDuration={0}>
               <TooltipTrigger asChild>
-                <Link href={item.href}
+                <PrefetchLink href={item.href}
                   className={cn(
                     "group flex items-center justify-center rounded-md h-10 w-10 text-sm font-medium transition-all hover:bg-secondary/80",
                     isActive ? "bg-secondary text-primary" : "text-muted-foreground hover:text-primary"
@@ -56,7 +57,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 >
                   <item.icon className={cn("h-4 w-4 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
                   <span className="sr-only">{item.label}</span>
-                </Link>
+                </PrefetchLink>
               </TooltipTrigger>
               <TooltipContent side="right">{item.label}</TooltipContent>
             </Tooltip>
@@ -64,7 +65,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         }
 
         return (
-          <Link key={item.href} href={item.href}
+          <PrefetchLink key={item.href} href={item.href}
             className={cn(
               "group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all hover:bg-secondary/80",
               isActive ? "bg-secondary text-primary" : "text-muted-foreground hover:text-primary"
@@ -72,7 +73,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           >
             <item.icon className={cn("h-4 w-4 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
             <span>{item.label}</span>
-          </Link>
+          </PrefetchLink>
         );
       })}
     </nav>
@@ -141,7 +142,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   {navItems.map((item) => {
                     const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
                     return (
-                      <Link key={item.href} href={item.href} onClick={() => setOpen(false)}
+                      <PrefetchLink key={item.href} href={item.href} onClick={() => setOpen(false)}
                         className={cn(
                           "group flex items-center gap-4 rounded-xl px-4 py-3 text-lg font-medium transition-all",
                           isActive ? "bg-secondary text-primary" : "text-muted-foreground hover:text-primary hover:bg-secondary/50"
@@ -149,7 +150,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       >
                         <item.icon className={cn("h-5 w-5 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
                         <span>{item.label}</span>
-                      </Link>
+                      </PrefetchLink>
                     );
                   })}
                 </nav>

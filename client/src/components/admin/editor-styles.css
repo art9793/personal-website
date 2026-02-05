@@ -1,0 +1,270 @@
+@reference "../../index.css";
+
+/* ProseMirror Editor Styles - only loaded when admin editor is used */
+.ProseMirror {
+  outline: none;
+  min-height: 500px;
+}
+
+.ProseMirror h1 {
+  @apply text-2xl sm:text-3xl font-bold mt-8 mb-4 leading-tight;
+}
+
+.ProseMirror h2 {
+  @apply text-xl sm:text-2xl font-semibold mt-8 mb-4 leading-tight;
+}
+
+.ProseMirror h3 {
+  @apply text-lg sm:text-xl font-semibold mt-6 mb-3 leading-tight;
+}
+
+.ProseMirror h4 {
+  @apply text-base sm:text-lg font-semibold mt-6 mb-3 leading-tight;
+}
+
+.ProseMirror p {
+  @apply mb-6 leading-relaxed;
+}
+
+.ProseMirror ul {
+  @apply list-disc pl-6 mb-6;
+}
+
+.ProseMirror ol {
+  @apply list-decimal pl-6 mb-6;
+}
+
+.ProseMirror li {
+  @apply leading-relaxed mb-1;
+}
+
+.ProseMirror li p {
+  @apply mb-1;
+}
+
+.ProseMirror blockquote {
+  @apply border-l-2 border-primary/20 pl-4 italic text-muted-foreground my-8;
+}
+
+.ProseMirror a {
+  @apply text-primary underline underline-offset-4 font-medium;
+}
+
+.ProseMirror u {
+  @apply underline underline-offset-2;
+}
+
+.ProseMirror s,
+.ProseMirror del {
+  @apply line-through opacity-70;
+}
+
+.ProseMirror mark {
+  @apply bg-yellow-200 dark:bg-yellow-300/40 px-1 rounded;
+  color: inherit !important;
+}
+
+.ProseMirror code {
+  @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-primary;
+}
+
+.ProseMirror pre {
+  @apply bg-muted p-3 sm:p-4 rounded-lg overflow-x-auto my-4 sm:my-6 border text-sm;
+}
+
+.ProseMirror pre code {
+  @apply bg-transparent p-0 text-xs sm:text-sm;
+}
+
+.ProseMirror .code-block {
+  @apply bg-muted p-3 sm:p-4 rounded-lg overflow-x-auto my-4 sm:my-6 border font-mono text-xs sm:text-sm;
+}
+
+.ProseMirror img {
+  @apply rounded-lg my-6 sm:my-8 border max-w-full h-auto;
+}
+
+/* Image Node View Styles */
+.ProseMirror .image-node-view {
+  @apply my-6 sm:my-8;
+}
+
+.ProseMirror .image-node-view[data-align="left"] {
+  @apply ml-0 mr-auto;
+}
+
+.ProseMirror .image-node-view[data-align="center"] {
+  @apply mx-auto;
+}
+
+.ProseMirror .image-node-view[data-align="right"] {
+  @apply ml-auto mr-0;
+}
+
+.ProseMirror .image-node-view[data-align="full-width"] {
+  @apply w-full;
+}
+
+/* Image Selection State */
+.ProseMirror .image-node-view.selected {
+  @apply outline-2 outline-primary outline-offset-2;
+}
+
+/* Image Resize Handles */
+.ProseMirror .image-resize-handle {
+  @apply absolute bg-primary border-2 border-background rounded-full;
+  @apply w-3 h-3 z-10;
+  @apply hover:bg-primary/80;
+}
+
+.ProseMirror .image-resize-handle-nw {
+  @apply top-0 left-0 cursor-nw-resize;
+}
+
+.ProseMirror .image-resize-handle-ne {
+  @apply top-0 right-0 cursor-ne-resize;
+}
+
+.ProseMirror .image-resize-handle-sw {
+  @apply bottom-0 left-0 cursor-sw-resize;
+}
+
+.ProseMirror .image-resize-handle-se {
+  @apply bottom-0 right-0 cursor-se-resize;
+}
+
+.ProseMirror .image-resize-handle-n {
+  @apply top-0 left-1/2 -translate-x-1/2 cursor-n-resize;
+}
+
+.ProseMirror .image-resize-handle-s {
+  @apply bottom-0 left-1/2 -translate-x-1/2 cursor-s-resize;
+}
+
+.ProseMirror .image-resize-handle-e {
+  @apply top-1/2 right-0 -translate-y-1/2 cursor-e-resize;
+}
+
+.ProseMirror .image-resize-handle-w {
+  @apply top-1/2 left-0 -translate-y-1/2 cursor-w-resize;
+}
+
+/* Image Caption Styles */
+.ProseMirror [data-caption] {
+  @apply mt-2 text-sm text-muted-foreground text-center italic;
+  @apply max-w-2xl mx-auto;
+}
+
+/* Image Toolbar Styles */
+.image-toolbar {
+  @apply fixed z-50 bg-background border border-border rounded-lg shadow-lg;
+  @apply p-2 flex items-center gap-1;
+}
+
+/* Drag and Drop Zone */
+.ProseMirror.drag-over {
+  @apply ring-2 ring-primary ring-offset-2;
+}
+
+.ProseMirror .drop-indicator {
+  @apply absolute border-2 border-dashed border-primary bg-primary/5 rounded-lg;
+  @apply pointer-events-none z-50;
+}
+
+.ProseMirror hr {
+  @apply my-8 border-t-2 border-border;
+}
+
+.ProseMirror br {
+  content: "";
+}
+
+/* Task Lists */
+.ProseMirror ul[data-type="taskList"] {
+  list-style: none !important;
+  padding-left: 0 !important;
+  margin: 0.5rem 0 !important;
+}
+
+.ProseMirror ul[data-type="taskList"] li {
+  display: block !important;
+  position: relative;
+  margin: 0.375rem 0 !important;
+}
+
+.ProseMirror ul[data-type="taskList"] li>label,
+.ProseMirror ul[data-type="taskList"] li>div {
+  display: inline-flex !important;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.ProseMirror ul[data-type="taskList"] li>label {
+  cursor: pointer;
+  user-select: none;
+  margin-right: 0.5rem;
+}
+
+.ProseMirror ul[data-type="taskList"] li>label input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  margin: 0 !important;
+  flex-shrink: 0;
+}
+
+.ProseMirror ul[data-type="taskList"] li>div {
+  flex: 1;
+  max-width: calc(100% - 1.5rem);
+}
+
+.ProseMirror ul[data-type="taskList"] li>div>p {
+  margin: 0 !important;
+  display: inline;
+}
+
+.ProseMirror ul[data-type="taskList"] li[data-checked="true"]>div>p {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.ProseMirror ul[data-type="taskList"] ul[data-type="taskList"] {
+  display: block !important;
+  width: 100%;
+  margin-left: 1.5rem !important;
+  margin-top: 0.25rem !important;
+  margin-bottom: 0 !important;
+  padding-left: 0 !important;
+}
+
+/* Nested bullet lists */
+.ProseMirror ul:not([data-type="taskList"]) { list-style-type: disc; }
+.ProseMirror ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) { list-style-type: circle; margin-left: 1.5rem !important; }
+.ProseMirror ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) { list-style-type: square; margin-left: 1.5rem !important; }
+.ProseMirror ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) { list-style-type: disc; margin-left: 1.5rem !important; }
+.ProseMirror ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) { list-style-type: circle; margin-left: 1.5rem !important; }
+.ProseMirror ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) { list-style-type: square; margin-left: 1.5rem !important; }
+.ProseMirror ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) { list-style-type: disc; margin-left: 1.5rem !important; }
+.ProseMirror ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) { list-style-type: circle; margin-left: 1.5rem !important; }
+
+/* Nested numbered lists */
+.ProseMirror ol { list-style-type: decimal; }
+.ProseMirror ol ol { list-style-type: lower-alpha; margin-left: 1.5rem !important; }
+.ProseMirror ol ol ol { list-style-type: lower-roman; margin-left: 1.5rem !important; }
+.ProseMirror ol ol ol ol { list-style-type: decimal; margin-left: 1.5rem !important; }
+.ProseMirror ol ol ol ol ol { list-style-type: lower-alpha; margin-left: 1.5rem !important; }
+.ProseMirror ol ol ol ol ol ol { list-style-type: lower-roman; margin-left: 1.5rem !important; }
+.ProseMirror ol ol ol ol ol ol ol { list-style-type: decimal; margin-left: 1.5rem !important; }
+.ProseMirror ol ol ol ol ol ol ol ol { list-style-type: lower-alpha; margin-left: 1.5rem !important; }
+
+/* Syntax highlighting */
+.ProseMirror .hljs-comment, .ProseMirror .hljs-quote { @apply text-muted-foreground/70 italic; }
+.ProseMirror .hljs-keyword, .ProseMirror .hljs-selector-tag, .ProseMirror .hljs-addition { @apply text-purple-600 dark:text-purple-400; }
+.ProseMirror .hljs-number, .ProseMirror .hljs-string, .ProseMirror .hljs-meta .hljs-string, .ProseMirror .hljs-literal, .ProseMirror .hljs-doctag, .ProseMirror .hljs-regexp { @apply text-green-600 dark:text-green-400; }
+.ProseMirror .hljs-title, .ProseMirror .hljs-section, .ProseMirror .hljs-name, .ProseMirror .hljs-selector-id, .ProseMirror .hljs-selector-class { @apply text-blue-600 dark:text-blue-400; }
+.ProseMirror .hljs-attribute, .ProseMirror .hljs-attr, .ProseMirror .hljs-variable, .ProseMirror .hljs-template-variable, .ProseMirror .hljs-class .hljs-title, .ProseMirror .hljs-type { @apply text-orange-600 dark:text-orange-400; }
+.ProseMirror .hljs-symbol, .ProseMirror .hljs-bullet, .ProseMirror .hljs-subst, .ProseMirror .hljs-meta, .ProseMirror .hljs-link { @apply text-cyan-600 dark:text-cyan-400; }
+.ProseMirror .hljs-built_in, .ProseMirror .hljs-deletion { @apply text-red-600 dark:text-red-400; }
+.ProseMirror .hljs-formula { @apply bg-muted-foreground/10; }
+.ProseMirror .hljs-emphasis { @apply italic; }
+.ProseMirror .hljs-strong { @apply font-bold; }

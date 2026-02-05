@@ -1,6 +1,7 @@
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { Image } from './image-extension'
+import './editor-styles.css'
 import Link from '@tiptap/extension-link'
 import { uploadImage, isImageFile, dataURLtoFile } from '@/lib/image-upload'
 import { ImageUploadProgress } from './image-upload-progress'
