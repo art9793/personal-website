@@ -137,7 +137,7 @@ export function WorkTab() {
   };
 
   return (
-    <div className="space-y-4 animate-in fade-in-50 duration-500">
+    <div className="space-y-4 animate-in fade-in-50 duration-300">
       <div className="hidden md:block mb-6">
         <h2 className="text-2xl font-bold tracking-tight">Work History</h2>
       </div>

@@ -1,34 +1,55 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Save } from "lucide-react";
+import { Save, Loader2 } from "lucide-react";
 import { useContent } from "@/lib/content-context";
+import { useToast } from "@/hooks/use-toast";
 
 export function SEOTab() {
   const { seoSettings, updateSeoSettings } = useContent();
+  const { toast } = useToast();
   const [seoFormData, setSeoFormData] = useState(seoSettings);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const defaultSeo = {
+    siteTitle: "Portfolio",
+    siteDescription: "Welcome to my portfolio",
+    siteKeywords: "",
+    ogTitle: "",
+    ogDescription: "",
+    ogImage: "",
+    twitterCard: "summary_large_image",
+    twitterSite: "",
+    twitterCreator: "",
+    faviconUrl: ""
+  };
 
   useEffect(() => {
-    setSeoFormData(seoSettings || {
-      siteTitle: "Portfolio",
-      siteDescription: "Welcome to my portfolio",
-      siteKeywords: "",
-      ogTitle: "",
-      ogDescription: "",
-      ogImage: "",
-      twitterCard: "summary_large_image",
-      twitterSite: "",
-      twitterCreator: "",
-      faviconUrl: ""
-    });
+    setSeoFormData(seoSettings || defaultSeo);
   }, [seoSettings]);
 
+  const isDirty = useMemo(() => {
+    const initial = seoSettings || defaultSeo;
+    if (!seoFormData) return false;
+    return Object.keys(initial).some(
+      (key) => (seoFormData as any)[key] !== (initial as any)[key]
+    );
+  }, [seoFormData, seoSettings]);
+
   const handleSaveSeoSettings = async () => {
-    if (!seoFormData) return;
-    await updateSeoSettings(seoFormData);
+    if (!seoFormData || isSaving) return;
+    setIsSaving(true);
+    try {
+      await updateSeoSettings(seoFormData);
+      toast({ title: "SEO Settings Saved", description: "Your SEO settings have been updated." });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to save SEO settings.", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -147,9 +168,13 @@ export function SEOTab() {
         </CardContent>
       </Card>
 
-      <Button onClick={handleSaveSeoSettings} data-testid="button-save-seo">
-        <Save className="h-4 w-4 mr-2" />
-        Save SEO Settings
+      <Button onClick={handleSaveSeoSettings} disabled={!isDirty || isSaving} data-testid="button-save-seo">
+        {isSaving ? (
+          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+        ) : (
+          <Save className="h-4 w-4 mr-2" />
+        )}
+        {isSaving ? "Saving..." : "Save SEO Settings"}
       </Button>
     </div>
   );

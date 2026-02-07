@@ -74,7 +74,7 @@ export default function Home() {
   }
 
   return (
-    <div className="space-y-12 animate-in fade-in-50 duration-500">
+    <div className="space-y-12 animate-in fade-in-50 duration-300">
       <div className="flex flex-col-reverse md:flex-row md:items-center gap-8 md:gap-12">
         <div className="flex-1 space-y-8">
           {profile.avatarUrl && (

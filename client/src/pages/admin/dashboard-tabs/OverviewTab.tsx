@@ -35,7 +35,7 @@ export function OverviewTab({
   const totalViews = analytics?.totalViews || 0;
 
   return (
-    <div className="space-y-4 md:space-y-8 animate-in fade-in-50 duration-500">
+    <div className="space-y-4 md:space-y-8 animate-in fade-in-50 duration-300">
       <div className="hidden md:block">
         <h2 className="text-3xl font-bold tracking-tight">Welcome, {profileName?.split(' ')[0] || 'Admin'}!</h2>
         <p className="text-muted-foreground mt-1">Here's what's happening with your website today.</p>

@@ -511,7 +511,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Settings Drawer/Panel */}
-              <div className="mt-8 md:mt-32 border-t pt-6 md:pt-12 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-16 opacity-40 hover:opacity-100 transition-all duration-500 ease-in-out group">
+              <div className="mt-8 md:mt-32 border-t pt-6 md:pt-12 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-16 opacity-70 hover:opacity-100 transition-all duration-300 ease-in-out group">
                   <div className="space-y-6">
                      <div className="flex items-center gap-2 text-sm font-medium text-foreground/70">
                         <Settings className="h-4 w-4" />

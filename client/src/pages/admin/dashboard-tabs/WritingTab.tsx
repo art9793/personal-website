@@ -16,15 +16,23 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function WritingTab() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const { articles, updateArticle, deleteArticle } = useContent();
+  const { articles, updateArticle, deleteArticle, isLoading } = useContent();
 
   const [articleStatusFilter, setArticleStatusFilter] = useState<"all" | "draft" | "published">("all");
   const [filterQuery, setFilterQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
+  const [deleteArticleId, setDeleteArticleId] = useState<number | null>(null);
+  const [toggleArticle, setToggleArticle] = useState<Article | null>(null);
 
   const draftArticlesCount = useMemo(() =>
     articles.filter(a => a.status === "Draft").length,
@@ -90,7 +98,7 @@ export function WritingTab() {
     return article.slug?.trim() !== '' && article.title?.trim() !== '';
   };
 
-  const toggleArticleStatus = async (article: Article) => {
+  const handleToggleRequest = (article: Article) => {
     if (article.status === "Draft" && !canPublishArticle(article)) {
       toast({
         title: "Cannot Publish",
@@ -99,30 +107,41 @@ export function WritingTab() {
       });
       return;
     }
+    setToggleArticle(article);
+  };
 
-    const newStatus = article.status === "Published" ? "Draft" : "Published";
+  const confirmToggleStatus = async () => {
+    if (!toggleArticle) return;
+    const newStatus = toggleArticle.status === "Published" ? "Draft" : "Published";
     try {
-      await updateArticle(article.id, { status: newStatus });
+      await updateArticle(toggleArticle.id, { status: newStatus });
       toast({
         title: `Article ${newStatus}`,
-        description: `"${article.title}" is now ${newStatus.toLowerCase()}.`,
+        description: `"${toggleArticle.title}" is now ${newStatus.toLowerCase()}.`,
       });
     } catch (error) {
       console.error("Error updating article status:", error);
       toast({ title: "Error", description: "Failed to update article status.", variant: "destructive" });
+    } finally {
+      setToggleArticle(null);
     }
   };
 
-  const handleDeleteArticle = async (id: number, e: React.MouseEvent) => {
+  const handleDeleteArticle = (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm("Are you sure you want to delete this article?")) {
-      try {
-        await deleteArticle(id);
-        toast({ title: "Article Deleted", description: "The article has been permanently removed.", variant: "destructive" });
-      } catch (error) {
-        console.error("Error deleting article:", error);
-        toast({ title: "Error", description: "Failed to delete article. Please try again.", variant: "destructive" });
-      }
+    setDeleteArticleId(id);
+  };
+
+  const confirmDeleteArticle = async () => {
+    if (deleteArticleId === null) return;
+    try {
+      await deleteArticle(deleteArticleId);
+      toast({ title: "Article Deleted", description: "The article has been permanently removed.", variant: "destructive" });
+    } catch (error) {
+      console.error("Error deleting article:", error);
+      toast({ title: "Error", description: "Failed to delete article. Please try again.", variant: "destructive" });
+    } finally {
+      setDeleteArticleId(null);
     }
   };
 
@@ -138,8 +157,39 @@ export function WritingTab() {
     return `${minutes} min read`;
   };
 
+  if (isLoading) {
+    return (
+      <div className="space-y-4 animate-in fade-in-50 duration-300">
+        <div className="hidden md:block mb-6">
+          <Skeleton className="h-8 w-24" />
+        </div>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+          <Skeleton className="h-9 w-full md:w-64" />
+          <Skeleton className="h-9 w-full md:w-32" />
+        </div>
+        <Skeleton className="h-9 w-72 mb-4" />
+        <div className="border rounded-md bg-background overflow-hidden">
+          <div className="bg-muted/50 px-4 py-3">
+            <div className="flex gap-8">
+              {[1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="h-4 w-20" />)}
+            </div>
+          </div>
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex items-center gap-4 px-4 py-3 border-t">
+              <Skeleton className="h-6 w-6 rounded" />
+              <Skeleton className="h-4 w-48" />
+              <Skeleton className="h-4 w-24 ml-auto" />
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-4 w-12" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4 animate-in fade-in-50 duration-500">
+    <div className="space-y-4 animate-in fade-in-50 duration-300">
       <div className="hidden md:block mb-6">
         <h2 className="text-2xl font-bold tracking-tight">Writing</h2>
       </div>
@@ -259,14 +309,14 @@ export function WritingTab() {
                                 <Checkbox
                                     checked={article.status === "Published"}
                                     disabled={article.status === "Draft" && !canPublishArticle(article)}
-                                    onCheckedChange={() => toggleArticleStatus(article)}
+                                    onCheckedChange={() => handleToggleRequest(article)}
                                     data-testid={`checkbox-publish-${article.id}`}
                                 />
                             </TableCell>
                             <TableCell>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100">
+                                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-60 hover:opacity-100 md:opacity-0 md:group-hover:opacity-100">
                                             <MoreHorizontal className="h-3 w-3" />
                                         </Button>
                                     </DropdownMenuTrigger>
@@ -287,6 +337,47 @@ export function WritingTab() {
         </Table>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteArticleId !== null} onOpenChange={(open) => { if (!open) setDeleteArticleId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Article</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the article.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteArticle} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Publish/Unpublish Confirmation Dialog */}
+      <AlertDialog open={toggleArticle !== null} onOpenChange={(open) => { if (!open) setToggleArticle(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {toggleArticle?.status === "Published" ? "Unpublish Article" : "Publish Article"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {toggleArticle?.status === "Published"
+                ? `"${toggleArticle?.title}" will be reverted to draft and no longer visible to readers.`
+                : `"${toggleArticle?.title}" will be published and visible to all readers.`
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmToggleStatus}>
+              {toggleArticle?.status === "Published" ? "Unpublish" : "Publish"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

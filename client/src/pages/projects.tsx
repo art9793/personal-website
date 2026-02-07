@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, FolderGit2 } from "lucide-react";
 import { useProjects } from "@/lib/content-hooks";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
@@ -18,7 +18,7 @@ export default function Projects() {
   }, [projects]);
 
   return (
-    <div className="space-y-12 animate-in fade-in-50 duration-500">
+    <div className="space-y-12 animate-in fade-in-50 duration-300">
       <div className="space-y-4">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Projects</h1>
         <p className="text-muted-foreground text-lg">
@@ -27,7 +27,10 @@ export default function Projects() {
       </div>
 
       {activeProjects.length === 0 ? (
-        <div className="text-muted-foreground italic">No projects yet.</div>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <FolderGit2 className="h-8 w-8 text-muted-foreground/40 mb-4" />
+          <p className="text-muted-foreground">No projects yet.</p>
+        </div>
       ) : (
         <div className="space-y-1">
           {activeProjects.map((project) => {

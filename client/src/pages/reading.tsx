@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { Star, BookOpen } from "lucide-react";
 import { useReadingList } from "@/lib/content-hooks";
 import { useMemo } from "react";
 import { ReadingSkeleton } from "@/components/skeletons/PageSkeletons";
@@ -24,7 +24,7 @@ export default function Reading() {
   }
 
   return (
-    <div className="space-y-12 animate-in fade-in-50 duration-500">
+    <div className="space-y-12 animate-in fade-in-50 duration-300">
       <div className="space-y-4">
         <h1 className="text-3xl font-bold tracking-tight">Reading</h1>
         <p className="text-muted-foreground text-lg">
@@ -33,7 +33,10 @@ export default function Reading() {
       </div>
 
       {readingList.length === 0 ? (
-        <div className="text-muted-foreground italic">No books added yet.</div>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <BookOpen className="h-8 w-8 text-muted-foreground/40 mb-4" />
+          <p className="text-muted-foreground">No books added yet.</p>
+        </div>
       ) : (
         <div className="relative border-l border-border ml-2 sm:ml-3 space-y-12">
           {Object.entries(groupedBooks)

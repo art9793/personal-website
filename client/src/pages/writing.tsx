@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "wouter";
+import { PenTool } from "lucide-react";
 import { useArticles } from "@/lib/content-hooks";
 import { format } from "date-fns";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
@@ -30,7 +31,7 @@ export default function Writing() {
   }, [publishedPosts]);
 
   return (
-    <div className="space-y-12 animate-in fade-in-50 duration-500">
+    <div className="space-y-12 animate-in fade-in-50 duration-300">
       <div className="space-y-4">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Writing</h1>
         <p className="text-muted-foreground text-lg">
@@ -40,7 +41,10 @@ export default function Writing() {
 
       <div className="space-y-10">
         {Object.keys(postsByYear).length === 0 ? (
-          <div className="text-muted-foreground italic">No articles published yet.</div>
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <PenTool className="h-8 w-8 text-muted-foreground/40 mb-4" />
+            <p className="text-muted-foreground">No articles published yet.</p>
+          </div>
         ) : (
           Object.entries(postsByYear).sort((a, b) => Number(b[0]) - Number(a[0])).map(([year, yearPosts]) => (
             <div key={year} className="space-y-4">

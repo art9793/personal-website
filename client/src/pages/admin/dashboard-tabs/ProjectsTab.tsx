@@ -22,16 +22,23 @@ import {
   Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle,
   SheetTrigger, SheetFooter, SheetClose,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function ProjectsTab() {
   const { toast } = useToast();
-  const { projects, addProject, updateProject, deleteProject } = useContent();
+  const { projects, addProject, updateProject, deleteProject, isLoading } = useContent();
 
   const [isProjectSheetOpen, setIsProjectSheetOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [isSavingProject, setIsSavingProject] = useState(false);
   const [filterQuery, setFilterQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
+  const [deleteProjectId, setDeleteProjectId] = useState<number | null>(null);
 
   const filteredProjects = useMemo(() => {
     let result = [...projects];
@@ -113,29 +120,64 @@ export function ProjectsTab() {
     }
   };
 
-  const handleDeleteProject = async (id: number, e: React.MouseEvent) => {
+  const handleDeleteProject = (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm("Are you sure you want to delete this project?")) {
-      try {
-        await deleteProject(id);
-        toast({
-          title: "Project Deleted",
-          description: "The project has been permanently removed.",
-          variant: "destructive"
-        });
-      } catch (error) {
-        console.error("Error deleting project:", error);
-        toast({
-          title: "Error",
-          description: "Failed to delete project. Please try again.",
-          variant: "destructive"
-        });
-      }
+    setDeleteProjectId(id);
+  };
+
+  const confirmDeleteProject = async () => {
+    if (deleteProjectId === null) return;
+    try {
+      await deleteProject(deleteProjectId);
+      toast({
+        title: "Project Deleted",
+        description: "The project has been permanently removed.",
+        variant: "destructive"
+      });
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete project. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setDeleteProjectId(null);
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="space-y-4 animate-in fade-in-50 duration-300">
+        <div className="hidden md:block mb-6">
+          <Skeleton className="h-8 w-24" />
+        </div>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+          <Skeleton className="h-9 w-full md:w-64" />
+          <Skeleton className="h-9 w-full md:w-32" />
+        </div>
+        <div className="border rounded-md bg-background overflow-hidden">
+          <div className="bg-muted/50 px-4 py-3">
+            <div className="flex gap-8">
+              {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-4 w-20" />)}
+            </div>
+          </div>
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex items-center gap-4 px-4 py-3 border-t">
+              <Skeleton className="h-8 w-8 rounded" />
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-4 w-48 ml-auto" />
+              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-5 w-10" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4 animate-in fade-in-50 duration-500">
+    <div className="space-y-4 animate-in fade-in-50 duration-300">
       <div className="hidden md:block mb-6">
         <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
       </div>
@@ -357,7 +399,7 @@ export function ProjectsTab() {
                             <TableCell>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100">
+                                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-60 hover:opacity-100 md:opacity-0 md:group-hover:opacity-100">
                                             <MoreHorizontal className="h-3 w-3" />
                                         </Button>
                                     </DropdownMenuTrigger>
@@ -378,6 +420,24 @@ export function ProjectsTab() {
         </Table>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteProjectId !== null} onOpenChange={(open) => { if (!open) setDeleteProjectId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Project</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the project.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteProject} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

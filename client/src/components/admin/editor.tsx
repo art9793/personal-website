@@ -882,7 +882,12 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
         autolink: true,
       }),
       Placeholder.configure({
-        placeholder: 'Tell your story...',
+        placeholder: ({ node }) => {
+          if (node.type.name === 'heading') {
+            return `Heading ${node.attrs.level}`
+          }
+          return 'Type / for commands...'
+        },
       }),
       SlashCommand,
     ],

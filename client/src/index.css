@@ -132,6 +132,22 @@
   .shadow-lg {
     box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.04), 0 4px 6px -4px rgb(0 0 0 / 0.04);
   }
+
+  .hover-elevate {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .hover-elevate:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+  }
+
+  .active-elevate-2 {
+    transition: transform 0.1s ease;
+  }
+  .active-elevate-2:active {
+    transform: translateY(1px);
+    box-shadow: none;
+  }
 }
 
 /* Article Content Styles */

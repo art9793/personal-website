@@ -83,6 +83,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const isWritingPage = location === "/writing";
   const isArticlePage = location.startsWith("/article/");
   const isProjectsPage = location === "/projects";
+
   const isTravelPage = location === "/travel";
   const isWorkPage = location === "/work";
 

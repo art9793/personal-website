@@ -75,11 +75,11 @@ export default function AdminLogin() {
                   type="email"
                   placeholder="admin@example.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { setEmail(e.target.value); setError(""); }}
                   required
                   disabled={isLoading}
                   data-testid="input-email"
-                  className="h-12"
+                  className={`h-12 ${error ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 />
               </div>
 
@@ -90,11 +90,11 @@ export default function AdminLogin() {
                   type="password"
                   placeholder="Enter your password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => { setPassword(e.target.value); setError(""); }}
                   required
                   disabled={isLoading}
                   data-testid="input-password"
-                  className="h-12"
+                  className={`h-12 ${error ? "border-destructive focus-visible:ring-destructive" : ""}`}
                 />
               </div>
             </div>
