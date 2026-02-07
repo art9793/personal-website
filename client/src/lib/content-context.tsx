@@ -53,16 +53,16 @@ export function ContentProvider({ children }: { children: ReactNode }) {
     updateSeoSettings,
     addArticle,
     updateArticle,
-    deleteArticle,
+    deleteArticle: async (id: number) => { await deleteArticle(id); },
     addProject,
     updateProject,
-    deleteProject,
+    deleteProject: async (id: number) => { await deleteProject(id); },
     addWork,
     updateWork,
-    deleteWork,
+    deleteWork: async (id: number) => { await deleteWork(id); },
     addReadingListItem,
     updateReadingListItem,
-    deleteReadingListItem,
+    deleteReadingListItem: async (id: number) => { await deleteReadingListItem(id); },
   };
 
   return <ContentContext.Provider value={value}>{children}</ContentContext.Provider>;

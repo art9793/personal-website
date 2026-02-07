@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRoute, useLocation } from "wouter";
 import { ArrowLeft, Eye, CheckCircle, AlertCircle, FileText, Tag, Globe, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -49,7 +49,8 @@ export default function ArticleEditor() {
   const [isPublishSheetOpen, setIsPublishSheetOpen] = useState(false);
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [hasManuallyEditedSlug, setHasManuallyEditedSlug] = useState(false);
-  const [initialContent, setInitialContent] = useState({ 
+  const isSaving = useRef(false);
+  const [initialContent, setInitialContent] = useState({
     title: existingArticle?.title || "", 
     content: existingArticle?.content || "", 
     slug: existingArticle?.slug || "",
@@ -114,7 +115,7 @@ export default function ArticleEditor() {
     }
   }, [title, content, slug, excerpt, tags, seoKeywords, initialContent]);
 
-  // Warn before leaving with unsaved changes
+  // Warn before leaving with unsaved changes (page refresh/close + browser back)
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (saveStatus === "unsaved") {
@@ -123,13 +124,30 @@ export default function ArticleEditor() {
       }
     };
 
+    const handlePopState = () => {
+      if (saveStatus === "unsaved") {
+        // Push state back to prevent navigation, show dialog instead
+        window.history.pushState(null, "", window.location.href);
+        setIsLeaveDialogOpen(true);
+      }
+    };
+
     window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    // Push an entry so we can detect back-button presses
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePopState);
+    };
   }, [saveStatus]);
 
   const handleSaveDraft = useCallback(async () => {
+    if (isSaving.current) return;
+    isSaving.current = true;
     setSaveStatus("saving");
-    
+
     try {
       if (articleId && existingArticle) {
         // Update existing article - preserve existing status and published timestamps
@@ -197,6 +215,8 @@ export default function ArticleEditor() {
         description: "Failed to save your changes. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      isSaving.current = false;
     }
   }, [articleId, existingArticle, title, content, slug, excerpt, tags, seoKeywords, updateArticle, addArticle, toast, setLocation]);
 

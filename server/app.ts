@@ -123,7 +123,7 @@ app.use((req, res, next) => {
   }
 
   const originalJson = res.json;
-  res.json = function (body: any, ...args: any[]) {
+  res.json = function (body: any) {
     const content = JSON.stringify(body);
     const hash = createHash('md5').update(content).digest('hex').slice(0, 16);
     const etag = `W/"${hash}"`;
@@ -136,7 +136,7 @@ app.use((req, res, next) => {
       return res;
     }
 
-    return originalJson.apply(res, [body, ...args]);
+    return originalJson.call(res, body);
   };
 
   next();

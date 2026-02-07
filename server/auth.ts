@@ -96,9 +96,9 @@ export const isAdmin: RequestHandler = async (req, res, next) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const allowedEmail = process.env.ADMIN_EMAIL || "art9793@gmail.com";
+  const allowedEmail = process.env.ADMIN_EMAIL;
 
-  if (user.email !== allowedEmail) {
+  if (!allowedEmail || user.email !== allowedEmail) {
     return res.status(403).json({ 
       message: "Access denied. Only the site owner can access this area." 
     });

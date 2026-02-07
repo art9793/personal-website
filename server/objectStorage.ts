@@ -2,6 +2,7 @@
 import { Storage, File } from "@google-cloud/storage";
 import { Response } from "express";
 import { randomUUID } from "crypto";
+import path from "path";
 import {
   ObjectAclPolicy,
   ObjectPermission,
@@ -150,8 +151,18 @@ export class ObjectStorageService {
     }
   }
 
+  private static ALLOWED_CONTENT_TYPES = [
+    'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+    'application/pdf',
+  ];
+
+  private static MAX_UPLOAD_SIZE = 10 * 1024 * 1024; // 10MB
+
   // Gets the upload URL for an object entity.
-  async getObjectEntityUploadURL(): Promise<{ uploadURL: string; objectPath: string }> {
+  async getObjectEntityUploadURL(contentType?: string): Promise<{ uploadURL: string; objectPath: string }> {
+    if (contentType && !ObjectStorageService.ALLOWED_CONTENT_TYPES.includes(contentType)) {
+      throw new Error(`File type not allowed. Allowed types: ${ObjectStorageService.ALLOWED_CONTENT_TYPES.join(', ')}`);
+    }
     const privateObjectDir = this.getPrivateObjectDir();
     if (!privateObjectDir) {
       throw new Error(
@@ -171,6 +182,8 @@ export class ObjectStorageService {
       objectName,
       method: "PUT",
       ttlSec: 900,
+      contentType,
+      maxContentLength: ObjectStorageService.MAX_UPLOAD_SIZE,
     });
     
     // Return both the upload URL and the normalized object path
@@ -191,7 +204,9 @@ export class ObjectStorageService {
     }
 
     const entityId = parts.slice(1).join("/");
-    if (entityId.includes("..")) {
+    const decodedEntityId = decodeURIComponent(entityId);
+    const normalized = path.normalize(decodedEntityId);
+    if (normalized.includes("..") || normalized.startsWith("/") || decodedEntityId.includes("..")) {
       throw new ObjectNotFoundError();
     }
     let entityDir = this.getPrivateObjectDir();
@@ -301,15 +316,19 @@ async function signObjectURL({
   objectName,
   method,
   ttlSec,
+  contentType,
+  maxContentLength,
 }: {
   bucketName: string;
   objectName: string;
   method: "GET" | "PUT" | "DELETE" | "HEAD";
   ttlSec: number;
+  contentType?: string;
+  maxContentLength?: number;
 }): Promise<string> {
   const bucket = objectStorageClient.bucket(bucketName);
   const file = bucket.file(objectName);
-  
+
   // Map HTTP methods to GCS signed URL actions
   const actionMap: Record<string, 'read' | 'write' | 'delete' | 'resumable'> = {
     'GET': 'read',
@@ -317,14 +336,26 @@ async function signObjectURL({
     'DELETE': 'delete',
     'HEAD': 'read',
   };
-  
+
   const action = actionMap[method] || 'read';
-  
-  const [url] = await file.getSignedUrl({
+
+  const options: Parameters<typeof file.getSignedUrl>[0] = {
     version: 'v4',
     action: action,
     expires: Date.now() + ttlSec * 1000,
-  });
-  
+  };
+
+  if (contentType) {
+    options.contentType = contentType;
+  }
+
+  if (maxContentLength) {
+    options.extensionHeaders = {
+      'x-goog-content-length-range': `0,${maxContentLength}`,
+    };
+  }
+
+  const [url] = await file.getSignedUrl(options);
+
   return url;
 }

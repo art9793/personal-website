@@ -163,6 +163,7 @@ interface SitemapCache {
 }
 
 let sitemapCache: SitemapCache | null = null;
+let sitemapGenerating: Promise<string> | null = null;
 const SITEMAP_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
 // Function to invalidate sitemap cache (call when articles/projects are updated)
@@ -173,28 +174,42 @@ export function invalidateSitemapCache() {
 // Function to generate sitemap XML
 async function generateSitemap(): Promise<string> {
   const baseUrl = getDeploymentUrl();
-  
-  // Get published articles directly from DB (filtered query, not N+1)
-  const publishedArticles = (await storage.getPublishedArticles())
-    .filter(a => a.slug) // Only include articles with slugs
-    .sort((a, b) => {
-      const dateA = a.updatedAt || a.publishedAt || a.createdAt;
-      const dateB = b.updatedAt || b.publishedAt || b.createdAt;
-      const timeA = dateA ? new Date(dateA).getTime() : 0;
-      const timeB = dateB ? new Date(dateB).getTime() : 0;
-      return timeB - timeA; // Most recent first
-    });
 
-  // Get active projects directly from DB (filtered query, not N+1)
-  const activeProjects = (await storage.getActiveProjects())
-    .sort((a, b) => {
-      const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
-      const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
-      return timeB - timeA; // Most recent first
-    });
-  
-  // Get profile for lastmod date
-  const profile = await storage.getProfile();
+  // Fetch data with individual error handling — degrade gracefully
+  let publishedArticles: Awaited<ReturnType<typeof storage.getPublishedArticles>> = [];
+  let activeProjects: Awaited<ReturnType<typeof storage.getActiveProjects>> = [];
+  let profile: Awaited<ReturnType<typeof storage.getProfile>> = undefined;
+
+  try {
+    publishedArticles = (await storage.getPublishedArticles())
+      .filter(a => a.slug)
+      .sort((a, b) => {
+        const dateA = a.updatedAt || a.publishedAt || a.createdAt;
+        const dateB = b.updatedAt || b.publishedAt || b.createdAt;
+        const timeA = dateA ? new Date(dateA).getTime() : 0;
+        const timeB = dateB ? new Date(dateB).getTime() : 0;
+        return timeB - timeA;
+      });
+  } catch (err) {
+    console.error("Sitemap: failed to fetch articles:", err);
+  }
+
+  try {
+    activeProjects = (await storage.getActiveProjects())
+      .sort((a, b) => {
+        const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+        const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+        return timeB - timeA;
+      });
+  } catch (err) {
+    console.error("Sitemap: failed to fetch projects:", err);
+  }
+
+  try {
+    profile = await storage.getProfile();
+  } catch (err) {
+    console.error("Sitemap: failed to fetch profile:", err);
+  }
   const profileLastmod = profile?.updatedAt ? formatSitemapDate(profile.updatedAt) : formatSitemapDate(new Date());
 
   // Get most recent article date for /writing page
@@ -307,9 +322,14 @@ Sitemap: ${baseUrl}/sitemap.xml
         return res.send(sitemapCache.content);
       }
       
-      // Generate new sitemap
-      const sitemap = await generateSitemap();
-      
+      // Deduplicate concurrent generation requests
+      if (!sitemapGenerating) {
+        sitemapGenerating = generateSitemap().finally(() => {
+          sitemapGenerating = null;
+        });
+      }
+      const sitemap = await sitemapGenerating;
+
       // Cache the result
       sitemapCache = {
         content: sitemap,
@@ -376,10 +396,14 @@ Sitemap: ${baseUrl}/sitemap.xml
   // Endpoint for getting upload URL (admin only)
   app.post('/api/objects/upload', isAdmin, async (req, res) => {
     try {
+      const contentType = req.body?.contentType as string | undefined;
       const objectStorageService = new ObjectStorageService();
-      const { uploadURL, objectPath } = await objectStorageService.getObjectEntityUploadURL();
+      const { uploadURL, objectPath } = await objectStorageService.getObjectEntityUploadURL(contentType);
       res.json({ uploadURL, objectPath });
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.message?.includes('File type not allowed')) {
+        return res.status(400).json({ message: error.message });
+      }
       console.error("Error getting upload URL:", error);
       res.status(500).json({ message: "Failed to get upload URL" });
     }
@@ -576,8 +600,8 @@ Sitemap: ${baseUrl}/sitemap.xml
       // Only serve non-published articles to admin users
       if (article.status !== "Published") {
         const user = req.user as User | undefined;
-        const allowedEmail = process.env.ADMIN_EMAIL || "art9793@gmail.com";
-        if (!req.isAuthenticated() || !user || user.email !== allowedEmail) {
+        const allowedEmail = process.env.ADMIN_EMAIL;
+        if (!allowedEmail || !req.isAuthenticated() || !user || user.email !== allowedEmail) {
           return res.status(404).json({ message: "Article not found" });
         }
       }

@@ -162,7 +162,7 @@ export const workExperiences = pgTable("work_experiences", {
   company: varchar("company", { length: 255 }).notNull(),
   role: varchar("role", { length: 255 }).notNull(),
   startDate: varchar("start_date", { length: 50 }).notNull(),
-  endDate: varchar("end_date", { length: 50 }).notNull(),
+  endDate: varchar("end_date", { length: 50 }),
   description: text("description").notNull(),
   logo: text("logo"),
   createdAt: timestamp("created_at").defaultNow(),

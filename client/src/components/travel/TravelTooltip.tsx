@@ -27,7 +27,7 @@ export function TravelTooltip({ countryName, visits, isHomeCountry = false }: Tr
     if (years.length === 0) return "n/a";
     
     // Get unique years and sort them
-    const uniqueYears = [...new Set(years)].sort((a, b) => a - b);
+    const uniqueYears = Array.from(new Set(years)).sort((a, b) => a - b);
     
     // Return comma-separated full years
     return uniqueYears.join(", ");
