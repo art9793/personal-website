@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import { relations } from 'drizzle-orm';
 import {
   index,
+  integer,
   jsonb,
   pgTable,
   timestamp,
@@ -99,21 +100,20 @@ export type SeoSettings = typeof seoSettings.$inferSelect;
 export const articles = pgTable("articles", {
   id: serial("id").primaryKey(),
   title: varchar("title", { length: 500 }).notNull(),
-  slug: varchar("slug", { length: 500 }),
+  slug: varchar("slug", { length: 500 }).unique(),
   content: text("content").notNull(),
   excerpt: text("excerpt"),
   tags: text("tags"),
   seoKeywords: text("seo_keywords"),
   author: varchar("author", { length: 255 }).notNull(),
   status: varchar("status", { length: 50 }).notNull().default("Draft"),
-  views: varchar("views", { length: 50 }).notNull().default("0"),
+  views: integer("views").notNull().default(0),
   publishedAt: timestamp("published_at"),
   firstPublishedAt: timestamp("first_published_at"),
   lastPublishedAt: timestamp("last_published_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
-  index("idx_articles_slug").on(table.slug),
   index("idx_articles_status").on(table.status),
   index("idx_articles_created_at").on(table.createdAt),
 ]);

@@ -7,14 +7,15 @@ import passport from "passport";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission, setObjectAclPolicy } from "./objectAcl";
 import { logError } from "./app";
-import { 
+import {
   insertProfileSchema,
   insertArticleSchema,
   insertProjectSchema,
   insertWorkExperienceSchema,
   insertReadingListSchema,
   insertSeoSettingsSchema,
-  insertTravelHistorySchema
+  insertTravelHistorySchema,
+  type User,
 } from "@shared/schema";
 
 // Rate limiting for auth endpoints
@@ -571,6 +572,14 @@ Sitemap: ${baseUrl}/sitemap.xml
       const article = await storage.getArticleBySlug(req.params.slug);
       if (!article) {
         return res.status(404).json({ message: "Article not found" });
+      }
+      // Only serve non-published articles to admin users
+      if (article.status !== "Published") {
+        const user = req.user as User | undefined;
+        const allowedEmail = process.env.ADMIN_EMAIL || "art9793@gmail.com";
+        if (!req.isAuthenticated() || !user || user.email !== allowedEmail) {
+          return res.status(404).json({ message: "Article not found" });
+        }
       }
       res.json(article);
     } catch (error) {

@@ -114,27 +114,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateProfile(data: Partial<InsertProfile>): Promise<Profile> {
-    // Try update first (most common case), then insert if no rows exist
-    const updated = await db
-      .update(profiles)
-      .set({ ...data, updatedAt: new Date() })
-      .returning();
+    return await db.transaction(async (tx) => {
+      // Lock existing row if any
+      const [existing] = await tx.select().from(profiles).limit(1).for("update");
 
-    if (updated.length > 0) {
-      return updated[0];
-    }
+      if (existing) {
+        const [updated] = await tx
+          .update(profiles)
+          .set({ ...data, updatedAt: new Date() })
+          .where(eq(profiles.id, existing.id))
+          .returning();
+        return updated;
+      }
 
-    // No profile exists, create one
-    const [created] = await db
-      .insert(profiles)
-      .values({
-        name: data.name || "Your Name",
-        title: data.title || "Your Title",
-        bio: data.bio || "Your bio here",
-        ...data,
-      } as InsertProfile)
-      .returning();
-    return created;
+      // No profile exists, create one
+      const [created] = await tx
+        .insert(profiles)
+        .values({
+          name: data.name || "Your Name",
+          title: data.title || "Your Title",
+          bio: data.bio || "Your bio here",
+          ...data,
+        } as InsertProfile)
+        .returning();
+      return created;
+    });
   }
 
   // SEO Settings operations
@@ -144,22 +148,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateSeoSettings(data: Partial<InsertSeoSettings>): Promise<SeoSettings> {
-    // Try update first (most common case), then insert if no rows exist
-    const updated = await db
-      .update(seoSettings)
-      .set({ ...data, updatedAt: new Date() })
-      .returning();
+    return await db.transaction(async (tx) => {
+      // Lock existing row if any
+      const [existing] = await tx.select().from(seoSettings).limit(1).for("update");
 
-    if (updated.length > 0) {
-      return updated[0];
-    }
+      if (existing) {
+        const [updated] = await tx
+          .update(seoSettings)
+          .set({ ...data, updatedAt: new Date() })
+          .where(eq(seoSettings.id, existing.id))
+          .returning();
+        return updated;
+      }
 
-    // No settings exist, create them
-    const [created] = await db
-      .insert(seoSettings)
-      .values(data as InsertSeoSettings)
-      .returning();
-    return created;
+      // No settings exist, create them
+      const [created] = await tx
+        .insert(seoSettings)
+        .values(data as InsertSeoSettings)
+        .returning();
+      return created;
+    });
   }
 
   // Article operations
@@ -206,8 +214,8 @@ export class DatabaseStorage implements IStorage {
   async incrementArticleViews(slug: string): Promise<void> {
     await db
       .update(articles)
-      .set({ 
-        views: sql`CAST(CAST(${articles.views} AS INTEGER) + 1 AS VARCHAR)` 
+      .set({
+        views: sql`${articles.views} + 1`
       })
       .where(eq(articles.slug, slug));
   }
@@ -215,7 +223,7 @@ export class DatabaseStorage implements IStorage {
   async getArticleStats(): Promise<{ totalViews: number; publishedCount: number }> {
     const [result] = await db
       .select({
-        totalViews: sql<number>`COALESCE(SUM(CAST(${articles.views} AS INTEGER)), 0)`,
+        totalViews: sql<number>`COALESCE(SUM(${articles.views}), 0)`,
         publishedCount: sql<number>`COUNT(*) FILTER (WHERE ${articles.status} = 'Published')`,
       })
       .from(articles);
