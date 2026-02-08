@@ -50,65 +50,52 @@ function csrfProtection(req: any, res: any, next: any) {
     return next();
   }
 
-  // For same-origin requests, check Origin header
-  const origin = req.headers.origin;
-  const host = req.headers.host?.split(':')[0]; // Strip port for comparison
-  const referer = req.headers.referer;
-
-  // Allow requests from same origin (use URL parsing, not string matching)
-  if (origin && host) {
-    try {
-      const originHost = new URL(origin).hostname;
-      if (originHost === host) {
-        return next();
-      }
-    } catch {
-      // Invalid origin URL — fall through to rejection
-    }
-  }
-
-  // Allow requests with referer from same origin
-  if (referer && host) {
-    try {
-      const refererHost = new URL(referer).hostname;
-      if (refererHost === host) {
-        return next();
-      }
-    } catch {
-      // Invalid referer URL — fall through
-    }
-  }
-
-  // In production, be more strict
-  if (process.env.NODE_ENV === 'production') {
-    // For API routes, require Origin header to match
-    if (req.path.startsWith('/api') && origin) {
-      const allowedOrigins = [
-        process.env.DEPLOYMENT_URL,
-        `https://${host}`,
-        `http://${host}`,
-      ].filter(Boolean);
-
-      try {
-        const originHost = new URL(origin).hostname;
-        if (allowedOrigins.some(allowed => {
-          try { return new URL(allowed!).hostname === originHost; } catch { return false; }
-        })) {
-          return next();
-        }
-      } catch {
-        // Invalid origin — fall through to rejection
-      }
-    }
-  }
-
-  // For development, be more lenient
+  // For development, be lenient
   if (process.env.NODE_ENV === 'development') {
     return next();
   }
 
-  // In production, reject requests that don't match any allowed origin
+  const origin = req.headers.origin;
+  const referer = req.headers.referer;
+
+  // Build set of trusted hostnames:
+  // - req.hostname respects trust proxy / X-Forwarded-Host (handles Cloudflare/Railway)
+  // - req.headers.host is the raw Host header
+  // - DEPLOYMENT_URL is an explicit allow-list entry
+  const trustedHosts = new Set<string>();
+  if (req.hostname) trustedHosts.add(req.hostname);
+  if (req.headers.host) trustedHosts.add(req.headers.host.split(':')[0]);
+  if (process.env.DEPLOYMENT_URL) {
+    try { trustedHosts.add(new URL(process.env.DEPLOYMENT_URL).hostname); } catch {}
+  }
+
+  // Check Origin header against trusted hosts
+  if (origin) {
+    try {
+      const originHost = new URL(origin).hostname;
+      if (trustedHosts.has(originHost)) {
+        return next();
+      }
+    } catch {
+      // Invalid origin URL
+    }
+  }
+
+  // Check Referer header against trusted hosts
+  if (referer) {
+    try {
+      const refererHost = new URL(referer).hostname;
+      if (trustedHosts.has(refererHost)) {
+        return next();
+      }
+    } catch {
+      // Invalid referer URL
+    }
+  }
+
+  // Reject in production if no header matched
   if (process.env.NODE_ENV === 'production') {
+    console.warn(`CSRF blocked: ${req.method} ${req.path} | origin=${origin} hostname=${req.hostname} host=${req.headers.host}`);
     return res.status(403).json({ message: "CSRF validation failed" });
   }
 
