@@ -844,6 +844,8 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
         codeBlock: false,
         strike: false,
         horizontalRule: false,
+        link: false,
+        underline: false,
         bulletList: {
           keepMarks: true,
           keepAttributes: false,

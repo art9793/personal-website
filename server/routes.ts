@@ -532,10 +532,12 @@ Sitemap: ${baseUrl}/sitemap.xml
       const settings = await storage.getSeoSettings();
       // Cache SEO settings for 10 minutes (stale-while-revalidate)
       res.set('Cache-Control', 'public, max-age=600, stale-while-revalidate=1200');
-      res.json(settings);
+      res.json(settings || {});
     } catch (error) {
+      // Return empty defaults if table doesn't exist or query fails
       console.error("Error fetching SEO settings:", error);
-      res.status(500).json({ message: "Failed to fetch SEO settings" });
+      res.set('Cache-Control', 'public, max-age=60');
+      res.json({});
     }
   });
 

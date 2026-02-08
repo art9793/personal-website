@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Home, PenTool, FolderGit2, Briefcase, Menu, Lock, ChevronsLeft, ChevronsRight, Plane } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useProfile } from "@/lib/content-hooks";
 import { PrefetchLink } from "./PrefetchLink";
@@ -134,6 +134,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               side="right"
               className="w-full sm:w-80 p-6 pt-12"
             >
+              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
               <div className="flex flex-col h-full">
                 <div className="mb-8">
                   <div className="font-bold text-2xl tracking-tight mb-2">Arshad Teli</div>
