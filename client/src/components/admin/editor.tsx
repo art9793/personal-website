@@ -842,6 +842,8 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
           keepMarks: true,
         },
         codeBlock: false,
+        strike: false,
+        horizontalRule: false,
         bulletList: {
           keepMarks: true,
           keepAttributes: false,
@@ -972,6 +974,9 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
   // Handle drag events
   useEffect(() => {
     if (!editor) return
+    if (!editor.view || !editor.view.dom) {
+      return
+    }
 
     const handleDragEnter = (e: DragEvent) => {
       e.preventDefault()

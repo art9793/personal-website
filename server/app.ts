@@ -36,8 +36,10 @@ export function logError(message: string, error: unknown, source = "express") {
 
 export const app = express();
 
+const isDev = process.env.NODE_ENV === "development";
+
 app.use(helmet({
-  contentSecurityPolicy: {
+  contentSecurityPolicy: isDev ? false : {
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "https://cloud.umami.is"],
