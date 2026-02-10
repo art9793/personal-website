@@ -93,14 +93,14 @@ export default function Travel() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="flex flex-col h-[calc(100vh-theme(spacing.24)-theme(spacing.20))] md:h-[calc(100vh-theme(spacing.40))]">
-        <div className="space-y-2 flex-shrink-0">
+      <div className="flex flex-col">
+        <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">Travel</h1>
           <p className="text-muted-foreground text-lg">
             A visual journey through the countries I've visited.
           </p>
         </div>
-        <div className="flex-1 min-h-0 mt-6 flex items-center justify-center border border-border rounded-lg bg-muted/20">
+        <div className="mt-6 flex items-center justify-center border border-border rounded-lg bg-muted/20 py-16">
           <div className="flex flex-col items-center gap-3 text-muted-foreground">
             <Loader2 className="h-8 w-8 animate-spin" />
             <span>Loading travel history...</span>
@@ -113,14 +113,14 @@ export default function Travel() {
   // Empty state
   if (groupedTravelData.length === 0) {
     return (
-      <div className="flex flex-col h-[calc(100vh-theme(spacing.24)-theme(spacing.20))] md:h-[calc(100vh-theme(spacing.40))]">
-        <div className="space-y-2 flex-shrink-0">
+      <div className="flex flex-col">
+        <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">Travel</h1>
           <p className="text-muted-foreground text-lg">
             A visual journey through the countries I've visited.
           </p>
         </div>
-        <div className="flex-1 min-h-0 mt-6 flex items-center justify-center border border-border rounded-lg bg-muted/20">
+        <div className="mt-6 flex items-center justify-center border border-border rounded-lg bg-muted/20 py-16">
           <div className="flex flex-col items-center gap-3 text-muted-foreground">
             <AlertCircle className="h-8 w-8" />
             <span>No travel history yet. Check back soon!</span>
@@ -131,8 +131,8 @@ export default function Travel() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-theme(spacing.24)-theme(spacing.20))] md:h-[calc(100vh-theme(spacing.40))]">
-      <div className="space-y-2 flex-shrink-0">
+    <div className="flex flex-col">
+      <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Travel</h1>
         <p className="text-muted-foreground text-lg">
           A visual journey through the countries I've visited.
@@ -140,7 +140,7 @@ export default function Travel() {
       </div>
 
       {/* World Map */}
-      <div className="flex-1 min-h-0 mt-6 flex flex-col">
+      <div className="mt-6">
         <WorldMap travelHistory={groupedTravelData} />
         <p className="text-sm text-muted-foreground mt-4 flex-shrink-0">
           {stats.totalCountries} countries · {stats.continentsVisited} continents · {stats.worldPercentage}% of the world

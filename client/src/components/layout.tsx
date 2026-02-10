@@ -215,17 +215,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className={cn("flex-1 transition-all duration-300", isExpanded ? "md:pl-64" : "md:pl-[80px]")}>
-        <div className="mx-auto max-w-3xl px-6 py-12 md:py-20">
+      <main className={cn("flex-1 flex flex-col transition-all duration-300", isExpanded ? "md:pl-64" : "md:pl-[80px]")}>
+        <div className="mx-auto max-w-3xl w-full px-6 py-12 md:py-20 flex-1 flex flex-col">
           <div
             key={location}
-            className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300"
+            className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300 flex-1"
           >
             {children}
           </div>
 
           {/* Mobile Footer */}
-          <footer className="md:hidden mt-24 border-t pt-8 text-sm text-muted-foreground">
+          <footer className="md:hidden mt-16 border-t pt-8 text-sm text-muted-foreground">
             <div className="flex justify-between items-center">
               <div>© {new Date().getFullYear()}</div>
               <div className="flex gap-4">

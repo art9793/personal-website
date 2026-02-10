@@ -111,18 +111,18 @@ export function WorldMap({ travelHistory }: WorldMapProps) {
 
   return (
     <MapErrorBoundary>
-      <div className="relative w-full flex-1 min-h-0">
+      <div className="relative w-full">
         <div
           ref={containerRef}
-          className="w-full h-full min-h-[280px] rounded-lg overflow-hidden relative select-none"
+          className="w-full rounded-lg overflow-hidden relative select-none"
           style={{ background: colors.bg }}
         >
           <ComposableMap
             projection="geoEquirectangular"
-            projectionConfig={{ scale: 175, center: [0, 20] }}
+            projectionConfig={{ scale: 175, center: [0, 10] }}
             width={960}
-            height={380}
-            style={{ width: "100%", height: "100%" }}
+            height={480}
+            style={{ width: "100%", display: "block" }}
           >
             <Geographies geography={topologyData}>
               {({ geographies }) =>
