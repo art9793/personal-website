@@ -114,7 +114,7 @@ export function WorldMap({ travelHistory }: WorldMapProps) {
       <div className="relative w-full flex-1 min-h-0">
         <div
           ref={containerRef}
-          className="w-full h-full min-h-[280px] rounded-lg overflow-hidden relative"
+          className="w-full h-full min-h-[280px] rounded-lg overflow-hidden relative select-none"
           style={{ background: colors.bg }}
         >
           <ComposableMap
