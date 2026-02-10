@@ -26,7 +26,7 @@ export class MapErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="w-full h-[500px] md:h-[600px] border border-border rounded-lg overflow-hidden bg-slate-800 dark:bg-slate-900 flex items-center justify-center">
+        <div className="w-full flex-1 min-h-0 border border-border rounded-lg overflow-hidden bg-slate-800 dark:bg-slate-900 flex items-center justify-center">
           <div className="text-center p-4">
             <div className="text-destructive mb-2">Map failed to load</div>
             <div className="text-sm text-muted-foreground">

@@ -31,8 +31,8 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          if (id.includes("node_modules/leaflet") || id.includes("node_modules/react-leaflet")) {
-            return "leaflet";
+          if (id.includes("node_modules/react-simple-maps") || id.includes("node_modules/d3-geo") || id.includes("node_modules/topojson-client")) {
+            return "maps";
           }
           if (id.includes("node_modules/@tiptap")) {
             return "tiptap";
