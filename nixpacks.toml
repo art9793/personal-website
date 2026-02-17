@@ -1,0 +1,3 @@
+# Pin Node 20 for Railway/Nixpacks (matches Dockerfile)
+[variables]
+NIXPACKS_NODE_VERSION = "20"
