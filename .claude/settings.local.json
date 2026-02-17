@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run check:*)",
+      "Bash(source:*)",
+      "Bash(psql:*)",
+      "Bash(brew --prefix:*)",
+      "Bash(npx tsx:*)",
+      "Bash(echo:*)",
+      "Bash(node -e:*)",
+      "Bash(npx drizzle-kit push:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(xargs:*)",
+      "Bash(grep:*)",
+      "Bash(npm run build:*)",
+      "Bash(curl:*)",
+      "Bash(npm ls:*)",
+      "Bash(pkill:*)",
+      "WebSearch",
+      "WebFetch(domain:www.react-simple-maps.io)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(npm install:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(ls:*)",
+      "Bash(npm info:*)",
+      "Bash(npm run dev:*)",
+      "Bash(find:*)",
+      "Bash(git -C /Users/arshadteli/Desktop/my-projects/arshad-personal-website status)",
+      "Bash(git -C /Users/arshadteli/Desktop/my-projects/arshad-personal-website diff)",
+      "Bash(git -C /Users/arshadteli/Desktop/my-projects/arshad-personal-website log --oneline -5)",
+      "Bash(git -C /Users/arshadteli/Desktop/my-projects/arshad-personal-website add client/src/components/layout.tsx client/src/pages/home.tsx)",
+      "Bash(git -C /Users/arshadteli/Desktop/my-projects/arshad-personal-website commit -m \"$\\(cat <<''EOF''\nfix: progressive home page loading instead of full-page skeleton\n\nShow hero skeleton inline while sections render independently. Gate\nprojects/articles on profile loading so content doesn''t flash before\nthe hero appears. Remove redundant useProfile\\(\\) call from layout.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C /Users/arshadteli/Desktop/my-projects/arshad-personal-website push)",
+      "Bash(claude mcp add:*)"
+    ]
+  }
+}
