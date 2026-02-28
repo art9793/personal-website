@@ -47,8 +47,14 @@ function getStorageClient(): Storage {
   }
 }
 
-// The object storage client is used to interact with the object storage service.
-export const objectStorageClient = getStorageClient();
+let objectStorageClient: Storage | null = null;
+
+function getObjectStorageClient(): Storage {
+  if (!objectStorageClient) {
+    objectStorageClient = getStorageClient();
+  }
+  return objectStorageClient;
+}
 
 export class ObjectNotFoundError extends Error {
   constructor() {
@@ -101,7 +107,7 @@ export class ObjectStorageService {
 
       // Full path format: /<bucket_name>/<object_name>
       const { bucketName, objectName } = parseObjectPath(fullPath);
-      const bucket = objectStorageClient.bucket(bucketName);
+      const bucket = getObjectStorageClient().bucket(bucketName);
       const file = bucket.file(objectName);
 
       // Check if file exists
@@ -178,7 +184,7 @@ export class ObjectStorageService {
     }
     const objectEntityPath = `${entityDir}${entityId}`;
     const { bucketName, objectName } = parseObjectPath(objectEntityPath);
-    const bucket = objectStorageClient.bucket(bucketName);
+    const bucket = getObjectStorageClient().bucket(bucketName);
     const objectFile = bucket.file(objectName);
     const [exists] = await objectFile.exists();
     if (!exists) {
@@ -289,7 +295,7 @@ async function signObjectURL({
   contentType?: string;
   maxContentLength?: number;
 }): Promise<string> {
-  const bucket = objectStorageClient.bucket(bucketName);
+  const bucket = getObjectStorageClient().bucket(bucketName);
   const file = bucket.file(objectName);
 
   // Map HTTP methods to GCS signed URL actions
