@@ -1,9 +1,0 @@
-# Static fallback robots.txt
-# The dynamic robots.txt is generated at /robots.txt by the server.
-# This file is only used if the dynamic generation fails.
-
-User-agent: *
-Allow: /
-Disallow: /admin/
-
-Sitemap: /sitemap.xml

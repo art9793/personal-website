@@ -13,11 +13,10 @@ A modern, full-stack personal portfolio website with a built-in CMS for managing
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: React 19, TypeScript, Vite, Tailwind CSS
-- **Backend**: Express.js, Node.js
+- **Framework**: Next.js 16 (App Router), React 19, TypeScript
 - **Database**: PostgreSQL
 - **Storage**: Google Cloud Storage
-- **Authentication**: Passport.js with session-based auth
+- **Authentication**: NextAuth credentials
 - **ORM**: Drizzle ORM
 
 ## 📦 Quick Start
@@ -39,9 +38,6 @@ npm install
 ```bash
 # Start dev server
 npm run dev
-
-# Start client only
-npm run dev:client
 ```
 
 ### Build
@@ -51,12 +47,25 @@ npm run build
 npm start
 ```
 
+### Production Env Preflight
+
+```bash
+npm run check:prod-env
+```
+
+Required in production:
+- `DATABASE_URL`
+- `NEXTAUTH_SECRET` (or `AUTH_SECRET`)
+
+If object storage features are enabled, also set:
+- `PRIVATE_OBJECT_DIR`
+- `PUBLIC_OBJECT_SEARCH_PATHS`
+- `GOOGLE_CLOUD_CREDENTIALS` (or `GOOGLE_APPLICATION_CREDENTIALS`)
+
 ## 🔐 Admin Access
 
 The admin email is configured via the `ADMIN_EMAIL` environment variable.
 Default: `art9793@gmail.com`
-
-For client-side authorization UI, set `VITE_ADMIN_EMAIL` in your `.env` file.
 
 To set up admin account:
 

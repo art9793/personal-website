@@ -20,17 +20,17 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Copy package files and npm config
-COPY package*.json .npmrc ./
+ENV NODE_ENV=production
+ENV PORT=5000
+ENV HOST=0.0.0.0
 
-# Install production dependencies only
-RUN npm ci --omit=dev
-
-# Copy built files from builder
-COPY --from=builder /app/dist ./dist
+# Copy Next standalone output
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
 
 # Expose port
 EXPOSE 5000
 
 # Start the application
-CMD ["npm", "start"]
+CMD ["node", "server.js"]

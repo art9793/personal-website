@@ -4,6 +4,7 @@ node_modules/
 # Build outputs
 dist/
 build/
+.next/
 *.tsbuildinfo
 
 # Environment variables
@@ -47,6 +48,3 @@ exports/
 
 # Server public directory (generated)
 server/public
-
-# Vite
-vite.config.ts.*

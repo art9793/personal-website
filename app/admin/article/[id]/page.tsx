@@ -1,0 +1,689 @@
+"use client";
+
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { ArrowLeft, Eye, CheckCircle, AlertCircle, FileText, Tag, Globe, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { useContent } from "@/lib/content-context";
+import { useToast } from "@/hooks/use-toast";
+import { Editor } from "@/components/admin/editor";
+import { TitleField } from "@/components/TitleField";
+import { format } from "date-fns";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+export default function ArticleEditor() {
+  const params = useParams<{ id: string }>();
+  const router = useRouter();
+  const { articles, addArticle, updateArticle } = useContent();
+  const { toast } = useToast();
+  
+  const articleId = params?.id === "new" ? null : params?.id ? parseInt(params.id, 10) : null;
+  const existingArticle = articleId ? articles.find(a => a.id === articleId) : null;
+
+  const [title, setTitle] = useState(existingArticle?.title || "");
+  const [content, setContent] = useState(existingArticle?.content || "");
+  const [slug, setSlug] = useState(existingArticle?.slug || "");
+  const [excerpt, setExcerpt] = useState(existingArticle?.excerpt || "");
+  const [tags, setTags] = useState(existingArticle?.tags || "");
+  const [seoKeywords, setSeoKeywords] = useState(existingArticle?.seoKeywords || "");
+  const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved");
+  const [lastSaved, setLastSaved] = useState<Date | null>(existingArticle?.updatedAt || null);
+  const [isPublishSheetOpen, setIsPublishSheetOpen] = useState(false);
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
+  const [hasManuallyEditedSlug, setHasManuallyEditedSlug] = useState(false);
+  const isSaving = useRef(false);
+  const [initialContent, setInitialContent] = useState({
+    title: existingArticle?.title || "", 
+    content: existingArticle?.content || "", 
+    slug: existingArticle?.slug || "",
+    excerpt: existingArticle?.excerpt || "",
+    tags: existingArticle?.tags || "",
+    seoKeywords: existingArticle?.seoKeywords || ""
+  });
+
+  // Auto-generate slug from title only if not manually edited
+  useEffect(() => {
+    if (title && !hasManuallyEditedSlug) {
+      const autoSlug = title
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '') // Remove special characters
+        .replace(/\s+/g, '-')      // Replace spaces with hyphens
+        .replace(/-+/g, '-')       // Replace multiple hyphens with single hyphen
+        .replace(/^-+|-+$/g, '');  // Remove leading/trailing hyphens
+      setSlug(autoSlug);
+    }
+  }, [title, hasManuallyEditedSlug]);
+
+  // Track manual slug edits
+  const handleSlugChange = (value: string) => {
+    setSlug(value);
+    setHasManuallyEditedSlug(true);
+  };
+
+  // Update local state when article data changes
+  useEffect(() => {
+    if (existingArticle) {
+      setTitle(existingArticle.title);
+      setContent(existingArticle.content);
+      setSlug(existingArticle.slug || "");
+      setExcerpt(existingArticle.excerpt || "");
+      setTags(existingArticle.tags || "");
+      setSeoKeywords(existingArticle.seoKeywords || "");
+      setLastSaved(existingArticle.updatedAt || null);
+      setHasManuallyEditedSlug(!!existingArticle.slug);
+      setInitialContent({ 
+        title: existingArticle.title, 
+        content: existingArticle.content,
+        slug: existingArticle.slug || "",
+        excerpt: existingArticle.excerpt || "",
+        tags: existingArticle.tags || "",
+        seoKeywords: existingArticle.seoKeywords || ""
+      });
+    }
+  }, [existingArticle]);
+
+  // Mark as unsaved when content changes
+  useEffect(() => {
+    if (
+      title !== initialContent.title || 
+      content !== initialContent.content ||
+      slug !== initialContent.slug ||
+      excerpt !== initialContent.excerpt ||
+      tags !== initialContent.tags ||
+      seoKeywords !== initialContent.seoKeywords
+    ) {
+      setSaveStatus("unsaved");
+    }
+  }, [title, content, slug, excerpt, tags, seoKeywords, initialContent]);
+
+  // Warn before leaving with unsaved changes (page refresh/close + browser back)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (saveStatus === "unsaved") {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+
+    const handlePopState = () => {
+      if (saveStatus === "unsaved") {
+        // Push state back to prevent navigation, show dialog instead
+        window.history.pushState(null, "", window.location.href);
+        setIsLeaveDialogOpen(true);
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    // Push an entry so we can detect back-button presses
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [saveStatus]);
+
+  const handleSaveDraft = useCallback(async () => {
+    if (isSaving.current) return;
+    isSaving.current = true;
+    setSaveStatus("saving");
+
+    try {
+      if (articleId && existingArticle) {
+        // Update existing article - preserve existing status and published timestamps
+        const articleData = {
+          title: title || "Untitled",
+          content,
+          slug: slug || undefined,
+          excerpt: excerpt || undefined,
+          tags: tags || undefined,
+          seoKeywords: seoKeywords || undefined,
+          // Preserve existing status and published timestamps
+          status: existingArticle.status,
+          publishedAt: existingArticle.publishedAt,
+          firstPublishedAt: existingArticle.firstPublishedAt,
+          lastPublishedAt: existingArticle.lastPublishedAt,
+        };
+        
+        await updateArticle(articleId, articleData);
+        const now = new Date();
+        setLastSaved(now);
+        setInitialContent({ title, content, slug, excerpt, tags, seoKeywords });
+        setSaveStatus("saved");
+        toast({
+          title: existingArticle.status === "Published" ? "Changes saved" : "Draft saved",
+          description: "Your changes have been saved successfully.",
+        });
+      } else {
+        // Create new article as draft
+        const articleData = {
+          title: title || "Untitled",
+          content,
+          slug: slug || undefined,
+          excerpt: excerpt || undefined,
+          tags: tags || undefined,
+          seoKeywords: seoKeywords || undefined,
+          status: "Draft",
+        };
+        
+        const newArticle = await addArticle({
+          ...articleData,
+          author: "Admin",
+        });
+        const now = new Date();
+        setLastSaved(now);
+        setInitialContent({ 
+          title: title || "Untitled", 
+          content, 
+          slug, 
+          excerpt, 
+          tags, 
+          seoKeywords 
+        });
+        setSaveStatus("saved");
+        toast({
+          title: "Draft created",
+          description: "Your article draft has been created.",
+        });
+        // Redirect to the new article's edit page
+        router.push(`/admin/article/${newArticle.id}`);
+      }
+    } catch (error) {
+      setSaveStatus("unsaved");
+      toast({
+        title: "Error saving",
+        description: "Failed to save your changes. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      isSaving.current = false;
+    }
+  }, [articleId, existingArticle, title, content, slug, excerpt, tags, seoKeywords, updateArticle, addArticle, toast, router]);
+
+  // Auto-save every 30 seconds if there are unsaved changes
+  useEffect(() => {
+    if (saveStatus === "unsaved") {
+      const timer = setTimeout(() => {
+        handleSaveDraft();
+      }, 30000);
+      return () => clearTimeout(timer);
+    }
+  }, [saveStatus, handleSaveDraft]);
+
+  const handleBack = () => {
+    if (saveStatus === "unsaved") {
+      setIsLeaveDialogOpen(true);
+    } else {
+      router.push("/admin?tab=writing");
+    }
+  };
+
+  const handleLeaveConfirm = () => {
+    setIsLeaveDialogOpen(false);
+    router.push("/admin?tab=writing");
+  };
+
+  const handlePublish = useCallback(async () => {
+    // Strip HTML to check for actual text content
+    const textContent = content.replace(/<[^>]*>/g, '').trim();
+    
+    // Validate required fields before publishing
+    if (!title.trim()) {
+      toast({
+        title: "Cannot publish",
+        description: "Please add a title before publishing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!slug.trim()) {
+      toast({
+        title: "Cannot publish",
+        description: "Please add a URL slug before publishing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!textContent) {
+      toast({
+        title: "Cannot publish",
+        description: "Please add some content before publishing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSaveStatus("saving");
+
+    try {
+      const now = new Date();
+      const articleData = {
+        title,
+        content,
+        slug,
+        excerpt: excerpt || undefined,
+        tags: tags || undefined,
+        seoKeywords: seoKeywords || undefined,
+        status: "Published",
+        publishedAt: now,
+        firstPublishedAt: existingArticle?.firstPublishedAt || now,
+        lastPublishedAt: now,
+      };
+
+      if (articleId && existingArticle) {
+        // Publish existing article
+        await updateArticle(articleId, articleData);
+        setLastSaved(now);
+        setInitialContent({ title, content, slug, excerpt, tags, seoKeywords });
+        setSaveStatus("saved");
+        setIsPublishSheetOpen(false);
+        toast({
+          title: "Article published",
+          description: existingArticle.status === "Published" 
+            ? "Your changes have been published." 
+            : "Your article is now live!",
+        });
+      } else {
+        // Create and publish new article
+        const newArticle = await addArticle({
+          ...articleData,
+          author: "Admin",
+        });
+        setLastSaved(now);
+        setInitialContent({ title, content, slug, excerpt, tags, seoKeywords });
+        setSaveStatus("saved");
+        setIsPublishSheetOpen(false);
+        toast({
+          title: "Article published",
+          description: "Your article is now live!",
+        });
+        // Redirect to the new article's edit page
+        router.push(`/admin/article/${newArticle.id}`);
+      }
+    } catch (error) {
+      setSaveStatus("unsaved");
+      toast({
+        title: "Error publishing",
+        description: "Failed to publish your article. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [articleId, existingArticle, title, content, slug, excerpt, tags, seoKeywords, updateArticle, addArticle, toast, router]);
+
+  const textContent = content.replace(/<[^>]*>/g, '').trim();
+  const wordCount = textContent.split(/\s+/).filter(Boolean).length;
+  const readingTime = Math.ceil(wordCount / 200); // Assuming 200 words per minute
+  
+  // Check for slug conflicts
+  const slugConflict = useMemo(() => {
+    if (!slug.trim()) return null;
+    const conflictingArticle = articles.find(
+      a => a.slug === slug.trim() && a.id !== articleId
+    );
+    return conflictingArticle || null;
+  }, [slug, articles, articleId]);
+  
+  // Check if publish requirements are met (must have actual text content, not just HTML tags, and no slug conflicts)
+  const canPublish = !!(title.trim() && slug.trim() && textContent && !slugConflict);
+  
+  // Generate public URL preview
+  const publicUrl = useMemo(() => {
+    if (!slug.trim()) return null;
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/article/${slug.trim()}`;
+  }, [slug]);
+  
+  // Character counts with recommendations
+  const titleCharCount = title.length;
+  const excerptCharCount = excerpt.length;
+  const titleRecommendation = titleCharCount === 0 ? "Add a title" : 
+    titleCharCount < 30 ? "Consider a longer title (30-60 chars)" :
+    titleCharCount > 60 ? "Consider shortening (30-60 chars optimal)" : "Good length";
+  const excerptRecommendation = excerptCharCount === 0 ? "Optional but recommended for SEO" :
+    excerptCharCount < 120 ? "Add more detail (120-160 chars recommended)" :
+    excerptCharCount > 160 ? "Consider shortening (120-160 chars optimal)" : "Perfect length for SEO";
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="sticky top-0 z-10 border-b border-border/40 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-3">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBack}
+                className="text-muted-foreground hover:text-foreground hover:bg-transparent -ml-2"
+                data-testid="button-back"
+              >
+                <ArrowLeft className="h-4 w-4 mr-1.5" />
+                <span className="text-sm">Back</span>
+              </Button>
+              
+              {/* Subtle auto-save indicator */}
+              <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground/60">
+                {saveStatus === "saving" && (
+                  <span className="flex items-center gap-1.5">
+                    <span className="animate-pulse">●</span>
+                    <span>Saving</span>
+                  </span>
+                )}
+                {saveStatus === "saved" && lastSaved && (
+                  <span className="opacity-60">Saved</span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {/* Stats Pills */}
+              <div className="hidden md:flex items-center gap-2">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 text-xs">
+                  <span className="font-mono font-medium text-foreground">{wordCount}</span>
+                  <span className="text-muted-foreground">words</span>
+                </div>
+                <div className="px-2.5 py-1 rounded-full bg-muted/50 text-xs text-muted-foreground">
+                  {readingTime} read
+                </div>
+              </div>
+
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setIsPublishSheetOpen(true)}
+                className="gap-2 shadow-sm hover:shadow transition-shadow"
+                data-testid="button-publish"
+              >
+                <Eye className="h-3.5 w-3.5" />
+                {existingArticle?.status === "Published" ? "Update" : "Publish"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Editor Content - Full Width */}
+      <div className="h-[calc(100vh-4rem)] overflow-y-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Title Input - Notion Style */}
+          <TitleField
+            value={title}
+            onChange={setTitle}
+            placeholder="Untitled"
+            data-testid="input-article-title"
+          />
+
+          {/* Rich Text Editor */}
+          <div className="min-h-[600px]">
+            <Editor
+              content={content}
+              onChange={setContent}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Leave Without Saving Dialog */}
+      <AlertDialog open={isLeaveDialogOpen} onOpenChange={setIsLeaveDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes. Do you want to leave without saving?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Stay</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLeaveConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Leave Without Saving
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Publish Settings Sheet */}
+      <Sheet open={isPublishSheetOpen} onOpenChange={setIsPublishSheetOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Publish Settings</SheetTitle>
+            <SheetDescription>
+              Review your article metadata before publishing
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="py-6 space-y-6">
+            {/* Validation Checklist */}
+            <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+              <h3 className="text-sm font-medium">Publishing Requirements</h3>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  {title.trim() ? (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-amber-500" />
+                  )}
+                  <span className={title.trim() ? "text-foreground" : "text-muted-foreground"}>
+                    Title added
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  {slug.trim() ? (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-amber-500" />
+                  )}
+                  <span className={slug.trim() ? "text-foreground" : "text-muted-foreground"}>
+                    URL slug set
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  {textContent ? (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-amber-500" />
+                  )}
+                  <span className={textContent ? "text-foreground" : "text-muted-foreground"}>
+                    Content written
+                  </span>
+                </div>
+              </div>
+              {!canPublish && (
+                <p className="text-xs text-muted-foreground pt-2 border-t">
+                  Complete all requirements above to publish
+                </p>
+              )}
+            </div>
+
+            {/* URL Preview */}
+            {publicUrl && (
+              <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Globe className="h-4 w-4" />
+                  <span>Public URL</span>
+                </div>
+                <a 
+                  href={publicUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-xs text-primary hover:underline break-all"
+                >
+                  {publicUrl}
+                  <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                </a>
+              </div>
+            )}
+
+            {/* Metadata Fields */}
+            <div className="space-y-6">
+              {/* URL Slug Section */}
+              <div className="space-y-3 pb-6 border-b">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="slug" className="flex items-center gap-2 text-base">
+                    <FileText className="h-4 w-4" />
+                    URL Slug
+                  </Label>
+                  {slugConflict && (
+                    <span className="text-xs text-destructive font-medium">Already in use!</span>
+                  )}
+                </div>
+                <Input
+                  id="slug"
+                  value={slug}
+                  onChange={(e) => handleSlugChange(e.target.value)}
+                  placeholder="my-article-url"
+                  className={`font-mono text-sm ${slugConflict ? 'border-destructive' : ''}`}
+                  data-testid="input-article-slug"
+                />
+                {slugConflict ? (
+                  <p className="text-xs text-destructive">
+                    This slug is already used by "{slugConflict.title}". Choose a different one.
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Auto-generated from title. This creates your article's unique web address.
+                  </p>
+                )}
+              </div>
+
+              {/* Excerpt Section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="excerpt" className="text-base">
+                    Excerpt <span className="text-muted-foreground font-normal text-sm">(Recommended)</span>
+                  </Label>
+                  <span className={`text-xs ${excerptCharCount >= 120 && excerptCharCount <= 160 ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    {excerptCharCount} chars
+                  </span>
+                </div>
+                <Textarea
+                  id="excerpt"
+                  value={excerpt}
+                  onChange={(e) => setExcerpt(e.target.value)}
+                  placeholder="Brief summary that appears in search results and previews..."
+                  rows={3}
+                  className="resize-none text-sm"
+                  data-testid="input-article-excerpt"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {excerptRecommendation}
+                </p>
+              </div>
+
+              {/* Tags Section */}
+              <div className="space-y-3">
+                <Label htmlFor="tags" className="text-base">
+                  Tags <span className="text-muted-foreground font-normal text-sm">(Optional)</span>
+                </Label>
+                <Input
+                  id="tags"
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  placeholder="react, typescript, web development"
+                  className="text-sm"
+                  data-testid="input-article-tags"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Comma-separated tags help readers find related content
+                </p>
+              </div>
+
+              {/* SEO Keywords Section */}
+              <div className="space-y-3">
+                <Label htmlFor="seoKeywords" className="flex items-center gap-2 text-base">
+                  <Tag className="h-4 w-4" />
+                  SEO Keywords <span className="text-muted-foreground font-normal text-sm">(Optional)</span>
+                </Label>
+                <Textarea
+                  id="seoKeywords"
+                  value={seoKeywords}
+                  onChange={(e) => setSeoKeywords(e.target.value)}
+                  placeholder="web development, react tutorials, programming tips..."
+                  rows={2}
+                  className="resize-none text-sm"
+                  data-testid="input-article-keywords"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Keywords improve search engine discoverability
+                </p>
+              </div>
+            </div>
+
+            {/* Publishing Info */}
+            {existingArticle && (
+              <div className="pt-4 border-t space-y-2 text-xs text-muted-foreground">
+                <div className="flex justify-between">
+                  <span>Status:</span>
+                  <span className="font-medium" data-testid="text-article-status">{existingArticle.status}</span>
+                </div>
+                {existingArticle.createdAt && (
+                  <div className="flex justify-between">
+                    <span>Created:</span>
+                    <span data-testid="text-created-date">{format(new Date(existingArticle.createdAt), "MMM d, yyyy")}</span>
+                  </div>
+                )}
+                {existingArticle.firstPublishedAt && (
+                  <div className="flex justify-between">
+                    <span>First published:</span>
+                    <span data-testid="text-first-published-date">{format(new Date(existingArticle.firstPublishedAt), "MMM d, yyyy")}</span>
+                  </div>
+                )}
+                {existingArticle.lastPublishedAt && (
+                  <div className="flex justify-between">
+                    <span>Last published:</span>
+                    <span data-testid="text-last-published-date">{format(new Date(existingArticle.lastPublishedAt), "MMM d, yyyy")}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <SheetFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={async () => {
+                await handleSaveDraft();
+                setIsPublishSheetOpen(false);
+              }}
+              disabled={saveStatus === "saving"}
+              data-testid="button-save-draft"
+            >
+              Save as Draft
+            </Button>
+            <Button
+              onClick={handlePublish}
+              disabled={!canPublish || saveStatus === "saving"}
+              data-testid="button-publish-article"
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              {existingArticle?.status === "Published" ? "Update Published" : "Publish Article"}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+    </div>
+  );
+}
