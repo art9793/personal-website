@@ -6,7 +6,6 @@ import {
   Geographies,
   Geography,
 } from "react-simple-maps";
-import { useTheme } from "next-themes";
 import { TravelTooltip } from "./TravelTooltip";
 import { MapErrorBoundary } from "./MapErrorBoundary";
 import topologyData from "world-atlas/countries-110m.json";
@@ -72,7 +71,6 @@ export function WorldMap({ travelHistory }: WorldMapProps) {
   } | null>(null);
   const [hoveredGeoId, setHoveredGeoId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { resolvedTheme } = useTheme();
 
   const visitedCountriesMap = useMemo(() => {
     return travelHistory.reduce(
@@ -88,7 +86,7 @@ export function WorldMap({ travelHistory }: WorldMapProps) {
     );
   }, [travelHistory]);
 
-  const isDark = resolvedTheme === "dark";
+  const isDark = false;
 
   const colors = useMemo(() => {
     if (isDark) {

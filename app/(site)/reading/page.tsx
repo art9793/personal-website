@@ -13,7 +13,7 @@ export default async function Page() {
   return (
     <div className="space-y-12 animate-in fade-in-50 duration-300">
       <div className="space-y-4">
-        <h1 className="text-3xl font-bold tracking-tight">Reading</h1>
+        <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-gray-1100 ">Reading</h1>
         <p className="text-muted-foreground text-lg">A living collection of books that have shaped my thinking.</p>
       </div>
 
@@ -46,12 +46,12 @@ export default async function Page() {
                               href={item.link}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="font-medium text-primary group-hover:text-primary transition-colors hover:underline"
+                              className="font-medium text-gray-1100 transition-colors hover:underline"
                             >
                               {item.title}
                             </a>
                           ) : (
-                            <h3 className="font-medium text-primary group-hover:text-primary transition-colors">{item.title}</h3>
+                            <h3 className="font-medium text-gray-1100 transition-colors">{item.title}</h3>
                           )}
                           <p className="text-sm text-muted-foreground mt-0.5">{item.author}</p>
                         </div>
@@ -67,7 +67,7 @@ export default async function Page() {
                             </div>
                           ) : null}
                           {(ratingNum == null || Number.isNaN(ratingNum)) && item.status === "Reading" ? (
-                            <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400 px-2 py-0.5 rounded-full whitespace-nowrap">
+                            <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full whitespace-nowrap">
                               Reading
                             </span>
                           ) : null}

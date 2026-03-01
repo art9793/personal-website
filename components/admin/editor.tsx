@@ -900,7 +900,7 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
     editorProps: {
       attributes: {
         class: cn(
-          'prose prose-lg dark:prose-invert max-w-none focus:outline-none min-h-[500px] leading-relaxed',
+          'prose prose-lg max-w-none focus:outline-none min-h-[500px] leading-relaxed',
           isDragging && 'drag-over'
         ),
       },

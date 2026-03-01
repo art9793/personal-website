@@ -12,8 +12,8 @@ export default async function Page() {
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-theme(spacing.24)-theme(spacing.20))] md:min-h-[calc(100vh-theme(spacing.40))]">
-      <div className="space-y-2 flex-shrink-0">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Work</h1>
+      <div className="space-y-4 flex-shrink-0">
+        <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-gray-1100 ">Work</h1>
         <p className="text-muted-foreground text-lg">My career journey and the teams I&apos;ve been lucky to work with.</p>
       </div>
 
@@ -28,7 +28,7 @@ export default async function Page() {
               </div>
               <div className="flex flex-col gap-2 sm:self-baseline">
                 <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <h3 className="text-lg md:text-xl font-medium text-primary tracking-tight">{item.company}</h3>
+                  <h3 className="text-lg font-medium text-gray-1100 tracking-tight">{item.company}</h3>
                   <span className="text-muted-foreground/40">·</span>
                   <div className="text-sm text-muted-foreground">{item.role}</div>
                 </div>

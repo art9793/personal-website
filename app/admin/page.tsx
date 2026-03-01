@@ -23,7 +23,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 import { useContent } from "@/lib/content-context";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -306,7 +305,6 @@ export default function AdminDashboard() {
           {(isSidebarExpanded || isMobile) && "Sign Out"}
         </Button>
         <div className={cn(isSidebarExpanded || isMobile ? "flex-shrink-0" : "")}>
-          <ThemeToggle />
         </div>
       </div>
     </>

@@ -36,7 +36,7 @@ export default async function Page({ params }: PageProps) {
     <article className="max-w-none">
       <ArticleViewTracker slug={slug} />
       <div className="mb-8">
-        <h1 className="text-2xl md:text-4xl font-bold tracking-tight mb-4 text-primary">{article.title}</h1>
+        <h1 className="text-xl md:text-3xl font-medium tracking-tight mb-4 text-gray-1100 ">{article.title}</h1>
         <div className="text-sm text-muted-foreground">
           {article.publishedAt ? format(new Date(article.publishedAt), "MMMM d, yyyy") : ""}
         </div>
@@ -45,12 +45,12 @@ export default async function Page({ params }: PageProps) {
       {article.excerpt ? <p className="text-lg text-muted-foreground mb-8 font-medium">{article.excerpt}</p> : null}
 
       <div
-        className="prose prose-sm sm:prose max-w-none prose-headings:text-primary prose-p:text-foreground prose-a:text-primary prose-strong:text-foreground prose-img:rounded-lg prose-img:border"
+        className="prose prose-sm sm:prose max-w-none prose-headings:text-gray-1100 prose-p:text-gray-1100 prose-a:text-gray-1100 prose-strong:text-gray-1100 prose-img:rounded-lg prose-img:border"
         dangerouslySetInnerHTML={{ __html: sanitizedContent }}
       />
 
       <div className="mt-8">
-        <Link href="/writing" className="inline-flex items-center text-sm text-primary hover:underline">
+        <Link href="/writing" className="inline-flex items-center text-sm text-muted-foreground hover:text-gray-1100 hover:underline">
           Back to writing
         </Link>
       </div>

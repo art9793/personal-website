@@ -13,7 +13,7 @@ export default async function Page() {
   return (
     <div className="space-y-12 animate-in fade-in-50 duration-300">
       <div className="space-y-4">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Projects</h1>
+        <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-gray-1100 ">Projects</h1>
         <p className="text-muted-foreground text-lg">
           Products I&apos;ve built, communities I&apos;ve founded, and open source work.
         </p>
@@ -28,10 +28,10 @@ export default async function Page() {
         <div className="space-y-1">
           {activeProjects.map((project) => {
             const content = (
-              <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 sm:gap-6 py-4 border-b border-border/40 group-hover:border-border transition-colors">
+              <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 sm:gap-6 py-4 group-hover:opacity-70 transition-opacity">
                 <div className="flex-1 space-y-1.5">
                   <div className="flex items-baseline gap-2">
-                    <h3 className="text-base font-medium text-primary group-hover:text-blue-600 transition-colors">
+                    <h3 className="text-base font-medium text-gray-1100 transition-colors">
                       {project.title}
                     </h3>
                     {project.featured ? (

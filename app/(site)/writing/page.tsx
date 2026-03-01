@@ -16,7 +16,7 @@ export default async function Page() {
   return (
     <div className="space-y-12 animate-in fade-in-50 duration-300">
       <div className="space-y-4">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Writing</h1>
+        <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-gray-1100 ">Writing</h1>
         <p className="text-muted-foreground text-lg">Thoughts on design, software, and building products.</p>
       </div>
 
@@ -29,12 +29,12 @@ export default async function Page() {
         ) : (
           years.map(([year, yearPosts]) => (
             <div key={year} className="space-y-4">
-              <h2 className="text-sm font-semibold text-muted-foreground tracking-wider uppercase pl-1">{year}</h2>
+              <h2 className="text-sm font-medium text-muted-foreground tracking-wider uppercase pl-1">{year}</h2>
               <div className="space-y-1">
                 {yearPosts.map((post) => (
                   <Link key={post.id} href={formatArticleHref(post)} className="block group">
-                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-0 py-3 border-b border-border/40 group-hover:border-border transition-colors">
-                      <span className="text-base font-medium text-primary group-hover:text-blue-600 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-0 py-2 group-hover:opacity-70 transition-opacity">
+                      <span className="text-sm md:text-base font-normal text-gray-1100 transition-colors">
                         {post.title || "Untitled"}
                       </span>
                       <span className="text-sm text-muted-foreground tabular-nums sm:ml-4 font-mono flex-shrink-0">

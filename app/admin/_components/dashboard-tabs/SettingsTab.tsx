@@ -351,7 +351,7 @@ export function SettingsTab() {
               </span>
             )}
             {!hasProfileChanges && profileSaveStatus === "saved" && (
-              <span className="flex items-center gap-2 text-green-600 dark:text-green-400">
+              <span className="flex items-center gap-2 text-green-600 ">
                 <CheckCircle className="h-4 w-4" />
                 Changes saved
               </span>

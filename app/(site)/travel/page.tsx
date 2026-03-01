@@ -23,8 +23,8 @@ export default async function Page() {
   if (groupedTravelData.length === 0) {
     return (
       <div className="flex flex-col">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Travel</h1>
+        <div className="space-y-4">
+          <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-gray-1100 ">Travel</h1>
           <p className="text-muted-foreground text-lg">A visual journey through the countries I&apos;ve visited.</p>
         </div>
         <div className="mt-6 flex items-center justify-center border border-border rounded-lg bg-muted/20 py-16">
@@ -39,8 +39,8 @@ export default async function Page() {
 
   return (
     <div className="flex flex-col">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Travel</h1>
+      <div className="space-y-4">
+        <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-gray-1100 ">Travel</h1>
         <p className="text-muted-foreground text-lg">A visual journey through the countries I&apos;ve visited.</p>
       </div>
       <div className="mt-6">

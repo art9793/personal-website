@@ -39,7 +39,7 @@ export function HomeSkeleton() {
         <Skeleton className="h-5 w-32" />
         <div className="space-y-2">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="py-3 border-b border-border/50">
+            <div key={i} className="py-2">
               <Skeleton className="h-5 w-48 mb-1.5" />
               <Skeleton className="h-4 w-full max-w-md" />
             </div>
@@ -52,7 +52,7 @@ export function HomeSkeleton() {
         <Skeleton className="h-5 w-28" />
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="flex items-baseline justify-between py-3 border-b border-border/50">
+            <div key={i} className="flex items-baseline justify-between py-2">
               <Skeleton className="h-5 w-56" />
               <Skeleton className="h-4 w-16" />
             </div>
@@ -79,7 +79,7 @@ export function WritingSkeleton() {
             <Skeleton className="h-4 w-12 ml-1" />
             <div className="space-y-1">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-baseline justify-between py-3 border-b border-border/40">
+                <div key={i} className="flex items-baseline justify-between py-2">
                   <Skeleton className="h-5 w-64" />
                   <Skeleton className="h-4 w-14 ml-4" />
                 </div>
@@ -104,7 +104,7 @@ export function ProjectsSkeleton() {
       {/* Project list - matches projects.tsx simple list */}
       <div className="space-y-1">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="py-4 border-b border-border/40">
+          <div key={i} className="py-4">
             <div className="space-y-1.5">
               <Skeleton className="h-5 w-40" />
               <Skeleton className="h-4 w-full max-w-lg" />
