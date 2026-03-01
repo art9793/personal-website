@@ -74,6 +74,7 @@ export default function AdminDashboard() {
   const router = useRouter();
   const { status } = useSession();
   const { toast } = useToast();
+  const lastStatusRef = useRef<string | null>(null);
 
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -84,6 +85,9 @@ export default function AdminDashboard() {
   }, [router]);
 
   useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7345/ingest/c84c0792-e3a2-4b36-b107-2a948a4255a2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'253300'},body:JSON.stringify({sessionId:'253300',runId:'prod-run1',hypothesisId:'H1',location:'app/admin/page.tsx:86',message:'Admin page mounted in client',data:{path:window.location.pathname,host:window.location.host,debugTag:'prod-both-fixes-2026-03-01',nodeEnv:process.env.NODE_ENV},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     const params = new URLSearchParams(window.location.search);
     const tab = params.get("tab");
     if (tab && ["overview", "writing", "projects", "work", "travel", "reading", "media", "seo", "settings"].includes(tab)) {
@@ -92,7 +96,16 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
+    if (lastStatusRef.current !== status) {
+      // #region agent log
+      fetch('http://127.0.0.1:7345/ingest/c84c0792-e3a2-4b36-b107-2a948a4255a2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'253300'},body:JSON.stringify({sessionId:'253300',runId:'prod-run1',hypothesisId:'H5',location:'app/admin/page.tsx:98',message:'Admin session status changed',data:{previous:lastStatusRef.current,next:status,path:window.location.pathname},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      lastStatusRef.current = status;
+    }
     if (status === "unauthenticated") {
+      // #region agent log
+      fetch('http://127.0.0.1:7345/ingest/c84c0792-e3a2-4b36-b107-2a948a4255a2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'253300'},body:JSON.stringify({sessionId:'253300',runId:'prod-run1',hypothesisId:'H5',location:'app/admin/page.tsx:103',message:'Redirecting to admin login',data:{to:'/admin/login',path:window.location.pathname},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       router.push("/admin/login");
     }
   }, [status, router]);
