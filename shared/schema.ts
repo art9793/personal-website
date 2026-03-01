@@ -118,11 +118,17 @@ export const articles = pgTable("articles", {
   index("idx_articles_created_at").on(table.createdAt),
 ]);
 
+// Accepts Date objects or ISO 8601 datetime strings (e.g., "2024-01-15T10:30:00Z")
+const dateOrIsoString = z.union([
+  z.date(),
+  z.string().datetime().transform(val => new Date(val)),
+]).nullable().optional();
+
 export const insertArticleSchema = createInsertSchema(articles, {
   slug: z.string().nullable().optional(),
-  publishedAt: z.union([z.date(), z.string().datetime().transform(val => new Date(val)), z.string().transform(val => new Date(val))]).nullable().optional(),
-  firstPublishedAt: z.union([z.date(), z.string().datetime().transform(val => new Date(val)), z.string().transform(val => new Date(val))]).nullable().optional(),
-  lastPublishedAt: z.union([z.date(), z.string().datetime().transform(val => new Date(val)), z.string().transform(val => new Date(val))]).nullable().optional(),
+  publishedAt: dateOrIsoString,
+  firstPublishedAt: dateOrIsoString,
+  lastPublishedAt: dateOrIsoString,
 }).omit({
   id: true,
   createdAt: true,

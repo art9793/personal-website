@@ -1,4 +1,4 @@
-import { useEditor, EditorContent } from '@tiptap/react'
+import { useEditor, EditorContent, ReactRenderer } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { Image } from './image-extension'
 import './editor-styles.css'
@@ -17,9 +17,10 @@ import { TextStyle } from '@tiptap/extension-text-style'
 import { Color } from '@tiptap/extension-color'
 import { common, createLowlight } from 'lowlight'
 import { Extension } from '@tiptap/core'
+import type { Editor as TiptapEditor } from '@tiptap/core'
 import Suggestion from '@tiptap/suggestion'
-import { ReactRenderer } from '@tiptap/react'
-import tippy from 'tippy.js'
+import type { SuggestionProps, SuggestionKeyDownProps } from '@tiptap/suggestion'
+import tippy, { type Instance as TippyInstance } from 'tippy.js'
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -48,57 +49,74 @@ import { useToast } from "@/hooks/use-toast"
 
 const lowlight = createLowlight(common)
 
+// Slash command item type
+interface SlashCommandItem {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  command: (editor: TiptapEditor) => void;
+}
+
 // Slash command items
-const slashCommandItems = [
+const slashCommandItems: SlashCommandItem[] = [
   {
     title: 'Heading 1',
     icon: Heading1,
-    command: (editor: any) => editor.chain().focus().toggleHeading({ level: 1 }).run(),
+    command: (editor) => editor.chain().focus().toggleHeading({ level: 1 }).run(),
   },
   {
     title: 'Heading 2',
     icon: Heading2,
-    command: (editor: any) => editor.chain().focus().toggleHeading({ level: 2 }).run(),
+    command: (editor) => editor.chain().focus().toggleHeading({ level: 2 }).run(),
   },
   {
     title: 'Heading 3',
     icon: Heading3,
-    command: (editor: any) => editor.chain().focus().toggleHeading({ level: 3 }).run(),
+    command: (editor) => editor.chain().focus().toggleHeading({ level: 3 }).run(),
   },
   {
     title: 'Bullet List',
     icon: List,
-    command: (editor: any) => editor.chain().focus().toggleBulletList().run(),
+    command: (editor) => editor.chain().focus().toggleBulletList().run(),
   },
   {
     title: 'Numbered List',
     icon: ListOrdered,
-    command: (editor: any) => editor.chain().focus().toggleOrderedList().run(),
+    command: (editor) => editor.chain().focus().toggleOrderedList().run(),
   },
   {
     title: 'Task List',
     icon: ListTodo,
-    command: (editor: any) => editor.chain().focus().toggleTaskList().run(),
+    command: (editor) => editor.chain().focus().toggleTaskList().run(),
   },
   {
     title: 'Quote',
     icon: Quote,
-    command: (editor: any) => editor.chain().focus().toggleBlockquote().run(),
+    command: (editor) => editor.chain().focus().toggleBlockquote().run(),
   },
   {
     title: 'Code Block',
     icon: FileCode,
-    command: (editor: any) => editor.chain().focus().toggleCodeBlock().run(),
+    command: (editor) => editor.chain().focus().toggleCodeBlock().run(),
   },
   {
     title: 'Divider',
     icon: Minus,
-    command: (editor: any) => editor.chain().focus().setHorizontalRule().run(),
+    command: (editor) => editor.chain().focus().setHorizontalRule().run(),
   },
 ]
 
+// Slash command menu props
+interface SlashCommandMenuProps {
+  items: SlashCommandItem[];
+  command: (item: SlashCommandItem) => void;
+}
+
+interface SlashCommandMenuRef {
+  onKeyDown: (props: SuggestionKeyDownProps) => boolean;
+}
+
 // Slash command menu component
-const SlashCommandMenu = forwardRef((props: any, ref) => {
+const SlashCommandMenu = forwardRef<SlashCommandMenuRef, SlashCommandMenuProps>((props, ref) => {
   const [selectedIndex, setSelectedIndex] = useState(0)
 
   // Reset selection when items change
@@ -111,7 +129,7 @@ const SlashCommandMenu = forwardRef((props: any, ref) => {
     if (props.items.length === 0) {
       return
     }
-    
+
     // Clamp index to valid range
     const clampedIndex = Math.max(0, Math.min(index, props.items.length - 1))
     const item = props.items[clampedIndex]
@@ -121,7 +139,7 @@ const SlashCommandMenu = forwardRef((props: any, ref) => {
   }
 
   useImperativeHandle(ref, () => ({
-    onKeyDown: ({ event }: any) => {
+    onKeyDown: ({ event }: SuggestionKeyDownProps) => {
       // Guard against empty items array
       if (props.items.length === 0) {
         return false
@@ -148,7 +166,7 @@ const SlashCommandMenu = forwardRef((props: any, ref) => {
 
   return (
     <div className="bg-background border rounded-lg shadow-lg p-2 min-w-[200px]">
-      {props.items.map((item: any, index: number) => {
+      {props.items.map((item, index) => {
         const Icon = item.icon
         return (
           <button
@@ -189,18 +207,18 @@ const SlashCommand = Extension.create({
             .filter(item => item.title.toLowerCase().includes(query.toLowerCase()))
         },
         render: () => {
-          let component: ReactRenderer
-          let popup: any
+          let component: ReactRenderer<SlashCommandMenuRef>
+          let popup: TippyInstance[]
 
           return {
-            onStart: (props: any) => {
+            onStart: (props: SuggestionProps<SlashCommandItem>) => {
               component = new ReactRenderer(SlashCommandMenu, {
                 props,
                 editor: props.editor,
               })
 
               popup = tippy('body', {
-                getReferenceClientRect: props.clientRect,
+                getReferenceClientRect: props.clientRect as () => DOMRect,
                 appendTo: () => document.body,
                 content: component.element,
                 showOnCreate: true,
@@ -210,21 +228,21 @@ const SlashCommand = Extension.create({
               })
             },
 
-            onUpdate(props: any) {
+            onUpdate(props: SuggestionProps<SlashCommandItem>) {
               component.updateProps(props)
 
               popup[0].setProps({
-                getReferenceClientRect: props.clientRect,
+                getReferenceClientRect: props.clientRect as () => DOMRect,
               })
             },
 
-            onKeyDown(props: any) {
+            onKeyDown(props: SuggestionKeyDownProps) {
               if (props.event.key === 'Escape') {
                 popup[0].hide()
                 return true
               }
 
-              return (component.ref as any)?.onKeyDown?.(props) || false
+              return component.ref?.onKeyDown?.(props) || false
             },
 
             onExit() {
@@ -242,11 +260,11 @@ const SlashCommand = Extension.create({
 const LinkDialog = ({ 
   open, 
   onOpenChange, 
-  editor 
-}: { 
+  editor
+}: {
   open: boolean
   onOpenChange: (open: boolean) => void
-  editor: any
+  editor: TiptapEditor | null
 }) => {
   const [url, setUrl] = useState('')
   const [linkText, setLinkText] = useState('')
@@ -317,11 +335,11 @@ const LinkDialog = ({
       normalizedUrl = `https://${normalizedUrl}`
     }
 
-    if (normalizedUrl) {
+    if (normalizedUrl && editor) {
       // If there's selected text, use it; otherwise use the link text input
       const { from, to } = editor.state.selection
       const hasSelection = from !== to
-      
+
       if (hasSelection) {
         // Apply link to selected text
         editor.chain().focus().extendMarkRange('link').setLink({ href: normalizedUrl }).run()
@@ -333,12 +351,12 @@ const LinkDialog = ({
         editor.chain().focus().insertContent(`<a href="${normalizedUrl}">${normalizedUrl}</a>`).run()
       }
     }
-    
+
     onOpenChange(false)
   }
 
   const handleRemove = () => {
-    editor.chain().focus().extendMarkRange('link').unsetLink().run()
+    editor?.chain().focus().extendMarkRange('link').unsetLink().run()
     onOpenChange(false)
   }
 
@@ -450,7 +468,7 @@ const LinkDialog = ({
   )
 }
 
-const MenuBar = ({ editor }: { editor: any }) => {
+const MenuBar = ({ editor }: { editor: TiptapEditor | null }) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false)
   const { toast } = useToast()

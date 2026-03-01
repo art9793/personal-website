@@ -44,7 +44,7 @@ export interface Article {
   seoKeywords?: string;
   author: string;
   status: string;
-  views: string;
+  views: number;
   publishedAt?: Date;
   firstPublishedAt?: Date;
   lastPublishedAt?: Date;

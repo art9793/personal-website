@@ -10,6 +10,7 @@
     "build": "next build",
     "start": "sh -c 'HOST=${HOST:-0.0.0.0} PORT=${PORT:-5000}; if [ -f .next/standalone/server.js ]; then node .next/standalone/server.js; else node server.js; fi'",
     "check": "tsc",
+    "lint": "eslint .",
     "check:prod-env": "tsx scripts/check-prod-env.ts",
     "db:push": "drizzle-kit push",
     "export-data": "tsx scripts/export-data.ts",
@@ -100,6 +101,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@tailwindcss/postcss": "^4.2.1",
     "@types/dompurify": "^3.0.5",
     "@types/node": "^20.19.0",
@@ -110,9 +112,13 @@
     "dotenv": "^16.4.5",
     "drizzle-kit": "^0.31.8",
     "esbuild": "^0.25.0",
+    "eslint": "^10.0.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.20.5",
-    "typescript": "5.6.3"
+    "typescript": "5.6.3",
+    "typescript-eslint": "^8.56.1"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"

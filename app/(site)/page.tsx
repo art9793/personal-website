@@ -1,7 +1,8 @@
 import Link from "next/link";
+import Image from "next/image";
 import { format } from "date-fns";
 import { ArrowRight, ExternalLink, Github, Linkedin, Mail } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { formatArticleHref, getHomeData } from "../_lib/public-data";
 
 export const revalidate = 3600;
@@ -21,7 +22,7 @@ export default async function Page() {
             {profile.avatarUrl && (
               <div className="md:hidden flex justify-center">
                 <Avatar className="h-24 w-24 border-2 border-border/40">
-                  <AvatarImage src={profile.avatarUrl} alt={profile.name} loading="lazy" />
+                  <Image src={profile.avatarUrl} alt={profile.name} width={96} height={96} className="aspect-square h-full w-full object-cover" />
                   <AvatarFallback>{profile.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
               </div>
@@ -83,7 +84,7 @@ export default async function Page() {
           {profile.avatarUrl && (
             <div className="hidden md:block flex-shrink-0">
               <Avatar className="h-32 w-32 border-2 border-border/40">
-                <AvatarImage src={profile.avatarUrl} alt={profile.name} loading="lazy" />
+                <Image src={profile.avatarUrl} alt={profile.name} width={128} height={128} className="aspect-square h-full w-full object-cover" priority />
                 <AvatarFallback>{profile.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
             </div>
