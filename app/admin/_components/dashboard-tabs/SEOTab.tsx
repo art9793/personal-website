@@ -6,11 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Save, Loader2 } from "lucide-react";
 import { useContent } from "@/lib/content-context";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 export function SEOTab() {
   const { seoSettings, updateSeoSettings } = useContent();
-  const { toast } = useToast();
   const [seoFormData, setSeoFormData] = useState(seoSettings);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -44,9 +43,9 @@ export function SEOTab() {
     setIsSaving(true);
     try {
       await updateSeoSettings(seoFormData);
-      toast({ title: "SEO Settings Saved", description: "Your SEO settings have been updated." });
+      toast.success("SEO Settings Saved", { description: "Your SEO settings have been updated." });
     } catch (error) {
-      toast({ title: "Error", description: "Failed to save SEO settings.", variant: "destructive" });
+      toast.error("Error", { description: "Failed to save SEO settings." });
     } finally {
       setIsSaving(false);
     }

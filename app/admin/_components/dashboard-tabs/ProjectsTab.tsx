@@ -10,7 +10,7 @@ import {
   Search, Plus, FolderGit2, Star, Edit2, Trash2,
   MoreHorizontal, ArrowUpDown, Loader2, Link as LinkIcon
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useContent, Project } from "@/lib/content-context";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -30,7 +30,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function ProjectsTab() {
-  const { toast } = useToast();
   const { projects, addProject, updateProject, deleteProject, isLoading } = useContent();
 
   const [isProjectSheetOpen, setIsProjectSheetOpen] = useState(false);
@@ -102,18 +101,15 @@ export function ProjectsTab() {
         await addProject(editingProject);
       }
 
-      toast({
-        title: "Project Saved",
+      toast.success("Project Saved", {
         description: `"${editingProject.title || 'Untitled'}" has been saved successfully.`,
       });
       setIsProjectSheetOpen(false);
       setEditingProject(null);
     } catch (error) {
       console.error("Error saving project:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to save project. Please try again.",
-        variant: "destructive"
       });
     } finally {
       setIsSavingProject(false);
@@ -129,17 +125,13 @@ export function ProjectsTab() {
     if (deleteProjectId === null) return;
     try {
       await deleteProject(deleteProjectId);
-      toast({
-        title: "Project Deleted",
+      toast.success("Project Deleted", {
         description: "The project has been permanently removed.",
-        variant: "destructive"
       });
     } catch (error) {
       console.error("Error deleting project:", error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to delete project. Please try again.",
-        variant: "destructive"
       });
     } finally {
       setDeleteProjectId(null);
@@ -381,16 +373,13 @@ export function ProjectsTab() {
                                     onCheckedChange={async (checked) => {
                                         try {
                                             await updateProject(project.id, { status: checked ? "Active" : "Archived" });
-                                            toast({
-                                                title: `Project ${checked ? 'Activated' : 'Archived'}`,
+                                            toast.success(`Project ${checked ? 'Activated' : 'Archived'}`, {
                                                 description: `"${project.title}" is now ${checked ? 'active' : 'archived'}.`,
                                             });
                                         } catch (error) {
                                             console.error("Error updating project status:", error);
-                                            toast({
-                                                title: "Error",
+                                            toast.error("Error", {
                                                 description: "Failed to update project status.",
-                                                variant: "destructive"
                                             });
                                         }
                                     }}

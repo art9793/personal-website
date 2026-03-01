@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useContent } from "@/lib/content-context";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Editor } from "@/components/admin/editor";
 import { TitleField } from "@/components/TitleField";
 import { format } from "date-fns";
@@ -35,7 +35,6 @@ export default function ArticleEditor() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const { articles, addArticle, updateArticle } = useContent();
-  const { toast } = useToast();
   
   const articleId = params?.id === "new" ? null : params?.id ? parseInt(params.id, 10) : null;
   const existingArticle = articleId ? articles.find(a => a.id === articleId) : null;
@@ -173,8 +172,7 @@ export default function ArticleEditor() {
         setLastSaved(now);
         setInitialContent({ title, content, slug, excerpt, tags, seoKeywords });
         setSaveStatus("saved");
-        toast({
-          title: existingArticle.status === "Published" ? "Changes saved" : "Draft saved",
+        toast.success(existingArticle.status === "Published" ? "Changes saved" : "Draft saved", {
           description: `Saved in ${Math.round(performance.now() - startedAt)}ms.`,
         });
       } else {
@@ -204,8 +202,7 @@ export default function ArticleEditor() {
           seoKeywords 
         });
         setSaveStatus("saved");
-        toast({
-          title: "Draft created",
+        toast.success("Draft created", {
           description: `Created in ${Math.round(performance.now() - startedAt)}ms.`,
         });
         // Redirect to the new article's edit page
@@ -213,15 +210,13 @@ export default function ArticleEditor() {
       }
     } catch (error) {
       setSaveStatus("unsaved");
-      toast({
-        title: "Error saving",
+      toast.error("Error saving", {
         description: "Failed to save your changes. Please try again.",
-        variant: "destructive",
       });
     } finally {
       isSaving.current = false;
     }
-  }, [articleId, existingArticle, title, content, slug, excerpt, tags, seoKeywords, updateArticle, addArticle, toast, router]);
+  }, [articleId, existingArticle, title, content, slug, excerpt, tags, seoKeywords, updateArticle, addArticle, router]);
 
   // Auto-save every 30 seconds if there are unsaved changes
   useEffect(() => {
@@ -252,28 +247,22 @@ export default function ArticleEditor() {
     
     // Validate required fields before publishing
     if (!title.trim()) {
-      toast({
-        title: "Cannot publish",
+      toast.warning("Cannot publish", {
         description: "Please add a title before publishing.",
-        variant: "destructive",
       });
       return;
     }
 
     if (!slug.trim()) {
-      toast({
-        title: "Cannot publish",
+      toast.warning("Cannot publish", {
         description: "Please add a URL slug before publishing.",
-        variant: "destructive",
       });
       return;
     }
 
     if (!textContent) {
-      toast({
-        title: "Cannot publish",
+      toast.warning("Cannot publish", {
         description: "Please add some content before publishing.",
-        variant: "destructive",
       });
       return;
     }
@@ -303,8 +292,7 @@ export default function ArticleEditor() {
         setInitialContent({ title, content, slug, excerpt, tags, seoKeywords });
         setSaveStatus("saved");
         setIsPublishSheetOpen(false);
-        toast({
-          title: "Article published",
+        toast.success("Article published", {
           description: existingArticle.status === "Published"
             ? `Updated in ${Math.round(performance.now() - startedAt)}ms.`
             : `Published in ${Math.round(performance.now() - startedAt)}ms.`,
@@ -319,8 +307,7 @@ export default function ArticleEditor() {
         setInitialContent({ title, content, slug, excerpt, tags, seoKeywords });
         setSaveStatus("saved");
         setIsPublishSheetOpen(false);
-        toast({
-          title: "Article published",
+        toast.success("Article published", {
           description: `Published in ${Math.round(performance.now() - startedAt)}ms.`,
         });
         // Redirect to the new article's edit page
@@ -328,13 +315,11 @@ export default function ArticleEditor() {
       }
     } catch (error) {
       setSaveStatus("unsaved");
-      toast({
-        title: "Error publishing",
+      toast.error("Error publishing", {
         description: "Failed to publish your article. Please try again.",
-        variant: "destructive",
       });
     }
-  }, [articleId, existingArticle, title, content, slug, excerpt, tags, seoKeywords, updateArticle, addArticle, toast, router]);
+  }, [articleId, existingArticle, title, content, slug, excerpt, tags, seoKeywords, updateArticle, addArticle, router]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {

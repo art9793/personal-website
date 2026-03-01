@@ -9,7 +9,7 @@ import {
   Search, Plus, Edit2, Trash2, ArrowUpDown, Loader2,
   Plane, Globe, Calendar as CalendarIcon, Home
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { formatMonthYear } from "@/lib/utils";
 import { useTravelHistory, TravelHistoryEntry } from "@/lib/content-hooks";
 import { CountryCombobox } from "@/components/ui/country-combobox";
@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/sheet";
 
 export function TravelTab() {
-  const { toast } = useToast();
   const {
     travelHistory,
     isLoading: isTravelLoading,
@@ -119,12 +118,12 @@ export function TravelTab() {
     if (!editingTravel || isSavingTravel) return;
 
     if (!editingTravel.countryCode) {
-      toast({ title: "Validation Error", description: "Please select a country.", variant: "destructive" });
+      toast.warning("Validation Error", { description: "Please select a country." });
       return;
     }
 
     if (!editingTravel.isHomeCountry && !editingTravel.visitDate) {
-      toast({ title: "Validation Error", description: "Please select a visit date or mark as home country.", variant: "destructive" });
+      toast.warning("Validation Error", { description: "Please select a visit date or mark as home country." });
       return;
     }
 
@@ -148,15 +147,14 @@ export function TravelTab() {
         await addTravelHistory(data);
       }
 
-      toast({
-        title: editingTravel.id ? "Visit Updated" : "Visit Added",
+      toast.success(editingTravel.id ? "Visit Updated" : "Visit Added", {
         description: `${editingTravel.countryName} has been saved successfully.`,
       });
       setIsTravelSheetOpen(false);
       setEditingTravel(null);
     } catch (error) {
       console.error("Error saving travel entry:", error);
-      toast({ title: "Error", description: "Failed to save travel entry. Please try again.", variant: "destructive" });
+      toast.error("Error", { description: "Failed to save travel entry. Please try again." });
     } finally {
       setIsSavingTravel(false);
     }
@@ -167,9 +165,9 @@ export function TravelTab() {
     if (confirm("Are you sure you want to delete this travel entry?")) {
       try {
         await deleteTravelHistory(id);
-        toast({ title: "Travel Entry Deleted", description: "The entry has been permanently removed.", variant: "destructive" });
+        toast.success("Travel Entry Deleted", { description: "The entry has been permanently removed." });
       } catch (error) {
-        toast({ title: "Error", description: "Failed to delete travel entry.", variant: "destructive" });
+        toast.error("Error", { description: "Failed to delete travel entry." });
       }
     }
   };

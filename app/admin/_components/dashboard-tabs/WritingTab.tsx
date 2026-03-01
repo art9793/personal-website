@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Search, Plus, Edit2, Trash2, MoreHorizontal, ArrowUpDown
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useContent, Article } from "@/lib/content-context";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -26,7 +26,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function WritingTab() {
-  const { toast } = useToast();
   const router = useRouter();
   const { articles, updateArticle, deleteArticle, bulkUpdateArticleStatus, bulkDeleteArticles, isLoading } = useContent();
 
@@ -123,10 +122,8 @@ export function WritingTab() {
 
   const handleToggleRequest = (article: Article) => {
     if (article.status === "Draft" && !canPublishArticle(article)) {
-      toast({
-        title: "Cannot Publish",
+      toast.warning("Cannot Publish", {
         description: "Article must have a title and slug before publishing.",
-        variant: "destructive"
       });
       return;
     }
@@ -139,13 +136,12 @@ export function WritingTab() {
     const startedAt = performance.now();
     try {
       await updateArticle(toggleArticle.id, { status: newStatus });
-      toast({
-        title: `Article ${newStatus}`,
+      toast.success(`Article ${newStatus}`, {
         description: `"${toggleArticle.title}" is now ${newStatus.toLowerCase()} (${Math.round(performance.now() - startedAt)}ms).`,
       });
     } catch (error) {
       console.error("Error updating article status:", error);
-      toast({ title: "Error", description: "Failed to update article status.", variant: "destructive" });
+      toast.error("Error", { description: "Failed to update article status." });
     } finally {
       setToggleArticle(null);
     }
@@ -161,14 +157,12 @@ export function WritingTab() {
     const startedAt = performance.now();
     try {
       await deleteArticle(deleteArticleId);
-      toast({
-        title: "Article Deleted",
+      toast.success("Article Deleted", {
         description: `The article has been permanently removed (${Math.round(performance.now() - startedAt)}ms).`,
-        variant: "destructive",
       });
     } catch (error) {
       console.error("Error deleting article:", error);
-      toast({ title: "Error", description: "Failed to delete article. Please try again.", variant: "destructive" });
+      toast.error("Error", { description: "Failed to delete article. Please try again." });
     } finally {
       setDeleteArticleId(null);
     }
@@ -198,10 +192,8 @@ export function WritingTab() {
     if (status === "Published") {
       const blocked = articles.filter((article) => selectedArticleIds.includes(article.id) && !canPublishArticle(article));
       if (blocked.length > 0) {
-        toast({
-          title: "Cannot Publish Selection",
+        toast.warning("Cannot Publish Selection", {
           description: `${blocked.length} selected article(s) are missing title or slug.`,
-          variant: "destructive",
         });
         return;
       }
@@ -211,14 +203,13 @@ export function WritingTab() {
       setIsBulkProcessing(true);
       const startedAt = performance.now();
       await bulkUpdateArticleStatus(selectedArticleIds, status);
-      toast({
-        title: "Bulk update complete",
+      toast.success("Bulk update complete", {
         description: `${selectedArticleIds.length} article(s) set to ${status.toLowerCase()} in ${Math.round(performance.now() - startedAt)}ms.`,
       });
       setSelectedArticleIds([]);
     } catch (error) {
       console.error("Error bulk updating articles:", error);
-      toast({ title: "Error", description: "Failed to update selected articles.", variant: "destructive" });
+      toast.error("Error", { description: "Failed to update selected articles." });
     } finally {
       setIsBulkProcessing(false);
     }
@@ -233,15 +224,13 @@ export function WritingTab() {
       setIsBulkProcessing(true);
       const startedAt = performance.now();
       await bulkDeleteArticles(selectedArticleIds);
-      toast({
-        title: "Bulk delete complete",
+      toast.success("Bulk delete complete", {
         description: `${selectedArticleIds.length} article(s) deleted in ${Math.round(performance.now() - startedAt)}ms.`,
-        variant: "destructive",
       });
       setSelectedArticleIds([]);
     } catch (error) {
       console.error("Error bulk deleting articles:", error);
-      toast({ title: "Error", description: "Failed to delete selected articles.", variant: "destructive" });
+      toast.error("Error", { description: "Failed to delete selected articles." });
     } finally {
       setIsBulkProcessing(false);
     }

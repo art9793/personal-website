@@ -45,7 +45,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from "react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 const lowlight = createLowlight(common)
 
@@ -471,7 +471,6 @@ const LinkDialog = ({
 const MenuBar = ({ editor }: { editor: TiptapEditor | null }) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false)
-  const { toast } = useToast()
 
   if (!editor) {
     return null
@@ -479,11 +478,7 @@ const MenuBar = ({ editor }: { editor: TiptapEditor | null }) => {
 
   const handleImageUpload = async (file: File) => {
     if (!isImageFile(file)) {
-      toast({
-        title: 'Invalid file',
-        description: 'Please select an image file',
-        variant: 'destructive',
-      })
+      toast.error('Invalid file', { description: 'Please select an image file' })
       return
     }
 
@@ -492,11 +487,7 @@ const MenuBar = ({ editor }: { editor: TiptapEditor | null }) => {
       editor.chain().focus().setImage({ src: objectPath }).run()
     } catch (error) {
       console.error('Error uploading image:', error)
-      toast({
-        title: 'Upload failed',
-        description: 'Failed to upload image. Please try again.',
-        variant: 'destructive',
-      })
+      toast.error('Upload failed', { description: 'Failed to upload image. Please try again.' })
     }
   }
 
@@ -809,15 +800,10 @@ const MenuBar = ({ editor }: { editor: TiptapEditor | null }) => {
 export function Editor({ content, onChange }: { content?: string, onChange?: (html: string) => void }) {
   const [isDragging, setIsDragging] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({})
-  const { toast } = useToast()
 
   const handleImageUpload = async (file: File, onProgress?: (progress: number) => void) => {
     if (!isImageFile(file)) {
-      toast({
-        title: 'Invalid file',
-        description: 'Please select an image file',
-        variant: 'destructive',
-      })
+      toast.error('Invalid file', { description: 'Please select an image file' })
       return null
     }
 
@@ -839,11 +825,7 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
       return objectPath
     } catch (error) {
       console.error('Error uploading image:', error)
-      toast({
-        title: 'Upload failed',
-        description: 'Failed to upload image. Please try again.',
-        variant: 'destructive',
-      })
+      toast.error('Upload failed', { description: 'Failed to upload image. Please try again.' })
       setUploadProgress((prev) => {
         const newProgress = { ...prev }
         delete newProgress[fileId]

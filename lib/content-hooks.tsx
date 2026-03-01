@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { isUnauthorizedError } from "@/lib/authUtils";
 
 // Type definitions (shared with content-context.tsx)
@@ -101,12 +101,10 @@ export interface TravelHistoryEntry {
 }
 
 // Shared error handler
-function handleUnauthorized(error: Error, toast: ReturnType<typeof useToast>["toast"]) {
+function handleUnauthorized(error: Error) {
   if (isUnauthorizedError(error)) {
-    toast({
-      title: "Unauthorized",
+    toast.error("Unauthorized", {
       description: "You are logged out. Logging in again...",
-      variant: "destructive",
     });
     setTimeout(() => {
       window.location.href = "/admin/login";
@@ -119,7 +117,6 @@ function handleUnauthorized(error: Error, toast: ReturnType<typeof useToast>["to
 // Profile hook
 export function useProfile() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   const { data: profile, isLoading } = useQuery<Profile>({
     queryKey: ["/api/profile"],
@@ -141,12 +138,8 @@ export function useProfile() {
       queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
     },
     onError: (error: Error) => {
-      if (!handleUnauthorized(error, toast)) {
-        toast({
-          title: "Error",
-          description: "Failed to update profile",
-          variant: "destructive",
-        });
+      if (!handleUnauthorized(error)) {
+        toast.error("Error", { description: "Failed to update profile" });
       }
     },
   });
@@ -167,7 +160,6 @@ export function useProfile() {
 // SEO Settings hook
 export function useSeoSettings() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   const { data: seoSettings, isLoading } = useQuery<SeoSettings>({
     queryKey: ["/api/seo-settings"],
@@ -187,19 +179,9 @@ export function useSeoSettings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/seo-settings"] });
-      toast({
-        title: "Success",
-        description: "SEO settings updated",
-      });
     },
     onError: (error: Error) => {
-      if (!handleUnauthorized(error, toast)) {
-        toast({
-          title: "Error",
-          description: "Failed to update SEO settings",
-          variant: "destructive",
-        });
-      }
+      handleUnauthorized(error);
     },
   });
 
@@ -213,7 +195,6 @@ export function useSeoSettings() {
 // Articles hook
 export function useArticles() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const articlesQueryKey = ["/api/articles"] as const;
 
   const { data: articles = [], isLoading } = useQuery<Article[]>({
@@ -240,8 +221,8 @@ export function useArticles() {
       queryClient.invalidateQueries({ queryKey: ["article"] });
     },
     onError: (error: Error) => {
-      if (!handleUnauthorized(error, toast)) {
-        toast({ title: "Error", description: "Failed to create article", variant: "destructive" });
+      if (!handleUnauthorized(error)) {
+        toast.error("Error", { description: "Failed to create article" });
       }
     },
   });
@@ -277,8 +258,8 @@ export function useArticles() {
       if (context?.previousArticles) {
         queryClient.setQueryData(articlesQueryKey, context.previousArticles);
       }
-      if (!handleUnauthorized(error, toast)) {
-        toast({ title: "Error", description: "Failed to update article", variant: "destructive" });
+      if (!handleUnauthorized(error)) {
+        toast.error("Error", { description: "Failed to update article" });
       }
     },
   });
@@ -309,8 +290,8 @@ export function useArticles() {
       if (context?.previousArticles) {
         queryClient.setQueryData(articlesQueryKey, context.previousArticles);
       }
-      if (!handleUnauthorized(error, toast)) {
-        toast({ title: "Error", description: "Failed to delete article", variant: "destructive" });
+      if (!handleUnauthorized(error)) {
+        toast.error("Error", { description: "Failed to delete article" });
       }
     },
   });
@@ -338,8 +319,8 @@ export function useArticles() {
       if (context?.previousArticles) {
         queryClient.setQueryData(articlesQueryKey, context.previousArticles);
       }
-      if (!handleUnauthorized(error, toast)) {
-        toast({ title: "Error", description: "Failed to update article statuses", variant: "destructive" });
+      if (!handleUnauthorized(error)) {
+        toast.error("Error", { description: "Failed to update article statuses" });
       }
     },
   });
@@ -367,8 +348,8 @@ export function useArticles() {
       if (context?.previousArticles) {
         queryClient.setQueryData(articlesQueryKey, context.previousArticles);
       }
-      if (!handleUnauthorized(error, toast)) {
-        toast({ title: "Error", description: "Failed to delete selected articles", variant: "destructive" });
+      if (!handleUnauthorized(error)) {
+        toast.error("Error", { description: "Failed to delete selected articles" });
       }
     },
   });
@@ -388,7 +369,6 @@ export function useArticles() {
 // Projects hook
 export function useProjects() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   const { data: projects = [], isLoading } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
@@ -415,8 +395,8 @@ export function useProjects() {
       // Don't invalidate - setQueryData already updated the cache
     },
     onError: (error: Error) => {
-      if (!handleUnauthorized(error, toast)) {
-        toast({ title: "Error", description: "Failed to create project", variant: "destructive" });
+      if (!handleUnauthorized(error)) {
+        toast.error("Error", { description: "Failed to create project" });
       }
     },
   });
@@ -444,8 +424,8 @@ export function useProjects() {
       // invalidateQueries would refetch stale browser-cached data
     },
     onError: (error: Error) => {
-      if (!handleUnauthorized(error, toast)) {
-        toast({ title: "Error", description: "Failed to update project", variant: "destructive" });
+      if (!handleUnauthorized(error)) {
+        toast.error("Error", { description: "Failed to update project" });
       }
     },
   });
@@ -467,8 +447,8 @@ export function useProjects() {
       });
     },
     onError: (error: Error) => {
-      if (!handleUnauthorized(error, toast)) {
-        toast({ title: "Error", description: "Failed to delete project", variant: "destructive" });
+      if (!handleUnauthorized(error)) {
+        toast.error("Error", { description: "Failed to delete project" });
       }
     },
   });
@@ -485,7 +465,6 @@ export function useProjects() {
 // Work Experiences hook
 export function useWorkExperiences() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   const { data: workHistory = [], isLoading } = useQuery<WorkExperience[]>({
     queryKey: ["/api/work-experiences"],
@@ -512,8 +491,8 @@ export function useWorkExperiences() {
       // Don't invalidate - setQueryData already updated the cache
     },
     onError: (error: Error) => {
-      if (!handleUnauthorized(error, toast)) {
-        toast({ title: "Error", description: "Failed to add work experience", variant: "destructive" });
+      if (!handleUnauthorized(error)) {
+        toast.error("Error", { description: "Failed to add work experience" });
       }
     },
   });
@@ -540,8 +519,8 @@ export function useWorkExperiences() {
       // Don't invalidate - setQueryData already updated the cache
     },
     onError: (error: Error) => {
-      if (!handleUnauthorized(error, toast)) {
-        toast({ title: "Error", description: "Failed to update work experience", variant: "destructive" });
+      if (!handleUnauthorized(error)) {
+        toast.error("Error", { description: "Failed to update work experience" });
       }
     },
   });
@@ -563,8 +542,8 @@ export function useWorkExperiences() {
       });
     },
     onError: (error: Error) => {
-      if (!handleUnauthorized(error, toast)) {
-        toast({ title: "Error", description: "Failed to delete work experience", variant: "destructive" });
+      if (!handleUnauthorized(error)) {
+        toast.error("Error", { description: "Failed to delete work experience" });
       }
     },
   });
@@ -581,7 +560,6 @@ export function useWorkExperiences() {
 // Reading List hook
 export function useReadingList() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   const { data: readingList = [], isLoading } = useQuery<ReadingListItem[]>({
     queryKey: ["/api/reading-list"],
@@ -607,8 +585,8 @@ export function useReadingList() {
       });
     },
     onError: (error: Error) => {
-      if (!handleUnauthorized(error, toast)) {
-        toast({ title: "Error", description: "Failed to add reading list item", variant: "destructive" });
+      if (!handleUnauthorized(error)) {
+        toast.error("Error", { description: "Failed to add reading list item" });
       }
     },
   });
@@ -634,8 +612,8 @@ export function useReadingList() {
       });
     },
     onError: (error: Error) => {
-      if (!handleUnauthorized(error, toast)) {
-        toast({ title: "Error", description: "Failed to update reading list item", variant: "destructive" });
+      if (!handleUnauthorized(error)) {
+        toast.error("Error", { description: "Failed to update reading list item" });
       }
     },
   });
@@ -657,8 +635,8 @@ export function useReadingList() {
       });
     },
     onError: (error: Error) => {
-      if (!handleUnauthorized(error, toast)) {
-        toast({ title: "Error", description: "Failed to delete reading list item", variant: "destructive" });
+      if (!handleUnauthorized(error)) {
+        toast.error("Error", { description: "Failed to delete reading list item" });
       }
     },
   });
@@ -675,7 +653,6 @@ export function useReadingList() {
 // Travel History hook
 export function useTravelHistory() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   const { data: travelHistory = [], isLoading } = useQuery<TravelHistoryEntry[]>({
     queryKey: ["/api/travel-history"],
@@ -702,8 +679,8 @@ export function useTravelHistory() {
       // Don't invalidate - setQueryData already updated the cache
     },
     onError: (error: Error) => {
-      if (!handleUnauthorized(error, toast)) {
-        toast({ title: "Error", description: "Failed to add travel entry", variant: "destructive" });
+      if (!handleUnauthorized(error)) {
+        toast.error("Error", { description: "Failed to add travel entry" });
       }
     },
   });
@@ -730,8 +707,8 @@ export function useTravelHistory() {
       // Don't invalidate - setQueryData already updated the cache
     },
     onError: (error: Error) => {
-      if (!handleUnauthorized(error, toast)) {
-        toast({ title: "Error", description: "Failed to update travel entry", variant: "destructive" });
+      if (!handleUnauthorized(error)) {
+        toast.error("Error", { description: "Failed to update travel entry" });
       }
     },
   });
@@ -753,8 +730,8 @@ export function useTravelHistory() {
       });
     },
     onError: (error: Error) => {
-      if (!handleUnauthorized(error, toast)) {
-        toast({ title: "Error", description: "Failed to delete travel entry", variant: "destructive" });
+      if (!handleUnauthorized(error)) {
+        toast.error("Error", { description: "Failed to delete travel entry" });
       }
     },
   });

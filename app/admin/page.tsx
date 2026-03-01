@@ -26,7 +26,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils";
 import { useContent } from "@/lib/content-context";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { queryClient } from "@/lib/queryClient";
 import {
   CommandDialog,
@@ -68,7 +68,6 @@ const navItems: Array<{ id: TabId; label: string; icon: ComponentType<{ classNam
 export default function AdminDashboard() {
   const router = useRouter();
   const { status } = useSession();
-  const { toast } = useToast();
   const { profile, articles, projects } = useContent();
   const isMobile = useIsMobile();
 
@@ -97,13 +96,11 @@ export default function AdminDashboard() {
       router.push("/admin/login");
     } catch (error) {
       console.error("Error signing out:", error);
-      toast({
-        title: "Sign Out Error",
+      toast.error("Sign Out Error", {
         description: "Failed to sign out. Please try again.",
-        variant: "destructive",
       });
     }
-  }, [router, toast]);
+  }, [router]);
 
   const handleNewPost = useCallback(() => {
     router.push("/admin/article/new");

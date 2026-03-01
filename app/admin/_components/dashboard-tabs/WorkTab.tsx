@@ -9,7 +9,7 @@ import {
   Search, Plus, Briefcase, Edit2, Trash2, Upload,
   ArrowUpDown, Loader2
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { formatMonthYear } from "@/lib/utils";
 import { useContent, WorkExperience } from "@/lib/content-context";
 import { MonthYearPicker } from "@/components/ui/month-year-picker";
@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/sheet";
 
 export function WorkTab() {
-  const { toast } = useToast();
   const { workHistory, addWork, updateWork, deleteWork } = useContent();
 
   const [isWorkSheetOpen, setIsWorkSheetOpen] = useState(false);
@@ -85,19 +84,19 @@ export function WorkTab() {
     if (!editingWork || isSavingWork) return;
 
     if (!editingWork.company?.trim()) {
-      toast({ title: "Validation Error", description: "Please enter a company name.", variant: "destructive" });
+      toast.warning("Validation Error", { description: "Please enter a company name." });
       return;
     }
     if (!editingWork.role?.trim()) {
-      toast({ title: "Validation Error", description: "Please enter a role title.", variant: "destructive" });
+      toast.warning("Validation Error", { description: "Please enter a role title." });
       return;
     }
     if (!editingWork.startDate) {
-      toast({ title: "Validation Error", description: "Please select a start date.", variant: "destructive" });
+      toast.warning("Validation Error", { description: "Please select a start date." });
       return;
     }
     if (!editingWork.endDate || (editingWork.endDate !== "Present" && !editingWork.endDate.trim())) {
-      toast({ title: "Validation Error", description: "Please either check 'I currently work here' or select an end date.", variant: "destructive" });
+      toast.warning("Validation Error", { description: "Please either check 'I currently work here' or select an end date." });
       return;
     }
 
@@ -109,15 +108,14 @@ export function WorkTab() {
         await addWork(editingWork);
       }
 
-      toast({
-        title: "Work Experience Saved",
+      toast.success("Work Experience Saved", {
         description: `"${editingWork.company}" has been saved successfully.`,
       });
       setIsWorkSheetOpen(false);
       setEditingWork(null);
     } catch (error) {
       console.error("Error saving work experience:", error);
-      toast({ title: "Error", description: "Failed to save work experience. Please try again.", variant: "destructive" });
+      toast.error("Error", { description: "Failed to save work experience. Please try again." });
     } finally {
       setIsSavingWork(false);
     }
@@ -128,10 +126,10 @@ export function WorkTab() {
     if (confirm("Are you sure you want to delete this work experience?")) {
       try {
         await deleteWork(id);
-        toast({ title: "Work Experience Deleted", description: "The entry has been permanently removed.", variant: "destructive" });
+        toast.success("Work Experience Deleted", { description: "The entry has been permanently removed." });
       } catch (error) {
         console.error("Error deleting work experience:", error);
-        toast({ title: "Error", description: "Failed to delete work experience. Please try again.", variant: "destructive" });
+        toast.error("Error", { description: "Failed to delete work experience. Please try again." });
       }
     }
   };

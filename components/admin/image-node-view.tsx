@@ -5,7 +5,7 @@ import { ImageToolbar } from './image-toolbar'
 import { useState, useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import { uploadImage, isImageFile } from '@/lib/image-upload'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 interface ImageNodeViewProps {
   node: ProseMirrorNode
@@ -25,8 +25,6 @@ export function ImageNodeViewComponent({
   const [isResizing, setIsResizing] = useState(false)
   const [showToolbar, setShowToolbar] = useState(false)
   const imageRef = useRef<HTMLImageElement | null>(null)
-  const { toast } = useToast()
-
   const { src, alt, width, height, align, caption } = node.attrs
 
   useEffect(() => {
@@ -35,11 +33,7 @@ export function ImageNodeViewComponent({
 
   const handleReplace = async (file: File) => {
     if (!isImageFile(file)) {
-      toast({
-        title: 'Invalid file',
-        description: 'Please select an image file',
-        variant: 'destructive',
-      })
+      toast.error('Invalid file', { description: 'Please select an image file' })
       return
     }
 
@@ -48,11 +42,7 @@ export function ImageNodeViewComponent({
       updateAttributes({ src: objectPath })
     } catch (error) {
       console.error('Error replacing image:', error)
-      toast({
-        title: 'Upload failed',
-        description: 'Failed to replace image. Please try again.',
-        variant: 'destructive',
-      })
+      toast.error('Upload failed', { description: 'Failed to replace image. Please try again.' })
     }
   }
 

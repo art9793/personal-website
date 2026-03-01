@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, X, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 export interface ObjectUploadResult {
   url: string;
@@ -29,17 +29,14 @@ export function ObjectUploader({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.size > maxFileSize) {
-      toast({
-        title: "File too large",
+      toast.error("File too large", {
         description: `File size must be less than ${Math.round(maxFileSize / 1024 / 1024)}MB`,
-        variant: "destructive",
       });
       return;
     }
@@ -83,10 +80,8 @@ export function ObjectUploader({
       handleClose();
     } catch (error) {
       console.error("Upload failed:", error);
-      toast({
-        title: "Upload failed",
+      toast.error("Upload failed", {
         description: "Something went wrong. Please try again.",
-        variant: "destructive",
       });
     } finally {
       setIsUploading(false);
@@ -115,10 +110,8 @@ export function ObjectUploader({
     if (!file) return;
 
     if (file.size > maxFileSize) {
-      toast({
-        title: "File too large",
+      toast.error("File too large", {
         description: `File size must be less than ${Math.round(maxFileSize / 1024 / 1024)}MB`,
-        variant: "destructive",
       });
       return;
     }

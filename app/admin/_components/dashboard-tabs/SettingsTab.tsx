@@ -9,12 +9,11 @@ import {
   Save, Upload, Trash2, Twitter, Linkedin, Github, Mail,
   AlertCircle, CheckCircle, Loader2
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useContent } from "@/lib/content-context";
 import { ObjectUploader, type ObjectUploadResult } from "@/components/ObjectUploader";
 
 export function SettingsTab() {
-  const { toast } = useToast();
   const { profile, updateProfile } = useContent();
 
   const [formData, setFormData] = useState(profile);
@@ -44,17 +43,14 @@ export function SettingsTab() {
     try {
       await updateProfile(formData);
       setProfileSaveStatus("saved");
-      toast({
-        title: "Profile Updated",
+      toast.success("Profile Updated", {
         description: "Your profile information has been saved.",
       });
       setTimeout(() => setProfileSaveStatus("idle"), 2000);
     } catch (error) {
       setProfileSaveStatus("idle");
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to save profile. Please try again.",
-        variant: "destructive"
       });
     }
   };
@@ -77,16 +73,13 @@ export function SettingsTab() {
 
       setFormData(prev => prev ? { ...prev, avatarUrl } : undefined);
 
-      toast({
-        title: "Avatar Updated",
+      toast.success("Avatar Updated", {
         description: "Your profile picture has been updated successfully.",
       });
     } catch (error) {
       console.error("Error saving avatar:", error);
-      toast({
-        title: "Save Error",
+      toast.error("Save Error", {
         description: error instanceof Error ? error.message : "Failed to save your profile picture",
-        variant: "destructive",
       });
     }
   };
@@ -102,16 +95,13 @@ export function SettingsTab() {
 
       setFormData(prev => prev ? { ...prev, avatarUrl: undefined } : undefined);
 
-      toast({
-        title: "Avatar Removed",
+      toast.success("Avatar Removed", {
         description: "Your profile picture has been removed.",
       });
     } catch (error) {
       console.error("Error deleting avatar:", error);
-      toast({
-        title: "Delete Error",
+      toast.error("Delete Error", {
         description: "Failed to remove your profile picture",
-        variant: "destructive",
       });
     }
   };
