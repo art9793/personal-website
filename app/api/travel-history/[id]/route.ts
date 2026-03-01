@@ -8,6 +8,9 @@ interface Params {
 }
 
 export async function GET(_: Request, { params }: Params) {
+  const authResult = await requireAdminUser();
+  if (authResult.error) return authResult.error;
+
   const { id } = await params;
   const parsedId = parseId(id);
   if (!parsedId) return Response.json({ message: "Invalid travel history id" }, { status: 400 });

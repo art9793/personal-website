@@ -49,10 +49,16 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       staleTime: 5 * 60 * 1000, // 5 minutes - data is fresh for 5 min, prevents unnecessary refetches
-      retry: false,
+      retry: (failureCount, error) => {
+        if (error instanceof Error && error.message.startsWith("401:")) return false;
+        return failureCount < 1;
+      },
     },
     mutations: {
-      retry: false,
+      retry: (failureCount, error) => {
+        if (error instanceof Error && error.message.startsWith("401:")) return false;
+        return failureCount < 1;
+      },
     },
   },
 });

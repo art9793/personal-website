@@ -214,9 +214,10 @@ export function useSeoSettings() {
 export function useArticles() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const articlesQueryKey = ["/api/articles"] as const;
 
   const { data: articles = [], isLoading } = useQuery<Article[]>({
-    queryKey: ["/api/articles"],
+    queryKey: articlesQueryKey,
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 
@@ -232,7 +233,7 @@ export function useArticles() {
       return res.json();
     },
     onSuccess: (newArticle) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/articles"] });
+      queryClient.invalidateQueries({ queryKey: articlesQueryKey });
       if (newArticle?.slug) {
         queryClient.invalidateQueries({ queryKey: ["article", newArticle.slug] });
       }
@@ -256,20 +257,26 @@ export function useArticles() {
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
       return await res.json();
     },
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: articlesQueryKey });
+      const previousArticles = queryClient.getQueryData<Article[]>(articlesQueryKey);
+      queryClient.setQueryData<Article[]>(articlesQueryKey, (oldArticles = []) =>
+        oldArticles.map((article) => (article.id === id ? { ...article, ...data } : article)),
+      );
+      return { previousArticles };
+    },
     onSuccess: (updatedArticle) => {
-      // Directly update the cache to bypass browser HTTP caching
-      queryClient.setQueryData<Article[]>(["/api/articles"], (oldArticles) => {
-        if (!oldArticles) return oldArticles;
-        return oldArticles.map(article => 
-          article.id === updatedArticle.id ? updatedArticle : article
-        );
-      });
-      // Invalidate individual article queries (these don't have HTTP caching issues)
+      queryClient.setQueryData<Article[]>(articlesQueryKey, (oldArticles = []) =>
+        oldArticles.map((article) => (article.id === updatedArticle.id ? updatedArticle : article)),
+      );
       if (updatedArticle?.slug) {
         queryClient.invalidateQueries({ queryKey: ["article", updatedArticle.slug] });
       }
     },
-    onError: (error: Error) => {
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousArticles) {
+        queryClient.setQueryData(articlesQueryKey, context.previousArticles);
+      }
       if (!handleUnauthorized(error, toast)) {
         toast({ title: "Error", description: "Failed to update article", variant: "destructive" });
       }
@@ -285,16 +292,83 @@ export function useArticles() {
       if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
       return id;
     },
-    onSuccess: (deletedId) => {
-      // Directly remove from cache to bypass browser HTTP caching
-      queryClient.setQueryData<Article[]>(["/api/articles"], (oldArticles) => {
-        if (!oldArticles) return oldArticles;
-        return oldArticles.filter(article => article.id !== deletedId);
-      });
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: articlesQueryKey });
+      const previousArticles = queryClient.getQueryData<Article[]>(articlesQueryKey);
+      queryClient.setQueryData<Article[]>(articlesQueryKey, (oldArticles = []) =>
+        oldArticles.filter((article) => article.id !== id),
+      );
+      return { previousArticles };
     },
-    onError: (error: Error) => {
+    onSuccess: (deletedId) => {
+      queryClient.setQueryData<Article[]>(articlesQueryKey, (oldArticles = []) =>
+        oldArticles.filter((article) => article.id !== deletedId),
+      );
+    },
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousArticles) {
+        queryClient.setQueryData(articlesQueryKey, context.previousArticles);
+      }
       if (!handleUnauthorized(error, toast)) {
         toast({ title: "Error", description: "Failed to delete article", variant: "destructive" });
+      }
+    },
+  });
+
+  const bulkUpdateArticleStatusMutation = useMutation({
+    mutationFn: async ({ ids, status }: { ids: number[]; status: "Draft" | "Published" }) => {
+      const res = await fetch("/api/articles/bulk", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ ids, status }),
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return { ids, status, result: await res.json() };
+    },
+    onMutate: async ({ ids, status }) => {
+      await queryClient.cancelQueries({ queryKey: articlesQueryKey });
+      const previousArticles = queryClient.getQueryData<Article[]>(articlesQueryKey);
+      queryClient.setQueryData<Article[]>(articlesQueryKey, (oldArticles = []) =>
+        oldArticles.map((article) => (ids.includes(article.id) ? { ...article, status } : article)),
+      );
+      return { previousArticles };
+    },
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousArticles) {
+        queryClient.setQueryData(articlesQueryKey, context.previousArticles);
+      }
+      if (!handleUnauthorized(error, toast)) {
+        toast({ title: "Error", description: "Failed to update article statuses", variant: "destructive" });
+      }
+    },
+  });
+
+  const bulkDeleteArticlesMutation = useMutation({
+    mutationFn: async (ids: number[]) => {
+      const res = await fetch("/api/articles/bulk", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ ids }),
+      });
+      if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+      return { ids, result: await res.json() };
+    },
+    onMutate: async (ids) => {
+      await queryClient.cancelQueries({ queryKey: articlesQueryKey });
+      const previousArticles = queryClient.getQueryData<Article[]>(articlesQueryKey);
+      queryClient.setQueryData<Article[]>(articlesQueryKey, (oldArticles = []) =>
+        oldArticles.filter((article) => !ids.includes(article.id)),
+      );
+      return { previousArticles };
+    },
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousArticles) {
+        queryClient.setQueryData(articlesQueryKey, context.previousArticles);
+      }
+      if (!handleUnauthorized(error, toast)) {
+        toast({ title: "Error", description: "Failed to delete selected articles", variant: "destructive" });
       }
     },
   });
@@ -305,6 +379,9 @@ export function useArticles() {
     addArticle: (data: Partial<Article>) => addArticleMutation.mutateAsync(data),
     updateArticle: (id: number, data: Partial<Article>) => updateArticleMutation.mutateAsync({ id, data }),
     deleteArticle: (id: number) => deleteArticleMutation.mutateAsync(id),
+    bulkUpdateArticleStatus: (ids: number[], status: "Draft" | "Published") =>
+      bulkUpdateArticleStatusMutation.mutateAsync({ ids, status }),
+    bulkDeleteArticles: (ids: number[]) => bulkDeleteArticlesMutation.mutateAsync(ids),
   };
 }
 

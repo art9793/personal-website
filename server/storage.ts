@@ -25,7 +25,7 @@ import {
   type InsertTravelHistory,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -49,6 +49,8 @@ export interface IStorage {
   createArticle(data: InsertArticle): Promise<Article>;
   updateArticle(id: number, data: Partial<InsertArticle>): Promise<Article>;
   deleteArticle(id: number): Promise<void>;
+  bulkUpdateArticleStatus(ids: number[], status: string): Promise<number>;
+  bulkDeleteArticles(ids: number[]): Promise<number>;
 
   // Project operations
   getProjects(): Promise<Project[]>;
@@ -209,6 +211,22 @@ export class DatabaseStorage implements IStorage {
 
   async deleteArticle(id: number): Promise<void> {
     await db.delete(articles).where(eq(articles.id, id));
+  }
+
+  async bulkUpdateArticleStatus(ids: number[], status: string): Promise<number> {
+    if (ids.length === 0) return 0;
+    const updated = await db
+      .update(articles)
+      .set({ status, updatedAt: new Date() })
+      .where(inArray(articles.id, ids))
+      .returning({ id: articles.id });
+    return updated.length;
+  }
+
+  async bulkDeleteArticles(ids: number[]): Promise<number> {
+    if (ids.length === 0) return 0;
+    const deleted = await db.delete(articles).where(inArray(articles.id, ids)).returning({ id: articles.id });
+    return deleted.length;
   }
 
   async incrementArticleViews(slug: string): Promise<void> {

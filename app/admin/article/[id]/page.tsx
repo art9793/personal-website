@@ -149,6 +149,7 @@ export default function ArticleEditor() {
     if (isSaving.current) return;
     isSaving.current = true;
     setSaveStatus("saving");
+    const startedAt = performance.now();
 
     try {
       if (articleId && existingArticle) {
@@ -174,7 +175,7 @@ export default function ArticleEditor() {
         setSaveStatus("saved");
         toast({
           title: existingArticle.status === "Published" ? "Changes saved" : "Draft saved",
-          description: "Your changes have been saved successfully.",
+          description: `Saved in ${Math.round(performance.now() - startedAt)}ms.`,
         });
       } else {
         // Create new article as draft
@@ -205,7 +206,7 @@ export default function ArticleEditor() {
         setSaveStatus("saved");
         toast({
           title: "Draft created",
-          description: "Your article draft has been created.",
+          description: `Created in ${Math.round(performance.now() - startedAt)}ms.`,
         });
         // Redirect to the new article's edit page
         router.push(`/admin/article/${newArticle.id}`);
@@ -278,6 +279,7 @@ export default function ArticleEditor() {
     }
 
     setSaveStatus("saving");
+    const startedAt = performance.now();
 
     try {
       const now = new Date();
@@ -303,9 +305,9 @@ export default function ArticleEditor() {
         setIsPublishSheetOpen(false);
         toast({
           title: "Article published",
-          description: existingArticle.status === "Published" 
-            ? "Your changes have been published." 
-            : "Your article is now live!",
+          description: existingArticle.status === "Published"
+            ? `Updated in ${Math.round(performance.now() - startedAt)}ms.`
+            : `Published in ${Math.round(performance.now() - startedAt)}ms.`,
         });
       } else {
         // Create and publish new article
@@ -319,7 +321,7 @@ export default function ArticleEditor() {
         setIsPublishSheetOpen(false);
         toast({
           title: "Article published",
-          description: "Your article is now live!",
+          description: `Published in ${Math.round(performance.now() - startedAt)}ms.`,
         });
         // Redirect to the new article's edit page
         router.push(`/admin/article/${newArticle.id}`);
@@ -333,6 +335,27 @@ export default function ArticleEditor() {
       });
     }
   }, [articleId, existingArticle, title, content, slug, excerpt, tags, seoKeywords, updateArticle, addArticle, toast, router]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const isEditorSave = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s";
+      const isEditorPublish =
+        (event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === "p";
+
+      if (isEditorSave) {
+        event.preventDefault();
+        void handleSaveDraft();
+      }
+
+      if (isEditorPublish) {
+        event.preventDefault();
+        void handlePublish();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [handlePublish, handleSaveDraft]);
 
   const textContent = content.replace(/<[^>]*>/g, '').trim();
   const wordCount = textContent.split(/\s+/).filter(Boolean).length;

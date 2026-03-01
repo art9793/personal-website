@@ -18,6 +18,8 @@ interface ContentContextType {
   addArticle: (article: Partial<Article>) => Promise<Article>;
   updateArticle: (id: number, data: Partial<Article>) => Promise<void>;
   deleteArticle: (id: number) => Promise<void>;
+  bulkUpdateArticleStatus: (ids: number[], status: "Draft" | "Published") => Promise<unknown>;
+  bulkDeleteArticles: (ids: number[]) => Promise<unknown>;
   addProject: (project: Partial<Project>) => Promise<void>;
   updateProject: (id: number, data: Partial<Project>) => Promise<void>;
   deleteProject: (id: number) => Promise<void>;
@@ -36,7 +38,15 @@ export function ContentProvider({ children }: { children: ReactNode }) {
   // pages to use individual hooks for better performance
   const { profile, isLoading: profileLoading, updateProfile } = useProfile();
   const { seoSettings, isLoading: seoLoading, updateSeoSettings } = useSeoSettings();
-  const { articles, isLoading: articlesLoading, addArticle, updateArticle, deleteArticle } = useArticles();
+  const {
+    articles,
+    isLoading: articlesLoading,
+    addArticle,
+    updateArticle,
+    deleteArticle,
+    bulkUpdateArticleStatus,
+    bulkDeleteArticles,
+  } = useArticles();
   const { projects, isLoading: projectsLoading, addProject, updateProject, deleteProject } = useProjects();
   const { workHistory, isLoading: workLoading, addWork, updateWork, deleteWork } = useWorkExperiences();
   const { readingList, isLoading: readingLoading, addReadingListItem, updateReadingListItem, deleteReadingListItem } = useReadingList();
@@ -54,6 +64,12 @@ export function ContentProvider({ children }: { children: ReactNode }) {
     addArticle,
     updateArticle,
     deleteArticle: async (id: number) => { await deleteArticle(id); },
+    bulkUpdateArticleStatus: async (ids: number[], status: "Draft" | "Published") => {
+      await bulkUpdateArticleStatus(ids, status);
+    },
+    bulkDeleteArticles: async (ids: number[]) => {
+      await bulkDeleteArticles(ids);
+    },
     addProject,
     updateProject,
     deleteProject: async (id: number) => { await deleteProject(id); },

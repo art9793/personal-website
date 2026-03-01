@@ -836,6 +836,7 @@ export function Editor({ content, onChange }: { content?: string, onChange?: (ht
   }
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         hardBreak: {

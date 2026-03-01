@@ -1,130 +1,97 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState, type ComponentType } from "react";
 import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
-  LayoutDashboard, PenTool, FolderGit2, BookOpen, Settings,
-  LogOut, Image as ImageIcon, Globe,
-  ChevronsLeft, ChevronsRight, Upload,
-  ArrowLeft,
-  Calendar as CalendarIcon, Briefcase,
-  AlertCircle, Menu, Plane
+  BookOpen,
+  ChevronsLeft,
+  ChevronsRight,
+  FolderGit2,
+  Globe,
+  Image as ImageIcon,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  PenTool,
+  Plane,
+  Plus,
+  Settings,
+  Briefcase,
+  Command as CommandIcon,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
-import { Editor } from "@/components/admin/editor";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { useContent, Article } from "@/lib/content-context";
-import { queryClient } from "@/lib/queryClient";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { lazy, Suspense, Component, type ReactNode, type ErrorInfo } from "react";
+import { cn } from "@/lib/utils";
+import { useContent } from "@/lib/content-context";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandShortcut,
+} from "@/components/ui/command";
+import { AdminTabContent } from "./_components/admin-tab-content";
 
-// Error boundary for dashboard tabs — catches render errors without crashing the whole dashboard
-class TabErrorBoundary extends Component<
-  { children: ReactNode; onRetry?: () => void },
-  { hasError: boolean }
-> {
-  state = { hasError: false };
-  static getDerivedStateFromError() { return { hasError: true }; }
-  componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error("Dashboard tab error:", error, info.componentStack);
-  }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <p className="text-sm text-muted-foreground mb-4">Something went wrong loading this tab.</p>
-          <button
-            className="text-sm text-primary underline underline-offset-4"
-            onClick={() => this.setState({ hasError: false })}
-          >
-            Try again
-          </button>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
+type TabId = "overview" | "settings" | "writing" | "projects" | "work" | "travel" | "reading" | "media" | "seo";
+const validTabs: TabId[] = ["overview", "settings", "writing", "projects", "work", "travel", "reading", "media", "seo"];
+const tabTitles: Record<TabId, string> = {
+  overview: "Overview",
+  settings: "Home Page",
+  writing: "Writing",
+  projects: "Projects",
+  work: "Work History",
+  travel: "Travel",
+  reading: "Reading List",
+  media: "Media Library",
+  seo: "SEO & Metadata",
+};
 
-// Lazy load dashboard tabs for code splitting
-const OverviewTab = lazy(() => import("./_components/dashboard-tabs/OverviewTab").then(m => ({ default: m.OverviewTab })));
-const ReadingTab = lazy(() => import("./_components/dashboard-tabs/ReadingTab").then(m => ({ default: m.ReadingTab })));
-const MediaTab = lazy(() => import("./_components/dashboard-tabs/MediaTab").then(m => ({ default: m.MediaTab })));
-const SEOTab = lazy(() => import("./_components/dashboard-tabs/SEOTab").then(m => ({ default: m.SEOTab })));
-const ProjectsTab = lazy(() => import("./_components/dashboard-tabs/ProjectsTab").then(m => ({ default: m.ProjectsTab })));
-const WorkTab = lazy(() => import("./_components/dashboard-tabs/WorkTab").then(m => ({ default: m.WorkTab })));
-const TravelTab = lazy(() => import("./_components/dashboard-tabs/TravelTab").then(m => ({ default: m.TravelTab })));
-const WritingTab = lazy(() => import("./_components/dashboard-tabs/WritingTab").then(m => ({ default: m.WritingTab })));
-const SettingsTab = lazy(() => import("./_components/dashboard-tabs/SettingsTab").then(m => ({ default: m.SettingsTab })));
+const navItems: Array<{ id: TabId; label: string; icon: ComponentType<{ className?: string }> }> = [
+  { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "settings", label: "Home Page", icon: Settings },
+  { id: "writing", label: "Writing", icon: PenTool },
+  { id: "projects", label: "Projects", icon: FolderGit2 },
+  { id: "work", label: "Work History", icon: Briefcase },
+  { id: "travel", label: "Travel", icon: Plane },
+  { id: "reading", label: "Reading List", icon: BookOpen },
+  { id: "media", label: "Media Library", icon: ImageIcon },
+  { id: "seo", label: "SEO & Metadata", icon: Globe },
+];
 
 export default function AdminDashboard() {
   const router = useRouter();
   const { status } = useSession();
   const { toast } = useToast();
-
-  const [activeTab, setActiveTab] = useState("overview");
-
-  // Helper to change tab and update URL (preserves browser history)
-  const changeTab = useCallback((tab: string) => {
-    setActiveTab(tab);
-    router.push(`/admin?tab=${tab}`);
-  }, [router]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tab = params.get("tab");
-    if (tab && ["overview", "writing", "projects", "work", "travel", "reading", "media", "seo", "settings"].includes(tab)) {
-      setActiveTab(tab);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/admin/login");
-    }
-  }, [status, router]);
-
-  const {
-    profile, articles, projects,
-    updateArticle, addArticle
-  } = useContent();
-
-  const [editingArticle, setEditingArticle] = useState<Article | null>(null);
-  const [isWriting, setIsWriting] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const { profile, articles, projects } = useContent();
   const isMobile = useIsMobile();
 
-  // Memoize article counts for overview
-  const draftArticlesCount = useMemo(() =>
-    articles.filter(a => a.status === "Draft").length,
-    [articles]
+  const [activeTab, setActiveTab] = useState<TabId>("overview");
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isCommandOpen, setIsCommandOpen] = useState(false);
+
+  const draftArticlesCount = useMemo(() => articles.filter((article) => article.status === "Draft").length, [articles]);
+
+  const changeTab = useCallback(
+    (tab: TabId) => {
+      setActiveTab(tab);
+      router.push(`/admin?tab=${tab}`);
+      if (isMobile) {
+        setIsMobileSidebarOpen(false);
+      }
+    },
+    [isMobile, router],
   );
 
-  // Reset writing state when leaving writing tab
-  useEffect(() => {
-    if (activeTab !== 'writing') {
-      setIsWriting(false);
-      setEditingArticle(null);
-    }
-  }, [activeTab]);
-
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     try {
       await signOut({ redirect: false });
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
@@ -137,107 +104,106 @@ export default function AdminDashboard() {
         variant: "destructive",
       });
     }
-  };
+  }, [router, toast]);
 
-  const handleNewPost = () => {
+  const handleNewPost = useCallback(() => {
     router.push("/admin/article/new");
-  };
+  }, [router]);
 
-  const autoSaveArticle = useCallback(async (article: Article) => {
-    if (!article) return;
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab");
+    if (tab && validTabs.includes(tab as TabId)) {
+      setActiveTab(tab as TabId);
+    }
+  }, []);
 
-    try {
-      setSaveStatus("saving");
-      if (article.id) {
-        await updateArticle(article.id, article);
-      } else {
-        const createdArticle = await addArticle(article);
-        if (createdArticle && createdArticle.id) {
-          setEditingArticle(prev => prev ? { ...prev, id: createdArticle.id } : null);
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/admin/login");
+    }
+  }, [status, router]);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+
+    let cancelled = false;
+    const verifyAdmin = async () => {
+      try {
+        const res = await fetch("/api/auth/user", { credentials: "include" });
+        if (!res.ok && !cancelled) {
+          await signOut({ redirect: false });
+          router.push("/admin/login");
+        }
+      } catch {
+        if (!cancelled) {
+          router.push("/admin/login");
         }
       }
-      setSaveStatus("saved");
-      setTimeout(() => setSaveStatus("idle"), 2000);
-    } catch (error) {
-      console.error("Error auto-saving article:", error);
-      setSaveStatus("idle");
-      toast({
-        title: "Auto-save Failed",
-        description: "There was a problem saving your changes.",
-        variant: "destructive"
-      });
-    }
-  }, [updateArticle, addArticle, toast]);
+    };
 
-  // Auto-save effect with debouncing
-  useEffect(() => {
-    if (!editingArticle || !isWriting) return;
-
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-
-    saveTimeoutRef.current = setTimeout(() => {
-      autoSaveArticle(editingArticle);
-    }, 2000);
-
+    void verifyAdmin();
     return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
+      cancelled = true;
+    };
+  }, [router, status]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const isTypingTarget =
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.isContentEditable ||
+        false;
+
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setIsCommandOpen((open) => !open);
+        return;
+      }
+
+      if (isTypingTarget) return;
+
+      if (event.altKey && event.key.toLowerCase() === "n") {
+        event.preventDefault();
+        handleNewPost();
+        return;
+      }
+
+      if (event.altKey && /^[1-9]$/.test(event.key)) {
+        const idx = Number(event.key) - 1;
+        const item = navItems[idx];
+        if (item) {
+          event.preventDefault();
+          changeTab(item.id);
+        }
       }
     };
-  }, [editingArticle, isWriting, autoSaveArticle]);
 
-  const handleSaveArticle = async () => {
-    if (!editingArticle) return;
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [changeTab, handleNewPost]);
 
-    try {
-      setSaveStatus("saving");
-      if (editingArticle.id) {
-        await updateArticle(editingArticle.id, editingArticle);
-      } else {
-        await addArticle(editingArticle);
-      }
-
-      toast({
-        title: "Article Saved",
-        description: `"${editingArticle.title || 'Untitled'}" has been saved successfully.`,
-      });
-      setSaveStatus("saved");
-      setIsWriting(false);
-      setEditingArticle(null);
-    } catch (error) {
-      console.error("Error saving article:", error);
-      setSaveStatus("idle");
-    }
-  };
-
-  const canPublishArticle = (article: Article | null) => {
-    if (!article) return false;
-    return article.slug?.trim() !== '' && article.title?.trim() !== '';
-  };
-
-  const SidebarItem = ({ icon: Icon, label, id }: { icon: any, label: string, id: string }) => {
-    const handleClick = () => {
-      changeTab(id);
-      if (isMobile) {
-        setIsMobileSidebarOpen(false);
-      }
-    };
+  const SidebarItem = ({
+    id,
+    label,
+    icon: Icon,
+  }: {
+    id: TabId;
+    label: string;
+    icon: ComponentType<{ className?: string }>;
+  }) => {
+    const commonClasses = cn(
+      "w-full rounded-md transition-colors",
+      activeTab === id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+    );
 
     if (!isSidebarExpanded && !isMobile) {
       return (
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
-            <button
-              onClick={handleClick}
-              className={cn(
-                "w-full flex items-center justify-center p-2 rounded-md transition-colors",
-                activeTab === id
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-              )}
-            >
+            <button onClick={() => changeTab(id)} className={cn(commonClasses, "flex items-center justify-center p-2")}>
               <Icon className="h-5 w-5" />
               <span className="sr-only">{label}</span>
             </button>
@@ -248,45 +214,38 @@ export default function AdminDashboard() {
     }
 
     return (
-      <button
-        onClick={handleClick}
-        className={cn(
-          "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-          activeTab === id
-            ? "bg-primary text-primary-foreground"
-            : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-        )}
-      >
+      <button onClick={() => changeTab(id)} className={cn(commonClasses, "flex items-center gap-3 px-3 py-2 text-sm font-medium")}>
         <Icon className="h-4 w-4" />
         {label}
       </button>
     );
   };
 
-  // Sidebar content component (reusable for desktop and mobile)
   const SidebarContent = () => (
     <>
-      <div className={cn(
-        "bg-background/50 backdrop-blur transition-all",
-        isSidebarExpanded && !isMobile ? "p-6 border-b" : isMobile ? "p-6 border-b" : "p-4 border-b-0"
-      )}>
+      <div
+        className={cn(
+          "bg-background/50 backdrop-blur transition-all",
+          isSidebarExpanded && !isMobile ? "border-b p-6" : isMobile ? "border-b p-6" : "border-b-0 p-4",
+        )}
+      >
         {isSidebarExpanded || isMobile ? (
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 overflow-hidden flex-1">
-              <div className="h-8 w-8 rounded-lg bg-primary flex-shrink-0 flex items-center justify-center text-primary-foreground font-bold">
-                {profile?.name?.charAt(0) || 'A'}
+            <div className="flex flex-1 items-center gap-3 overflow-hidden">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground">
+                {profile?.name?.charAt(0) || "A"}
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-sm truncate">{profile?.name || 'Admin'}</div>
-                <div className="text-xs text-muted-foreground truncate">Admin</div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-semibold">{profile?.name || "Admin"}</div>
+                <div className="truncate text-xs text-muted-foreground">Admin</div>
               </div>
             </div>
             {!isMobile && (
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 text-muted-foreground hover:bg-secondary flex-shrink-0"
-                onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+                className="h-6 w-6 flex-shrink-0 text-muted-foreground hover:bg-secondary"
+                onClick={() => setIsSidebarExpanded((expanded) => !expanded)}
               >
                 <ChevronsLeft className="h-4 w-4" />
               </Button>
@@ -294,14 +253,14 @@ export default function AdminDashboard() {
           </div>
         ) : (
           <div className="flex flex-col items-center gap-4">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold">
-              {profile?.name?.charAt(0) || 'A'}
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground">
+              {profile?.name?.charAt(0) || "A"}
             </div>
             <Button
               variant="ghost"
               size="icon"
               className="h-6 w-6 text-muted-foreground hover:bg-secondary"
-              onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+              onClick={() => setIsSidebarExpanded((expanded) => !expanded)}
             >
               <ChevronsRight className="h-4 w-4" />
             </Button>
@@ -309,358 +268,148 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      <div className={cn(
-        "flex-1 overflow-y-auto space-y-6",
-        (isSidebarExpanded || isMobile) ? "py-6 px-3" : "py-6 px-2"
-      )}>
+      <div className={cn("flex-1 space-y-6 overflow-y-auto", isSidebarExpanded || isMobile ? "px-3 py-6" : "px-2 py-6")}>
         <div className="space-y-1">
           {(isSidebarExpanded || isMobile) && (
-            <h4 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Content</h4>
+            <h4 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Content</h4>
           )}
-          <SidebarItem icon={LayoutDashboard} label="Overview" id="overview" />
-          <SidebarItem icon={Settings} label="Home Page" id="settings" />
-          <SidebarItem icon={PenTool} label="Writing" id="writing" />
-          <SidebarItem icon={FolderGit2} label="Projects" id="projects" />
-          <SidebarItem icon={Briefcase} label="Work History" id="work" />
-          <SidebarItem icon={Plane} label="Travel" id="travel" />
-          <SidebarItem icon={BookOpen} label="Reading List" id="reading" />
+          {navItems.slice(0, 7).map((item) => (
+            <SidebarItem key={item.id} id={item.id} label={item.label} icon={item.icon} />
+          ))}
         </div>
-
         <div className="space-y-1">
-           {(isSidebarExpanded || isMobile) && (
-             <h4 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">System</h4>
-           )}
-           <SidebarItem icon={ImageIcon} label="Media Library" id="media" />
-           <SidebarItem icon={Globe} label="SEO & Metadata" id="seo" />
+          {(isSidebarExpanded || isMobile) && (
+            <h4 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">System</h4>
+          )}
+          {navItems.slice(7).map((item) => (
+            <SidebarItem key={item.id} id={item.id} label={item.label} icon={item.icon} />
+          ))}
         </div>
       </div>
 
-      <div className={cn(
-        "p-4 border-t bg-background/50 backdrop-blur flex items-center gap-2",
-        (isSidebarExpanded || isMobile) ? "justify-between" : "flex-col justify-center"
-      )}>
+      <div
+        className={cn(
+          "flex items-center gap-2 border-t bg-background/50 p-4 backdrop-blur",
+          isSidebarExpanded || isMobile ? "justify-between" : "flex-col justify-center",
+        )}
+      >
         <Button
           variant="ghost"
           onClick={handleSignOut}
           className={cn(
-            "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
-            (isSidebarExpanded || isMobile) ? "flex-1 justify-start gap-2" : "w-full justify-center px-0"
+            "text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
+            isSidebarExpanded || isMobile ? "flex-1 justify-start gap-2" : "w-full justify-center px-0",
           )}
           title="Sign Out"
         >
           <LogOut className="h-4 w-4" />
           {(isSidebarExpanded || isMobile) && "Sign Out"}
         </Button>
-        <div className={cn((isSidebarExpanded || isMobile) ? "flex-shrink-0" : "")}>
+        <div className={cn(isSidebarExpanded || isMobile ? "flex-shrink-0" : "")}>
           <ThemeToggle />
         </div>
       </div>
     </>
   );
 
-  // Get tab title for mobile header
-  const getTabTitle = () => {
-    const titles: Record<string, string> = {
-      overview: "Overview",
-      settings: "Home Page",
-      writing: "Writing",
-      projects: "Projects",
-      work: "Work History",
-      travel: "Travel",
-      reading: "Reading List",
-      media: "Media Library",
-      seo: "SEO & Metadata"
-    };
-    return titles[activeTab] || "Dashboard";
-  };
-
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-b flex items-center justify-between px-4 py-3">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsMobileSidebarOpen(true)}
-          className="h-8 w-8"
-        >
+    <div className="flex h-screen overflow-hidden bg-background">
+      <div className="fixed left-0 right-0 top-0 z-50 flex items-center justify-between border-b bg-background/95 px-4 py-3 backdrop-blur md:hidden">
+        <Button variant="ghost" size="icon" onClick={() => setIsMobileSidebarOpen(true)} className="h-8 w-8">
           <Menu className="h-5 w-5" />
         </Button>
-        <h1 className="text-sm font-semibold">{getTabTitle()}</h1>
-        <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-xs">
-          {profile?.name?.charAt(0) || 'A'}
+        <h1 className="text-sm font-semibold">{tabTitles[activeTab]}</h1>
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
+          {profile?.name?.charAt(0) || "A"}
         </div>
       </div>
 
-      {/* Mobile Sidebar Drawer */}
       <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
         <SheetContent side="left" className="w-[280px] p-0">
-          <div className="flex flex-col h-full bg-muted/30">
+          <div className="flex h-full flex-col bg-muted/30">
             <SidebarContent />
           </div>
         </SheetContent>
       </Sheet>
 
-      {/* Desktop Sidebar */}
-      <aside className={cn(
-        "hidden md:flex border-r bg-muted/30 flex-col transition-all duration-300 ease-in-out group relative",
-        isSidebarExpanded ? "w-64" : "w-[72px]"
-      )}>
+      <aside
+        className={cn(
+          "group relative hidden flex-col border-r bg-muted/30 transition-all duration-300 ease-in-out md:flex",
+          isSidebarExpanded ? "w-64" : "w-[72px]",
+        )}
+      >
         <SidebarContent />
       </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background pt-14 md:pt-0">
-        <div className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-4 md:space-y-8">
-          {activeTab === "overview" && (
-            <TabErrorBoundary>
-              <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
-                <OverviewTab
-                  profileName={profile?.name}
-                  articlesCount={articles.length}
-                  draftArticlesCount={draftArticlesCount}
-                  projectsCount={projects.length}
-                  onChangeTab={changeTab}
-                  onNewPost={handleNewPost}
-                />
-              </Suspense>
-            </TabErrorBoundary>
-          )}
-
-          {activeTab === "projects" && (
-            <TabErrorBoundary>
-              <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
-                <ProjectsTab />
-              </Suspense>
-            </TabErrorBoundary>
-          )}
-
-          {activeTab === "writing" && !isWriting && (
-            <TabErrorBoundary>
-              <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
-                <WritingTab />
-              </Suspense>
-            </TabErrorBoundary>
-          )}
-
-          {activeTab === "work" && (
-            <TabErrorBoundary>
-              <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
-                <WorkTab />
-              </Suspense>
-            </TabErrorBoundary>
-          )}
-
-          {activeTab === "writing" && isWriting && editingArticle && (
-            <div className="animate-in fade-in-50 slide-in-from-right-2 duration-300 max-w-4xl mx-auto">
-              <div className="flex items-center justify-between mb-8">
-                <Button variant="ghost" size="sm" onClick={() => {
-                  if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-                  setIsWriting(false);
-                  setEditingArticle(null);
-                  setSaveStatus("idle");
-                }} className="gap-2 pl-0 hover:pl-2 transition-all text-muted-foreground">
-                  <ArrowLeft className="h-4 w-4" /> Back
-                </Button>
-                <div className="flex items-center gap-3">
-                   <span className="text-xs text-muted-foreground">
-                      {editingArticle.content.split(/\s/g).length} words
-                   </span>
-                   <Separator orientation="vertical" className="h-4" />
-                   <Badge variant={editingArticle.status === "Published" ? "default" : "outline"} className="text-xs font-normal">
-                      {editingArticle.status === "Published" ? "Published" : "Draft"}
-                   </Badge>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                  <Textarea
-                    className="text-3xl md:text-4xl font-bold tracking-tight h-auto min-h-[1.5em] border-none px-0 focus-visible:ring-0 placeholder:text-muted-foreground/30 bg-transparent shadow-none rounded-none p-0 leading-tight resize-none overflow-hidden text-primary"
-                    placeholder="Untitled"
-                    value={editingArticle.title}
-                    onChange={(e) => {
-                      setEditingArticle({...editingArticle, title: e.target.value});
-                      e.target.style.height = 'auto';
-                      e.target.style.height = e.target.scrollHeight + 'px';
-                    }}
-                    onInput={(e) => {
-                      const target = e.target as HTMLTextAreaElement;
-                      target.style.height = 'auto';
-                      target.style.height = target.scrollHeight + 'px';
-                    }}
-                    rows={1}
-                    data-testid="input-article-title"
-                  />
-
-                  <Editor
-                    content={editingArticle.content}
-                    onChange={(html) => setEditingArticle({...editingArticle, content: html})}
-                  />
-              </div>
-
-              {/* Settings Drawer/Panel */}
-              <div className="mt-8 md:mt-32 border-t pt-6 md:pt-12 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-16 opacity-70 hover:opacity-100 transition-all duration-300 ease-in-out group">
-                  <div className="space-y-6">
-                     <div className="flex items-center gap-2 text-sm font-medium text-foreground/70">
-                        <Settings className="h-4 w-4" />
-                        Publishing
-                     </div>
-                     <div className="space-y-5">
-                        <div className="flex items-center justify-between group/item p-2 -mx-2 rounded-md hover:bg-secondary/40 transition-colors">
-                          <Label className="text-xs text-muted-foreground font-normal">Status</Label>
-                          <div className="flex items-center gap-2 cursor-pointer" onClick={() => {
-                            const newStatus = editingArticle.status === "Published" ? "Draft" : "Published";
-                            if (newStatus === "Published" && !canPublishArticle(editingArticle)) {
-                              toast({
-                                title: "Cannot Publish",
-                                description: "Article must have a title and slug before publishing.",
-                                variant: "destructive"
-                              });
-                              return;
-                            }
-                            setEditingArticle({...editingArticle, status: newStatus});
-                          }}>
-                            <Badge variant={editingArticle.status === "Published" ? "default" : "outline"} className="font-normal" data-testid="badge-article-status">
-                              {editingArticle.status}
-                            </Badge>
-                            {editingArticle.status === "Draft" && !canPublishArticle(editingArticle) && (
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <AlertCircle className="h-3 w-3 text-muted-foreground" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p className="text-xs">Title and slug required to publish</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
-                          </div>
-                        </div>
-                        <div className="space-y-2 group/item p-2 -mx-2 rounded-md hover:bg-secondary/40 transition-colors">
-                          <Label className="text-xs text-muted-foreground font-normal">Publish Date</Label>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant={"outline"}
-                                className={cn(
-                                  "h-9 w-full justify-start text-left font-normal text-xs",
-                                  !editingArticle.publishedAt && "text-muted-foreground"
-                                )}
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {editingArticle.publishedAt ? format(new Date(editingArticle.publishedAt), "MMM d, yyyy") : <span>Pick a date</span>}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={editingArticle.publishedAt ? new Date(editingArticle.publishedAt) : undefined}
-                                onSelect={(date) => date && setEditingArticle({...editingArticle, publishedAt: date})}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                        <div className="space-y-2 group/item p-2 -mx-2 rounded-md hover:bg-secondary/40 transition-colors">
-                          <Label className="text-xs text-muted-foreground font-normal">URL Slug</Label>
-                          <Input
-                            placeholder="url-slug"
-                            className="h-8 text-xs border-none bg-transparent shadow-none p-0 focus-visible:ring-0 text-foreground placeholder:text-muted-foreground/50"
-                            value={editingArticle.slug}
-                            onChange={(e) => setEditingArticle({...editingArticle, slug: e.target.value})}
-                          />
-                        </div>
-                     </div>
-                  </div>
-
-                  <div className="space-y-6 md:col-span-2">
-                     <div className="flex items-center gap-2 text-sm font-medium text-foreground/70">
-                        <Globe className="h-4 w-4" />
-                        SEO & Metadata
-                     </div>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
-                       <div className="space-y-5">
-                         <div className="space-y-2 group/item p-2 -mx-2 rounded-md hover:bg-secondary/40 transition-colors">
-                           <Label className="text-xs text-muted-foreground font-normal">Excerpt</Label>
-                           <Textarea
-                             className="min-h-[60px] text-xs resize-none border-none bg-transparent shadow-none p-0 focus-visible:ring-0 text-foreground placeholder:text-muted-foreground/50 leading-relaxed"
-                             placeholder="Short summary..."
-                             value={editingArticle.excerpt || ""}
-                             onChange={(e) => setEditingArticle({...editingArticle, excerpt: e.target.value})}
-                           />
-                         </div>
-                         <div className="space-y-2 group/item p-2 -mx-2 rounded-md hover:bg-secondary/40 transition-colors">
-                           <Label className="text-xs text-muted-foreground font-normal">SEO Keywords</Label>
-                           <Input
-                             placeholder="ai, design, future..."
-                             className="h-8 text-xs border-none bg-transparent shadow-none p-0 focus-visible:ring-0 text-foreground placeholder:text-muted-foreground/50"
-                             value={editingArticle.seoKeywords || ""}
-                             onChange={(e) => setEditingArticle({...editingArticle, seoKeywords: e.target.value})}
-                           />
-                         </div>
-                         <div className="space-y-2 group/item p-2 -mx-2 rounded-md hover:bg-secondary/40 transition-colors">
-                           <Label className="text-xs text-muted-foreground font-normal">Tags</Label>
-                           <Input
-                             placeholder="Design, Tech..."
-                             className="h-8 text-xs border-none bg-transparent shadow-none p-0 focus-visible:ring-0 text-foreground placeholder:text-muted-foreground/50"
-                             value={editingArticle.tags || ""}
-                             onChange={(e) => setEditingArticle({...editingArticle, tags: e.target.value})}
-                           />
-                         </div>
-                       </div>
-                       <div className="space-y-2">
-                         <Label className="text-xs text-muted-foreground font-normal px-2">Cover Image</Label>
-                         <div className="aspect-video border border-dashed border-border/50 rounded-lg flex flex-col items-center justify-center text-muted-foreground/50 hover:text-foreground hover:border-border hover:bg-secondary/20 transition-all cursor-pointer">
-                            <Upload className="h-4 w-4 mb-2" />
-                            <span className="text-[10px]">Upload Cover</span>
-                         </div>
-                       </div>
-                     </div>
-                  </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "travel" && (
-            <TabErrorBoundary>
-              <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
-                <TravelTab />
-              </Suspense>
-            </TabErrorBoundary>
-          )}
-
-          {!isWriting && activeTab === "reading" && (
-            <TabErrorBoundary>
-              <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
-                <ReadingTab />
-              </Suspense>
-            </TabErrorBoundary>
-          )}
-
-          {!isWriting && activeTab === "media" && (
-            <TabErrorBoundary>
-              <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
-                <MediaTab />
-              </Suspense>
-            </TabErrorBoundary>
-          )}
-
-          {!isWriting && activeTab === "seo" && (
-            <TabErrorBoundary>
-              <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
-                <SEOTab />
-              </Suspense>
-            </TabErrorBoundary>
-          )}
-
-          {activeTab === "settings" && (
-            <TabErrorBoundary>
-              <Suspense fallback={<div className="text-muted-foreground">Loading...</div>}>
-                <SettingsTab />
-              </Suspense>
-            </TabErrorBoundary>
-          )}
+      <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background pt-14 md:pt-0">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-end gap-2 p-4 pb-0 md:p-8 md:pb-0">
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => setIsCommandOpen(true)}>
+            <CommandIcon className="h-4 w-4" />
+            Commands
+            <span className="hidden text-xs text-muted-foreground md:inline">⌘K</span>
+          </Button>
+          <Button size="sm" className="gap-2" onClick={handleNewPost}>
+            <Plus className="h-4 w-4" />
+            New Article
+          </Button>
+        </div>
+        <div className="mx-auto max-w-[1600px] space-y-4 p-4 md:space-y-8 md:p-8">
+          <AdminTabContent
+            activeTab={activeTab}
+            profileName={profile?.name}
+            articlesCount={articles.length}
+            draftArticlesCount={draftArticlesCount}
+            projectsCount={projects.length}
+            onChangeTab={(tab) => changeTab(tab as TabId)}
+            onNewPost={handleNewPost}
+          />
         </div>
       </main>
+
+      <CommandDialog open={isCommandOpen} onOpenChange={setIsCommandOpen}>
+        <CommandInput placeholder="Search actions..." />
+        <CommandList>
+          <CommandEmpty>No matching actions.</CommandEmpty>
+          <CommandGroup heading="Quick Actions">
+            <CommandItem
+              onSelect={() => {
+                setIsCommandOpen(false);
+                handleNewPost();
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              New Article
+              <CommandShortcut>Alt+N</CommandShortcut>
+            </CommandItem>
+          </CommandGroup>
+          <CommandGroup heading="Navigate Tabs">
+            {navItems.map((item, index) => (
+              <CommandItem
+                key={item.id}
+                onSelect={() => {
+                  setIsCommandOpen(false);
+                  changeTab(item.id);
+                }}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+                <CommandShortcut>{`Alt+${index + 1}`}</CommandShortcut>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+          <CommandGroup heading="Account">
+            <CommandItem
+              onSelect={() => {
+                setIsCommandOpen(false);
+                void handleSignOut();
+              }}
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </CommandItem>
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
     </div>
   );
 }

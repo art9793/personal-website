@@ -4,6 +4,9 @@ import { requireAdminUser } from "../_lib/auth";
 import { csrfAllowed } from "../_lib/http";
 
 export async function GET() {
+  const authResult = await requireAdminUser();
+  if (authResult.error) return authResult.error;
+
   const data = await storage.getTravelHistory();
   return Response.json(data);
 }
