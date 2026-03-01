@@ -1,32 +1,24 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import type { ReactNode } from "react";
-import Uppy from "@uppy/core";
-import type { UploadResult } from "@uppy/core";
-import AwsS3 from "@uppy/aws-s3";
 import { Button } from "@/components/ui/button";
 import { Upload, X, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
+export interface ObjectUploadResult {
+  url: string;
+  objectPath: string;
+}
+
 interface ObjectUploaderProps {
-  maxNumberOfFiles?: number;
   maxFileSize?: number;
-  onGetUploadParameters: () => Promise<{
-    method: "PUT";
-    url: string;
-    objectPath?: string;
-  }>;
-  onComplete?: (
-    result: UploadResult<Record<string, unknown>, Record<string, unknown>>
-  ) => void;
+  onComplete?: (result: ObjectUploadResult) => void;
   buttonClassName?: string;
   children: ReactNode;
 }
 
 export function ObjectUploader({
-  maxNumberOfFiles = 1,
   maxFileSize = 10485760,
-  onGetUploadParameters,
   onComplete,
   buttonClassName,
   children,
@@ -37,76 +29,12 @@ export function ObjectUploader({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const uppyRef = useRef<Uppy | null>(null);
   const { toast } = useToast();
-
-  // Initialize Uppy when modal opens
-  useEffect(() => {
-    if (!showModal) return;
-
-    const uppyInstance = new Uppy({
-      restrictions: {
-        maxNumberOfFiles,
-        maxFileSize,
-        allowedFileTypes: ['image/*'],
-      },
-      autoProceed: false,
-    })
-      .use(AwsS3, {
-        shouldUseMultipart: false,
-        getUploadParameters: async (file) => {
-          const params = await onGetUploadParameters();
-          
-          // Merge objectPath into file metadata if provided
-          if (params.objectPath) {
-            const currentFile = uppyInstance.getFile(file.id);
-            uppyInstance.setFileMeta(file.id, {
-              ...(currentFile?.meta || {}),
-              objectPath: params.objectPath
-            });
-          }
-          
-          return {
-            method: params.method,
-            url: params.url,
-          };
-        },
-      })
-      .on("upload-progress", (file, progress) => {
-        if (progress.bytesTotal) {
-          setUploadProgress((progress.bytesUploaded / progress.bytesTotal) * 100);
-        }
-      })
-      .on("complete", (result) => {
-        setIsUploading(false);
-        setUploadProgress(0);
-        onComplete?.(result);
-        handleClose();
-      })
-      .on("error", (error) => {
-        console.error("Upload error:", error);
-        setIsUploading(false);
-        setUploadProgress(0);
-      });
-    
-    uppyRef.current = uppyInstance;
-
-    // Cleanup when modal closes
-    return () => {
-      if (uppyRef.current) {
-        uppyRef.current.cancelAll();
-        // TypeScript workaround: close() exists but type definition may be incomplete
-        (uppyRef.current as any).close?.();
-        uppyRef.current = null;
-      }
-    };
-  }, [showModal, maxNumberOfFiles, maxFileSize, onGetUploadParameters, onComplete]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file size
     if (file.size > maxFileSize) {
       toast({
         title: "File too large",
@@ -117,35 +45,52 @@ export function ObjectUploader({
     }
 
     setSelectedFile(file);
-    
-    // Create preview
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewUrl(reader.result as string);
-    };
+    reader.onloadend = () => setPreviewUrl(reader.result as string);
     reader.readAsDataURL(file);
   };
 
   const handleUpload = async () => {
-    if (!selectedFile || !uppyRef.current) return;
-
+    if (!selectedFile) return;
     setIsUploading(true);
-    
+
     try {
-      // Clear any existing files before adding new one (handles retry scenarios)
-      const existingFiles = uppyRef.current.getFiles();
-      existingFiles.forEach(file => uppyRef.current?.removeFile(file.id));
-      
-      uppyRef.current.addFile({
-        name: selectedFile.name,
-        type: selectedFile.type,
-        data: selectedFile,
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
+      const xhr = new XMLHttpRequest();
+      xhr.upload.addEventListener("progress", (e) => {
+        if (e.lengthComputable) {
+          setUploadProgress((e.loaded / e.total) * 100);
+        }
       });
 
-      await uppyRef.current.upload();
+      const result = await new Promise<ObjectUploadResult>((resolve, reject) => {
+        xhr.addEventListener("load", () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(JSON.parse(xhr.responseText));
+          } else {
+            reject(new Error(`Upload failed: ${xhr.status}`));
+          }
+        });
+        xhr.addEventListener("error", () => reject(new Error("Upload failed")));
+        xhr.open("POST", "/api/objects/upload");
+        xhr.withCredentials = true;
+        xhr.send(formData);
+      });
+
+      onComplete?.(result);
+      handleClose();
     } catch (error) {
       console.error("Upload failed:", error);
+      toast({
+        title: "Upload failed",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -155,9 +100,7 @@ export function ObjectUploader({
     setPreviewUrl(null);
     setUploadProgress(0);
     setIsUploading(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -168,7 +111,6 @@ export function ObjectUploader({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
 
@@ -182,24 +124,24 @@ export function ObjectUploader({
     }
 
     setSelectedFile(file);
-    
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewUrl(reader.result as string);
-    };
+    reader.onloadend = () => setPreviewUrl(reader.result as string);
     reader.readAsDataURL(file);
   };
 
   return (
     <div>
-      <Button onClick={() => setShowModal(true)} className={buttonClassName} data-testid="button-upload-image">
+      <Button
+        onClick={() => setShowModal(true)}
+        className={buttonClassName}
+        data-testid="button-upload-image"
+      >
         {children}
       </Button>
 
       {showModal && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="relative max-w-md w-full bg-background border border-border/50 rounded-xl shadow-lg overflow-hidden">
-            {/* Header */}
             <div className="flex justify-between items-center px-6 py-4 border-b border-border/50">
               <h3 className="text-lg font-semibold">Upload Image</h3>
               <Button
@@ -213,9 +155,7 @@ export function ObjectUploader({
               </Button>
             </div>
 
-            {/* Content */}
             <div className="p-6 space-y-6">
-              {/* Upload Area */}
               <div
                 onClick={() => !isUploading && fileInputRef.current?.click()}
                 onDragOver={handleDragOver}
@@ -225,7 +165,7 @@ export function ObjectUploader({
                   selectedFile
                     ? "border-primary/50 bg-primary/5"
                     : "border-border hover:border-primary/50 hover:bg-muted/30",
-                  isUploading && "pointer-events-none opacity-60"
+                  isUploading && "pointer-events-none opacity-60",
                 )}
               >
                 {previewUrl ? (
@@ -240,7 +180,9 @@ export function ObjectUploader({
                       <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
                         <div className="text-center space-y-2">
                           <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-                          <p className="text-sm text-muted-foreground">{Math.round(uploadProgress)}%</p>
+                          <p className="text-sm text-muted-foreground">
+                            {Math.round(uploadProgress)}%
+                          </p>
                         </div>
                       </div>
                     )}
@@ -255,7 +197,8 @@ export function ObjectUploader({
                         Drop your image here or click to browse
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        JPG, PNG or GIF • Max {Math.round(maxFileSize / 1024 / 1024)}MB
+                        JPG, PNG or GIF &bull; Max{" "}
+                        {Math.round(maxFileSize / 1024 / 1024)}MB
                       </p>
                     </div>
                   </div>
@@ -270,7 +213,6 @@ export function ObjectUploader({
                 className="hidden"
               />
 
-              {/* Actions */}
               <div className="flex items-center gap-3">
                 <Button
                   variant="outline"

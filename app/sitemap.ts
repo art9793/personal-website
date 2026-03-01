@@ -40,7 +40,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 function getBaseUrl() {
   if (process.env.DEPLOYMENT_URL) return process.env.DEPLOYMENT_URL;
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  if (process.env.RAILWAY_PUBLIC_DOMAIN) return `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
-  if (process.env.RENDER_EXTERNAL_URL) return process.env.RENDER_EXTERNAL_URL;
   return "https://arshad-teli.com";
 }

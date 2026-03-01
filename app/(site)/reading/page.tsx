@@ -1,6 +1,8 @@
 import { BookOpen, Star } from "lucide-react";
 import { getReadingData } from "../../_lib/public-data";
 
+export const revalidate = 3600;
+
 export const metadata = {
   title: "Reading",
 };

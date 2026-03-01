@@ -4,6 +4,8 @@ import { ArrowRight, ExternalLink, Github, Linkedin, Mail } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatArticleHref, getHomeData } from "../_lib/public-data";
 
+export const revalidate = 3600;
+
 export const metadata = {
   title: "Home",
 };

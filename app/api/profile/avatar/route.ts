@@ -14,8 +14,8 @@ export async function PUT(request: Request) {
   if (authResult.error) return authResult.error;
 
   const body = schema.parse(await request.json());
-  const objectStorageService = new ObjectStorageService();
-  const normalizedPath = objectStorageService.normalizeObjectEntityPath(body.objectPath);
+  const service = new ObjectStorageService();
+  const normalizedPath = service.normalizeObjectEntityPath(body.objectPath);
 
   const updated = await storage.updateProfile({ avatarUrl: normalizedPath });
   return Response.json({ avatarUrl: updated.avatarUrl });

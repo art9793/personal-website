@@ -11,8 +11,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useContent } from "@/lib/content-context";
-import { ObjectUploader } from "@/components/ObjectUploader";
-import type { UploadResult } from "@uppy/core";
+import { ObjectUploader, type ObjectUploadResult } from "@/components/ObjectUploader";
 
 export function SettingsTab() {
   const { toast } = useToast();
@@ -60,47 +59,13 @@ export function SettingsTab() {
     }
   };
 
-  const handleAvatarUpload = async () => {
+  const handleAvatarUploadComplete = async (result: ObjectUploadResult) => {
     try {
-      const response = await fetch("/api/objects/upload", {
-        method: "POST",
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Failed to get upload URL");
-      const { uploadURL, objectPath } = await response.json();
-
-      return {
-        method: "PUT" as const,
-        url: uploadURL,
-        objectPath,
-      };
-    } catch (error) {
-      console.error("Error getting upload URL:", error);
-      toast({
-        title: "Upload Error",
-        description: "Failed to prepare image upload",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
-  const handleAvatarUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    try {
-      if (!result.successful || result.successful.length === 0) return;
-
-      const uploadedFile = result.successful[0];
-      const objectPath = uploadedFile.meta?.objectPath as string | undefined;
-
-      if (!objectPath) {
-        throw new Error("Object path not available - upload may have failed");
-      }
-
       const response = await fetch("/api/profile/avatar", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ objectPath }),
+        body: JSON.stringify({ objectPath: result.url }),
       });
 
       if (!response.ok) {
@@ -177,9 +142,7 @@ export function SettingsTab() {
             <div className="flex-1 flex flex-col gap-3 min-w-0">
               <div className="flex flex-col sm:flex-row gap-3">
                 <ObjectUploader
-                  maxNumberOfFiles={1}
                   maxFileSize={5242880}
-                  onGetUploadParameters={handleAvatarUpload}
                   onComplete={handleAvatarUploadComplete}
                   buttonClassName="gap-2 w-full sm:w-auto"
                 >

@@ -3,6 +3,8 @@ import { format } from "date-fns";
 import { PenTool } from "lucide-react";
 import { formatArticleHref, getWritingData } from "../../_lib/public-data";
 
+export const revalidate = 3600;
+
 export const metadata = {
   title: "Writing",
 };

@@ -1,6 +1,8 @@
 import { formatYearRange } from "@/lib/utils";
 import { getWorkData } from "../../_lib/public-data";
 
+export const revalidate = 3600;
+
 export const metadata = {
   title: "Work",
 };

@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { getPublishedArticleBySlug, sanitizeArticleHtml } from "../../../_lib/public-data";
 import { ArticleViewTracker } from "./view-tracker";
 
+export const revalidate = 3600;
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }

@@ -48,3 +48,4 @@ exports/
 
 # Server public directory (generated)
 server/public
+.vercel

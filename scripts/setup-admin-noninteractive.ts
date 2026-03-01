@@ -16,7 +16,7 @@ async function setupAdmin() {
     
     if (!password || password.length < 8) {
       console.error("\n❌ Error: ADMIN_PASSWORD environment variable must be set and at least 8 characters long");
-      console.error("   Set it with: railway variables --set 'ADMIN_PASSWORD=your-secure-password'");
+      console.error("   Set it with: vercel env add ADMIN_PASSWORD");
       process.exit(1);
     }
 

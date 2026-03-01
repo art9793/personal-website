@@ -1,6 +1,17 @@
+import dynamic from "next/dynamic";
 import { AlertCircle } from "lucide-react";
-import { WorldMap } from "@/components/travel/WorldMap";
 import { getTravelData } from "../../_lib/public-data";
+
+const WorldMap = dynamic(
+  () => import("@/components/travel/WorldMap").then((m) => ({ default: m.WorldMap })),
+  {
+    loading: () => (
+      <div className="w-full h-[480px] bg-muted animate-pulse rounded-lg" />
+    ),
+  },
+);
+
+export const revalidate = 3600;
 
 export const metadata = {
   title: "Travel",

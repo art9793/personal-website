@@ -1,3 +1,8 @@
+function hasValue(key: string): boolean {
+  const value = process.env[key];
+  return typeof value === "string" && value.trim().length > 0;
+}
+
 function parseHostname(raw: string): string | null {
   try {
     const value = raw.startsWith("http://") || raw.startsWith("https://") ? raw : `https://${raw}`;
@@ -5,11 +10,6 @@ function parseHostname(raw: string): string | null {
   } catch {
     return null;
   }
-}
-
-function hasValue(key: string): boolean {
-  const value = process.env[key];
-  return typeof value === "string" && value.trim().length > 0;
 }
 
 const requiredOneOf = [["NEXTAUTH_SECRET", "AUTH_SECRET"]];
@@ -33,19 +33,13 @@ if (databaseUrl) {
   if (!parseHostname(databaseUrl)) {
     missing.push("DATABASE_URL (invalid URL)");
   }
-
   if (!/sslmode=/.test(databaseUrl)) {
     warnings.push("DATABASE_URL does not set sslmode. Prefer sslmode=verify-full in production.");
   }
 }
 
-const usesObjectStorage = hasValue("PRIVATE_OBJECT_DIR") || hasValue("PUBLIC_OBJECT_SEARCH_PATHS");
-if (usesObjectStorage) {
-  if (!hasValue("PRIVATE_OBJECT_DIR")) missing.push("PRIVATE_OBJECT_DIR");
-  if (!hasValue("PUBLIC_OBJECT_SEARCH_PATHS")) missing.push("PUBLIC_OBJECT_SEARCH_PATHS");
-  if (!hasValue("GOOGLE_CLOUD_CREDENTIALS") && !hasValue("GOOGLE_APPLICATION_CREDENTIALS")) {
-    missing.push("GOOGLE_CLOUD_CREDENTIALS | GOOGLE_APPLICATION_CREDENTIALS");
-  }
+if (!hasValue("BLOB_READ_WRITE_TOKEN")) {
+  warnings.push("BLOB_READ_WRITE_TOKEN not set — file uploads will not work.");
 }
 
 if (missing.length > 0) {

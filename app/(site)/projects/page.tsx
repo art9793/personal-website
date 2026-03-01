@@ -1,6 +1,8 @@
 import { ExternalLink, FolderGit2 } from "lucide-react";
 import { getActiveProjects } from "../../_lib/public-data";
 
+export const revalidate = 3600;
+
 export const metadata = {
   title: "Projects",
 };
