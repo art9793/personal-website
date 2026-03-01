@@ -84,9 +84,6 @@ export default function AdminDashboard() {
   }, [router]);
 
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7345/ingest/c84c0792-e3a2-4b36-b107-2a948a4255a2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'858265'},body:JSON.stringify({sessionId:'858265',runId:'run1',hypothesisId:'H1',location:'app/admin/page.tsx:87',message:'Admin dashboard mounted',data:{search:window.location.search,path:window.location.pathname},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     const params = new URLSearchParams(window.location.search);
     const tab = params.get("tab");
     if (tab && ["overview", "writing", "projects", "work", "travel", "reading", "media", "seo", "settings"].includes(tab)) {
@@ -95,13 +92,7 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7345/ingest/c84c0792-e3a2-4b36-b107-2a948a4255a2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'858265'},body:JSON.stringify({sessionId:'858265',runId:'run1',hypothesisId:'H2',location:'app/admin/page.tsx:95',message:'Session status observed',data:{status},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     if (status === "unauthenticated") {
-      // #region agent log
-      fetch('http://127.0.0.1:7345/ingest/c84c0792-e3a2-4b36-b107-2a948a4255a2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'858265'},body:JSON.stringify({sessionId:'858265',runId:'run1',hypothesisId:'H2',location:'app/admin/page.tsx:97',message:'Redirecting unauthenticated user',data:{to:'/admin/login'},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       router.push("/admin/login");
     }
   }, [status, router]);
