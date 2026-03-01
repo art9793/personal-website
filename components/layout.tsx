@@ -12,12 +12,13 @@ import { PrefetchLink } from "./PrefetchLink";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = usePathname();
-  const [isExpanded, setIsExpanded] = useState(() => {
-    if (typeof window === "undefined") return false;
-    const saved = sessionStorage.getItem("sidebar-expanded");
-    return saved !== null ? saved === "true" : false;
-  });
+  const [isExpanded, setIsExpanded] = useState(false);
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const saved = sessionStorage.getItem("sidebar-expanded");
+    if (saved === "true") setIsExpanded(true);
+  }, []);
 
   const navItems = [
     { href: "/", label: "Home", icon: Home },
