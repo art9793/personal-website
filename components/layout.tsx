@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
 import { Home, PenTool, FolderGit2, Briefcase, Menu, Lock, ChevronsLeft, ChevronsRight, Plane } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -24,47 +24,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [isMobile, setIsMobile] = useState(false);
   const [open, setOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
-  const lastOpenRef = useRef<boolean | null>(null);
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
-
-  useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7345/ingest/c84c0792-e3a2-4b36-b107-2a948a4255a2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'253300'},body:JSON.stringify({sessionId:'253300',runId:'prod-run1',hypothesisId:'H1',location:'components/layout.tsx:34',message:'Site layout mounted in client',data:{path:window.location.pathname,host:window.location.host,width:window.innerWidth,nodeEnv:process.env.NODE_ENV,debugTag:'prod-both-fixes-2026-03-01'},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
-  }, []);
-
-  useEffect(() => {
-    const onError = (event: ErrorEvent) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7345/ingest/c84c0792-e3a2-4b36-b107-2a948a4255a2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'253300'},body:JSON.stringify({sessionId:'253300',runId:'prod-run1',hypothesisId:'H4',location:'components/layout.tsx:42',message:'Window error captured',data:{message:event.message,filename:event.filename,line:event.lineno,column:event.colno,path:window.location.pathname},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
-    };
-    const onUnhandledRejection = (event: PromiseRejectionEvent) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7345/ingest/c84c0792-e3a2-4b36-b107-2a948a4255a2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'253300'},body:JSON.stringify({sessionId:'253300',runId:'prod-run1',hypothesisId:'H4',location:'components/layout.tsx:47',message:'Unhandled promise rejection captured',data:{reason:String(event.reason),path:window.location.pathname},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
-    };
-    window.addEventListener("error", onError);
-    window.addEventListener("unhandledrejection", onUnhandledRejection);
-    return () => {
-      window.removeEventListener("error", onError);
-      window.removeEventListener("unhandledrejection", onUnhandledRejection);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (lastOpenRef.current === open) return;
-    const sheet = document.querySelector('[data-testid="site-mobile-nav-sheet"]');
-    // #region agent log
-    fetch('http://127.0.0.1:7345/ingest/c84c0792-e3a2-4b36-b107-2a948a4255a2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'253300'},body:JSON.stringify({sessionId:'253300',runId:'prod-run1',hypothesisId:'H3',location:'components/layout.tsx:61',message:'Hamburger open state changed',data:{previous:lastOpenRef.current,next:open,sheetExists:Boolean(sheet),sheetDataState:sheet?.getAttribute('data-state'),path:window.location.pathname},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
-    lastOpenRef.current = open;
-  }, [open]);
 
   const navItems = [
     { href: "/", label: "Home", icon: Home },
@@ -158,32 +123,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         )}
         <div className="flex items-center gap-1">
           <ThemeToggle />
-          <Sheet
-            open={open}
-            onOpenChange={(nextOpen) => {
-              // #region agent log
-              fetch('http://127.0.0.1:7345/ingest/c84c0792-e3a2-4b36-b107-2a948a4255a2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'253300'},body:JSON.stringify({sessionId:'253300',runId:'prod-run1',hypothesisId:'H3',location:'components/layout.tsx:157',message:'Sheet onOpenChange fired',data:{nextOpen,currentOpen:open,path:window.location.pathname},timestamp:Date.now()})}).catch(()=>{});
-              // #endregion
-              setOpen(nextOpen);
-            }}
-          >
+          <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="hover:bg-transparent"
-                onClick={() => {
-                  // #region agent log
-                  fetch('http://127.0.0.1:7345/ingest/c84c0792-e3a2-4b36-b107-2a948a4255a2',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'253300'},body:JSON.stringify({sessionId:'253300',runId:'prod-run1',hypothesisId:'H2',location:'components/layout.tsx:170',message:'Hamburger button clicked',data:{openBeforeClick:open,isMobile,width:window.innerWidth,path:window.location.pathname},timestamp:Date.now()})}).catch(()=>{});
-                  // #endregion
-                }}
-              >
+              <Button variant="ghost" size="icon" className="hover:bg-transparent">
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
             <SheetContent
               side="right"
-              data-testid="site-mobile-nav-sheet"
               className="w-full sm:w-80 p-6 pt-12"
             >
               <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
