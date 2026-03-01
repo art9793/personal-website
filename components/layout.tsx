@@ -12,7 +12,11 @@ import { PrefetchLink } from "./PrefetchLink";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = usePathname();
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const saved = sessionStorage.getItem("sidebar-expanded");
+    return saved !== null ? saved === "true" : false;
+  });
   const [open, setOpen] = useState(false);
 
   const navItems = [
@@ -137,7 +141,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               "h-6 w-6 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-secondary",
               isExpanded ? "absolute -right-4" : ""
             )}
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={() => {
+              const next = !isExpanded;
+              setIsExpanded(next);
+              sessionStorage.setItem("sidebar-expanded", String(next));
+            }}
           >
             {isExpanded ? <ChevronsLeft className="h-4 w-4" /> : <ChevronsRight className="h-4 w-4" />}
           </Button>
