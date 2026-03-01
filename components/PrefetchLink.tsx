@@ -1,16 +1,16 @@
-import Link from "next/link";
+import React from "react";
+import Link, { LinkProps } from "next/link";
 
-interface PrefetchLinkProps {
-  href: string;
-  children: React.ReactNode;
-  className?: string;
-  onClick?: () => void;
-}
+type PrefetchLinkProps = LinkProps & React.AnchorHTMLAttributes<HTMLAnchorElement>;
 
-export function PrefetchLink({ href, children, className, onClick }: PrefetchLinkProps) {
-  return (
-    <Link href={href} className={className} onClick={onClick}>
-      {children}
-    </Link>
-  );
-}
+export const PrefetchLink = React.forwardRef<HTMLAnchorElement, PrefetchLinkProps>(
+  ({ children, ...props }, ref) => {
+    return (
+      <Link ref={ref} {...props}>
+        {children}
+      </Link>
+    );
+  }
+);
+
+PrefetchLink.displayName = "PrefetchLink";

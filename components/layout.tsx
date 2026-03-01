@@ -161,7 +161,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Main Content */}
       <main className={cn("flex-1 flex flex-col transition-all duration-300", isExpanded ? "md:pl-64" : "md:pl-[80px]")}>
-        <div className="mx-auto max-w-3xl w-full px-6 py-12 md:py-20 flex-1 flex flex-col">
+        <div className="mx-auto max-w-2xl w-full px-6 py-12 md:py-20 flex-1 flex flex-col">
           <div
             key={location}
             className="animate-in fade-in-50 slide-in-from-bottom-2 duration-300 flex-1"

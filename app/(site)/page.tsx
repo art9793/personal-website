@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { ArrowRight, ExternalLink, Github, Linkedin, Mail } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { formatArticleHref, getHomeData } from "../_lib/public-data";
+import { PageHeader } from "@/components/page-header";
 
 export const revalidate = 3600;
 
@@ -15,7 +16,7 @@ export default async function Page() {
   const { profile, featuredProjects, recentPosts } = await getHomeData();
 
   return (
-    <div className="space-y-12 animate-in fade-in-50 duration-300">
+    <div className="space-y-16 animate-in fade-in-50 duration-300">
       {profile ? (
         <div className="flex flex-col-reverse md:flex-row md:items-center gap-8 md:gap-12">
           <div className="flex-1 space-y-8">
@@ -27,13 +28,9 @@ export default async function Page() {
                 </Avatar>
               </div>
             )}
-            <div className="space-y-1.5">
-              <h1 className="text-3xl md:text-4xl font-medium tracking-tight text-gray-1100 ">{profile.name}</h1>
-              <p className="text-xl text-muted-foreground">{profile.title}</p>
-            </div>
-            <div className="space-y-6 max-w-xl">
-              <p className="text-lg text-muted-foreground leading-relaxed whitespace-pre-line">{profile.bio}</p>
-            </div>
+            <PageHeader title={profile.name} subtitle={profile.bio}>
+              <p className="text-base text-muted-foreground">{profile.title}</p>
+            </PageHeader>
             <div className="flex items-center gap-2.5 pt-2">
               {profile.twitter && (profile.showTwitter ?? true) && (
                 <a

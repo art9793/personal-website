@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
 import { AlertCircle } from "lucide-react";
 import { getTravelData } from "../../_lib/public-data";
+import { PageHeader } from "@/components/page-header";
 
 const WorldMap = dynamic(
   () => import("@/components/travel/WorldMap").then((m) => ({ default: m.WorldMap })),
@@ -23,10 +24,7 @@ export default async function Page() {
   if (groupedTravelData.length === 0) {
     return (
       <div className="flex flex-col">
-        <div className="space-y-4">
-          <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-gray-1100 ">Travel</h1>
-          <p className="text-muted-foreground text-lg">A visual journey through the countries I&apos;ve visited.</p>
-        </div>
+        <PageHeader title="Travel" subtitle="A visual journey through the countries I've visited." />
         <div className="mt-6 flex items-center justify-center border border-border rounded-lg bg-muted/20 py-16">
           <div className="flex flex-col items-center gap-3 text-muted-foreground">
             <AlertCircle className="h-8 w-8" />
@@ -39,10 +37,7 @@ export default async function Page() {
 
   return (
     <div className="flex flex-col">
-      <div className="space-y-4">
-        <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-gray-1100 ">Travel</h1>
-        <p className="text-muted-foreground text-lg">A visual journey through the countries I&apos;ve visited.</p>
-      </div>
+      <PageHeader title="Travel" subtitle="A visual journey through the countries I've visited." />
       <div className="mt-6">
         <WorldMap travelHistory={groupedTravelData} />
         <p className="text-sm text-muted-foreground mt-4 flex-shrink-0">

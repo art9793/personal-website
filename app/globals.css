@@ -3,6 +3,7 @@
 
 @theme inline {
   --color-gray-100: hsl(var(--gray-100));
+  --color-gray-600: hsl(var(--gray-600));
   --color-gray-1100: hsl(var(--gray-1100));
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -38,6 +39,7 @@
 
 :root {
   --gray-100: 0 0% 96%;
+  --gray-600: 0 0% 40%;
   --gray-1100: 0 0% 16%;
   --background: 0 0% 100%;
   --foreground: 240 10% 3.9%;

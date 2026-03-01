@@ -2,6 +2,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { PenTool } from "lucide-react";
 import { formatArticleHref, getWritingData } from "../../_lib/public-data";
+import { PageHeader } from "@/components/page-header";
 
 export const revalidate = 3600;
 
@@ -15,10 +16,7 @@ export default async function Page() {
 
   return (
     <div className="space-y-12 animate-in fade-in-50 duration-300">
-      <div className="space-y-4">
-        <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-gray-1100 ">Writing</h1>
-        <p className="text-muted-foreground text-lg">Thoughts on design, software, and building products.</p>
-      </div>
+      <PageHeader title="Writing" subtitle="Thoughts on design, software, and building products." />
 
       <div className="space-y-10">
         {years.length === 0 ? (

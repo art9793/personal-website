@@ -1,5 +1,6 @@
 import { formatYearRange } from "@/lib/utils";
 import { getWorkData } from "../../_lib/public-data";
+import { PageHeader } from "@/components/page-header";
 
 export const revalidate = 3600;
 
@@ -12,9 +13,8 @@ export default async function Page() {
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-theme(spacing.24)-theme(spacing.20))] md:min-h-[calc(100vh-theme(spacing.40))]">
-      <div className="space-y-4 flex-shrink-0">
-        <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-gray-1100 ">Work</h1>
-        <p className="text-muted-foreground text-lg">My career journey and the teams I&apos;ve been lucky to work with.</p>
+      <div className="flex-shrink-0">
+        <PageHeader title="Work" subtitle="My career journey and the teams I've been lucky to work with." />
       </div>
 
       <div className="space-y-6 md:space-y-8 mt-8 flex-1">

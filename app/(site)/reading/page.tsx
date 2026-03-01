@@ -1,5 +1,6 @@
 import { BookOpen, Star } from "lucide-react";
 import { getReadingData } from "../../_lib/public-data";
+import { PageHeader } from "@/components/page-header";
 
 export const revalidate = 3600;
 
@@ -12,10 +13,7 @@ export default async function Page() {
 
   return (
     <div className="space-y-12 animate-in fade-in-50 duration-300">
-      <div className="space-y-4">
-        <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-gray-1100 ">Reading</h1>
-        <p className="text-muted-foreground text-lg">A living collection of books that have shaped my thinking.</p>
-      </div>
+      <PageHeader title="Reading" subtitle="A living collection of books that have shaped my thinking." />
 
       {readingList.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">

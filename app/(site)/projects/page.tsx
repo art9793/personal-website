@@ -1,5 +1,6 @@
 import { ExternalLink, FolderGit2 } from "lucide-react";
 import { getActiveProjects } from "../../_lib/public-data";
+import { PageHeader } from "@/components/page-header";
 
 export const revalidate = 3600;
 
@@ -12,12 +13,7 @@ export default async function Page() {
 
   return (
     <div className="space-y-12 animate-in fade-in-50 duration-300">
-      <div className="space-y-4">
-        <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-gray-1100 ">Projects</h1>
-        <p className="text-muted-foreground text-lg">
-          Products I&apos;ve built, communities I&apos;ve founded, and open source work.
-        </p>
-      </div>
+      <PageHeader title="Projects" subtitle="Products I've built, communities I've founded, and open source work." />
 
       {activeProjects.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
