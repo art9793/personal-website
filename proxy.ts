@@ -3,7 +3,9 @@ import type { NextRequest } from "next/server";
 
 const csp = [
   "default-src 'self'",
-  "script-src 'self' https://cloud.umami.is https://static.cloudflareinsights.com",
+  // Next.js injects inline bootstrap/runtime scripts in production.
+  // Blocking inline scripts prevents hydration and breaks client interactions.
+  "script-src 'self' 'unsafe-inline' https://cloud.umami.is https://static.cloudflareinsights.com",
   "script-src-attr 'none'",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
