@@ -21,6 +21,10 @@ import {
 import {
   Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function TravelTab() {
   const {
@@ -42,6 +46,7 @@ export function TravelTab() {
     isHomeCountry: boolean;
   } | null>(null);
   const [isSavingTravel, setIsSavingTravel] = useState(false);
+  const [deleteTravelId, setDeleteTravelId] = useState<number | null>(null);
   const [filterQuery, setFilterQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
 
@@ -160,15 +165,20 @@ export function TravelTab() {
     }
   };
 
-  const handleDeleteTravel = async (id: number, e: React.MouseEvent) => {
+  const handleDeleteTravel = (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm("Are you sure you want to delete this travel entry?")) {
-      try {
-        await deleteTravelHistory(id);
-        toast.success("Travel Entry Deleted", { description: "The entry has been permanently removed." });
-      } catch (error) {
-        toast.error("Error", { description: "Failed to delete travel entry." });
-      }
+    setDeleteTravelId(id);
+  };
+
+  const confirmDeleteTravel = async () => {
+    if (deleteTravelId === null) return;
+    try {
+      await deleteTravelHistory(deleteTravelId);
+      toast.success("Travel Entry Deleted", { description: "The entry has been permanently removed." });
+    } catch (error) {
+      toast.error("Error", { description: "Failed to delete travel entry." });
+    } finally {
+      setDeleteTravelId(null);
     }
   };
 
@@ -425,6 +435,22 @@ export function TravelTab() {
           </div>
         </div>
       )}
+      <AlertDialog open={deleteTravelId !== null} onOpenChange={(open) => { if (!open) setDeleteTravelId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Travel Entry</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this travel entry? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteTravel} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

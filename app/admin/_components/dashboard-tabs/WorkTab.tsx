@@ -19,6 +19,10 @@ import {
 import {
   Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function WorkTab() {
   const { workHistory, addWork, updateWork, deleteWork } = useContent();
@@ -26,6 +30,7 @@ export function WorkTab() {
   const [isWorkSheetOpen, setIsWorkSheetOpen] = useState(false);
   const [editingWork, setEditingWork] = useState<WorkExperience | null>(null);
   const [isSavingWork, setIsSavingWork] = useState(false);
+  const [deleteWorkId, setDeleteWorkId] = useState<number | null>(null);
   const [filterQuery, setFilterQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
 
@@ -121,16 +126,21 @@ export function WorkTab() {
     }
   };
 
-  const handleDeleteWork = async (id: number, e: React.MouseEvent) => {
+  const handleDeleteWork = (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm("Are you sure you want to delete this work experience?")) {
-      try {
-        await deleteWork(id);
-        toast.success("Work Experience Deleted", { description: "The entry has been permanently removed." });
-      } catch (error) {
-        console.error("Error deleting work experience:", error);
-        toast.error("Error", { description: "Failed to delete work experience. Please try again." });
-      }
+    setDeleteWorkId(id);
+  };
+
+  const confirmDeleteWork = async () => {
+    if (deleteWorkId === null) return;
+    try {
+      await deleteWork(deleteWorkId);
+      toast.success("Work Experience Deleted", { description: "The entry has been permanently removed." });
+    } catch (error) {
+      console.error("Error deleting work experience:", error);
+      toast.error("Error", { description: "Failed to delete work experience. Please try again." });
+    } finally {
+      setDeleteWorkId(null);
     }
   };
 
@@ -386,6 +396,23 @@ export function WorkTab() {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={deleteWorkId !== null} onOpenChange={(open) => { if (!open) setDeleteWorkId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Work Experience</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this work experience? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteWork} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -82,7 +82,7 @@ export default function ArticleEditor() {
 
   // Update local state when article data changes
   useEffect(() => {
-    if (existingArticle) {
+    if (existingArticle && !isSaving.current) {
       setTitle(existingArticle.title);
       setContent(existingArticle.content);
       setSlug(existingArticle.slug || "");

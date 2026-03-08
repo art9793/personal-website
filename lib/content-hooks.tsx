@@ -181,7 +181,9 @@ export function useSeoSettings() {
       queryClient.invalidateQueries({ queryKey: ["/api/seo-settings"] });
     },
     onError: (error: Error) => {
-      handleUnauthorized(error);
+      if (!handleUnauthorized(error)) {
+        toast.error("Error", { description: "Failed to update SEO settings" });
+      }
     },
   });
 
