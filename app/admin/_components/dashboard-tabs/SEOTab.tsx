@@ -54,7 +54,7 @@ export function SEOTab() {
   return (
     <div className="space-y-4 md:space-y-6 max-w-3xl">
       <div className="hidden md:block">
-        <h2 className="text-2xl font-bold tracking-tight">SEO & Metadata</h2>
+        <h2 className="text-xl md:text-2xl font-medium tracking-tight">SEO & Metadata</h2>
         <p className="text-muted-foreground mt-1">Configure site-wide SEO settings.</p>
       </div>
       

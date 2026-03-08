@@ -228,11 +228,11 @@ export default function AdminDashboard() {
         {isSidebarExpanded || isMobile ? (
           <div className="flex items-center justify-between gap-3">
             <div className="flex flex-1 items-center gap-3 overflow-hidden">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground">
                 {profile?.name?.charAt(0) || "A"}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-semibold">{profile?.name || "Admin"}</div>
+                <div className="truncate text-sm font-medium">{profile?.name || "Admin"}</div>
                 <div className="truncate text-xs text-muted-foreground">Admin</div>
               </div>
             </div>
@@ -249,7 +249,7 @@ export default function AdminDashboard() {
           </div>
         ) : (
           <div className="flex flex-col items-center gap-4">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary font-medium text-primary-foreground">
               {profile?.name?.charAt(0) || "A"}
             </div>
             <Button
@@ -267,7 +267,7 @@ export default function AdminDashboard() {
       <div className={cn("flex-1 space-y-6 overflow-y-auto", isSidebarExpanded || isMobile ? "px-3 py-6" : "px-2 py-6")}>
         <div className="space-y-1">
           {(isSidebarExpanded || isMobile) && (
-            <h4 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Content</h4>
+            <h4 className="mb-2 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">Content</h4>
           )}
           {navItems.slice(0, 7).map((item) => (
             <SidebarItem key={item.id} id={item.id} label={item.label} icon={item.icon} />
@@ -275,7 +275,7 @@ export default function AdminDashboard() {
         </div>
         <div className="space-y-1">
           {(isSidebarExpanded || isMobile) && (
-            <h4 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">System</h4>
+            <h4 className="mb-2 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">System</h4>
           )}
           {navItems.slice(7).map((item) => (
             <SidebarItem key={item.id} id={item.id} label={item.label} icon={item.icon} />
@@ -321,15 +321,15 @@ export default function AdminDashboard() {
         <Button variant="ghost" size="icon" onClick={() => setIsMobileSidebarOpen(true)} className="h-8 w-8">
           <Menu className="h-5 w-5" />
         </Button>
-        <h1 className="text-sm font-semibold">{tabTitles[activeTab]}</h1>
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
+        <h1 className="text-sm font-medium">{tabTitles[activeTab]}</h1>
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
           {profile?.name?.charAt(0) || "A"}
         </div>
       </div>
 
       <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
         <SheetContent side="left" className="w-[280px] p-0">
-          <div className="flex h-full flex-col bg-muted/30">
+          <div className="flex h-full flex-col bg-card/30 backdrop-blur-sm">
             <SidebarContent />
           </div>
         </SheetContent>
@@ -337,8 +337,8 @@ export default function AdminDashboard() {
 
       <aside
         className={cn(
-          "group relative hidden flex-col border-r bg-muted/30 transition-all duration-300 ease-in-out md:flex",
-          isSidebarExpanded ? "w-64" : "w-[72px]",
+          "group relative hidden flex-col border-r bg-card/30 backdrop-blur-sm transition-all duration-300 ease-in-out md:flex",
+          isSidebarExpanded ? "w-64" : "w-[80px]",
         )}
       >
         <SidebarContent />

@@ -37,12 +37,12 @@ export function OverviewTab({
   return (
     <div className="space-y-4 md:space-y-8 animate-in fade-in-50 duration-300">
       <div className="hidden md:block">
-        <h2 className="text-3xl font-bold tracking-tight">Welcome, {profileName?.split(' ')[0] || 'Admin'}!</h2>
+        <h2 className="text-xl md:text-2xl font-medium tracking-tight">Welcome, {profileName?.split(' ')[0] || 'Admin'}!</h2>
         <p className="text-muted-foreground mt-1">Here's what's happening with your website today.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-        <Card className="shadow-sm border-border/50">
+        <Card className="">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Eye className="h-4 w-4" /> Article Views
@@ -52,9 +52,9 @@ export function OverviewTab({
             {analyticsLoading ? (
               <Skeleton className="h-8 w-20" />
             ) : isError ? (
-              <div className="text-3xl font-bold tracking-tight text-muted-foreground">—</div>
+              <div className="text-2xl font-medium tracking-tight text-muted-foreground">—</div>
             ) : (
-              <div className="text-3xl font-bold tracking-tight">
+              <div className="text-2xl font-medium tracking-tight">
                 {totalViews.toLocaleString()}
               </div>
             )}
@@ -63,23 +63,23 @@ export function OverviewTab({
             </p>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-border/50">
+        <Card className="">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Articles</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold tracking-tight">{articlesCount}</div>
+            <div className="text-2xl font-medium tracking-tight">{articlesCount}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {draftArticlesCount} drafts pending
             </p>
           </CardContent>
         </Card>
-        <Card className="shadow-sm border-border/50">
+        <Card className="">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Projects</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold tracking-tight">{projectsCount}</div>
+            <div className="text-2xl font-medium tracking-tight">{projectsCount}</div>
             <p className="text-xs text-muted-foreground mt-1">
               All active
             </p>
@@ -87,7 +87,7 @@ export function OverviewTab({
         </Card>
       </div>
 
-      <Card className="shadow-sm border-border/50">
+      <Card className="">
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>

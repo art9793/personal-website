@@ -171,7 +171,7 @@ export function ProjectsTab() {
   return (
     <div className="space-y-4 animate-in fade-in-50 duration-300">
       <div className="hidden md:block mb-6">
-        <h2 className="text-2xl font-bold tracking-tight">Projects</h2>
+        <h2 className="text-xl md:text-2xl font-medium tracking-tight">Projects</h2>
       </div>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
         <div className="relative w-full md:w-64">
@@ -340,7 +340,7 @@ export function ProjectsTab() {
                                     <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center text-primary">
                                         <FolderGit2 className="h-4 w-4" />
                                     </div>
-                                    <span className="truncate max-w-[200px] font-semibold">{project.title || "Untitled"}</span>
+                                    <span className="truncate max-w-[200px] font-medium">{project.title || "Untitled"}</span>
                                 </div>
                             </TableCell>
                             <TableCell className="text-xs text-muted-foreground max-w-[300px] truncate">

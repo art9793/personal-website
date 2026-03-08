@@ -7,7 +7,7 @@ export function ReadingTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Reading List</h2>
+          <h2 className="text-xl md:text-2xl font-medium tracking-tight">Reading List</h2>
           <p className="text-muted-foreground mt-1">Books and articles you're reading.</p>
         </div>
         <Button className="gap-2"><Plus className="h-4 w-4" /> Add Book</Button>

@@ -137,7 +137,7 @@ export function WorkTab() {
   return (
     <div className="space-y-4 animate-in fade-in-50 duration-300">
       <div className="hidden md:block mb-6">
-        <h2 className="text-2xl font-bold tracking-tight">Work History</h2>
+        <h2 className="text-xl md:text-2xl font-medium tracking-tight">Work History</h2>
       </div>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
         <div className="relative w-full md:w-64">

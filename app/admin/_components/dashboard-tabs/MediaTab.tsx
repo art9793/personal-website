@@ -7,7 +7,7 @@ export function MediaTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Media Library</h2>
+          <h2 className="text-xl md:text-2xl font-medium tracking-tight">Media Library</h2>
           <p className="text-muted-foreground mt-1">Manage your images and files.</p>
         </div>
         <Button className="gap-2"><Upload className="h-4 w-4" /> Upload</Button>
